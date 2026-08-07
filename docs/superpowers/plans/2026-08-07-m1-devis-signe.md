@@ -127,7 +127,37 @@ import { config } from 'dotenv'
 config({ path: '.env.test' })
 ```
 
-- [ ] **Step 4 : Configurer Drizzle**
+Les tests attaquent la base locale. Remettre la base a zero avant une suite complete :
+
+```json
+// package.json, extrait
+"scripts": {
+  "test": "supabase db reset && vitest run",
+  "test:unit": "vitest run tests/domain tests/lib"
+}
+```
+
+`test:unit` ne touche pas la base : le domaine (`src/domain/`) est pur et se teste sans rien demarrer.
+
+- [ ] **Step 4 : Démarrer la pile Supabase locale**
+
+Développement et tests tournent **en local**, pas sur un projet distant. Un seul projet Supabase distant sera créé plus tard, pour le déploiement.
+
+```bash
+pnpm add -D supabase
+pnpm supabase init
+pnpm supabase start
+```
+
+`supabase start` lance Postgres, GoTrue (authentification), Storage et un collecteur d'e-mails local. Trois raisons de faire ainsi plutôt que d'ouvrir un projet distant de test :
+
+- **Vitesse.** Les tests attaquent Postgres par une socket locale au lieu d'un aller-retour réseau vers Francfort. Sur une suite entière, c'est l'écart entre quelques secondes et plusieurs minutes.
+- **`supabase db reset` remet la base à zéro** et rejoue toutes les migrations. Indispensable : nos tests manipulent des déclencheurs et suppriment des lignes.
+- **Auth et Storage sont disponibles localement**, ce dont la Task 15 a besoin — et les e-mails de lien magique sont capturés localement au lieu d'être réellement envoyés.
+
+Prérequis : Docker doit tourner.
+
+- [ ] **Step 5 : Configurer Drizzle vers les migrations Supabase**
 
 ```typescript
 // drizzle.config.ts
@@ -135,39 +165,50 @@ import type { Config } from 'drizzle-kit'
 
 export default {
   schema: './src/db/schema/*.ts',
-  out: './drizzle',
+  // On ecrit dans le dossier de migrations de Supabase : une seule chaine de
+  // migrations, appliquee a l'identique en local (db reset) et en distant (db push).
+  out: './supabase/migrations',
   dialect: 'postgresql',
   dbCredentials: { url: process.env.DATABASE_URL! },
 } satisfies Config
 ```
 
-- [ ] **Step 5 : Déclarer les variables d'environnement**
+> **Note pour l'implémenteur :** Supabase applique les migrations dans l'ordre lexicographique des noms de fichiers ; Drizzle génère `0000_…`, `0001_…`, ce qui convient. **Vérifier néanmoins qu'un `supabase db reset` rejoue bien les fichiers générés par Drizzle** avant d'aller plus loin — c'est le point de friction connu entre les deux outils. En cas de conflit, renommer les fichiers Drizzle au format horodaté attendu par Supabase.
+
+- [ ] **Step 6 : Déclarer les variables d'environnement**
+
+`supabase start` affiche les URLs et les clés locales. Les reporter dans `.env.local` et `.env.test` :
 
 ```bash
 # .env.example
-DATABASE_URL=postgresql://...
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 APP_URL=http://localhost:3000
+SEL_CODE_SMS=
 ```
 
-Créer deux projets Supabase — un de développement, un de test — **tous deux en région UE** (`eu-west-3` ou `eu-central-1`). La région ne peut pas être modifiée après création.
-
-- [ ] **Step 6 : Vérifier que tout démarre**
+- [ ] **Step 7 : Vérifier que tout démarre**
 
 Run: `pnpm dev`
 Expected: l'application répond sur `http://localhost:3000`
 
+Run: `pnpm supabase status`
+Expected: les services Postgres, Auth, Storage et le collecteur d'e-mails sont listés comme démarrés
+
 Run: `pnpm vitest run`
 Expected: `No test files found` — la configuration est valide.
 
-- [ ] **Step 7 : Commit**
+- [ ] **Step 8 : Commit**
 
 ```bash
 git add -A
-git commit -m "chore: initialisation Next.js, Drizzle, Vitest, Playwright"
+git commit -m "chore: initialisation Next.js, Supabase local, Drizzle, Vitest, Playwright"
 ```
+
+> **Le projet Supabase distant** n'est nécessaire qu'au premier déploiement. Il devra être créé **en région UE** (`eu-west-3` ou `eu-central-1`) — **la région se fixe à la création et ne se change jamais.** Le schéma y sera poussé par `supabase db push`, à partir de la même chaîne de migrations.
 
 ---
 
@@ -794,17 +835,14 @@ const connexion = postgres(process.env.DATABASE_URL!, { prepare: false })
 export const db = drizzle(connexion, { schema })
 ```
 
-- [ ] **Step 6 : Générer et appliquer les migrations**
+- [ ] **Step 6 : Générer la migration**
 
 Run: `pnpm drizzle-kit generate`
-Expected: un fichier SQL apparaît dans `drizzle/`
-
-Run: `pnpm drizzle-kit migrate`
-Expected: `migrations applied successfully`
+Expected: un fichier SQL apparaît dans `supabase/migrations/`
 
 - [ ] **Step 7 : Rendre le journal réellement immuable**
 
-Créer `drizzle/0001_journal_immuable.sql` :
+Créer `supabase/migrations/0001_journal_immuable.sql` :
 
 ```sql
 CREATE OR REPLACE FUNCTION refuser_modification_evenement()
@@ -819,14 +857,19 @@ BEFORE UPDATE OR DELETE ON evenement
 FOR EACH ROW EXECUTE FUNCTION refuser_modification_evenement();
 ```
 
-Appliquer : `psql "$DATABASE_URL" -f drizzle/0001_journal_immuable.sql`
+Ce déclencheur fait partie de la chaîne de migrations, il n'est donc jamais à appliquer à la main : tout environnement neuf l'obtient automatiquement.
 
-- [ ] **Step 8 : Vérifier l'immuabilité**
+- [ ] **Step 8 : Appliquer les migrations**
+
+Run: `pnpm supabase db reset`
+Expected: la base locale est recréée et toutes les migrations sont rejouées, y compris le déclencheur
+
+- [ ] **Step 9 : Vérifier l'immuabilité**
 
 Run: `psql "$DATABASE_URL" -c "INSERT INTO evenement (type, sujet_type, sujet_id, acteur_type) VALUES ('test', 'devis', gen_random_uuid(), 'systeme'); DELETE FROM evenement WHERE type = 'test';"`
 Expected: ERROR — `Le journal d'evenements est append-only`
 
-- [ ] **Step 9 : Commit**
+- [ ] **Step 10 : Commit**
 
 ```bash
 git add src/db drizzle
@@ -2142,7 +2185,7 @@ test('une entreprise redige un devis, l envoie, et le client le signe', async ({
 })
 ```
 
-> `lienMagiqueDeTest` et `codeSmsDeTest` sont des utilitaires à écrire dans `tests/e2e/helpers.ts` — le second lit `code_signature` en base plutôt que d'envoyer un vrai SMS. `devisId` est extrait de l'URL après l'enregistrement du devis. Le premier : il interroge l'API d'administration Supabase pour récupérer le lien de connexion du projet de test. Ne jamais l'utiliser hors environnement de test.
+> `lienMagiqueDeTest` et `codeSmsDeTest` sont des utilitaires à écrire dans `tests/e2e/helpers.ts` — le second lit `code_signature` en base plutôt que d'envoyer un vrai SMS. `devisId` est extrait de l'URL après l'enregistrement du devis. Le premier lit le lien de connexion dans le **collecteur d'e-mails de la pile Supabase locale**, qui capture les messages au lieu de les envoyer. Aucun des deux ne fonctionne ailleurs qu'en local — c'est exactement la garantie voulue.
 
 - [ ] **Step 2 : Lancer le test**
 
