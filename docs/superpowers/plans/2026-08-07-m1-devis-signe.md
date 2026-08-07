@@ -908,16 +908,18 @@ import { evenement } from '../../src/db/schema'
 import { enregistrerEvenement } from '../../src/services/evenements'
 import { eq } from 'drizzle-orm'
 
+// Ces tests n'effacent rien : on isole par identifiant unique, et `pnpm test`
+// remet la base a zero avant la suite. Desactiver le declencheur d'immuabilite
+// pour nettoyer reviendrait a percer, pour la commodite d'un test, la garantie
+// que l'on vient d'etablir.
+afterAll(async () => {
+  await connexion.end()
+})
+
 describe('enregistrerEvenement', () => {
-  const sujetId = '11111111-1111-1111-1111-111111111111'
-
-  beforeEach(async () => {
-    await db.execute('ALTER TABLE evenement DISABLE TRIGGER evenement_immuable')
-    await db.delete(evenement).where(eq(evenement.sujetId, sujetId))
-    await db.execute('ALTER TABLE evenement ENABLE TRIGGER evenement_immuable')
-  })
-
   it('ecrit un evenement horodate', async () => {
+    const sujetId = randomUUID()
+
     await enregistrerEvenement({
       type: 'devis.envoye',
       sujetType: 'devis',
@@ -973,7 +975,9 @@ export async function enregistrerEvenement(e: EvenementEntrant): Promise<void> {
 - [ ] **Step 4 : Lancer le test**
 
 Run: `pnpm vitest run tests/services/evenements.test.ts`
-Expected: PASS — 1 test
+Expected: PASS — 3 tests
+
+> **Piège rencontré :** Drizzle enveloppe les erreurs SQL. `rejects.toThrow('append-only')` échoue parce que le message visible est `Failed query: delete from "evenement"…`. Il faut asserter sur `error.cause`, sinon le test passerait au vert pour n'importe quel échec de requête — y compris une immuabilité cassée.
 
 - [ ] **Step 5 : Commit**
 
