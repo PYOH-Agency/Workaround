@@ -361,7 +361,7 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 | 2 | **Falsification des métriques** en l'absence de paiement transitant par la plateforme | Signature client obligatoire (§9). Risque résiduel assumé : faux clients. Détection d'anomalies à prévoir |
 | 3 | **Extraction fiable des attestations de décennale** — PDF hétérogènes, sans standard | Revue humaine systématique au démarrage, automatisation progressive |
 | 4 | **Marché des outils de devis/facture mature et concurrentiel** | Notre différenciateur n'est pas l'outil mais le passeport. L'outil doit être bon, pas révolutionnaire |
-| 5 | **Facturation électronique obligatoire** — calendrier et obligation de passer par une plateforme agréée | **À vérifier en priorité.** Connaissance non à jour. Probablement un partenariat plutôt qu'un agrément propre |
+| 5 | ~~**Facturation électronique**~~ — **levé**, voir [la recherche](../research/2026-08-07-facturation-electronique.md) | Nous serons **Solution Compatible** raccordée à une **Plateforme Agréée**, jamais agréés nous-mêmes. Échéance TPE : 1ᵉʳ septembre 2027. L'obligation dominante de nos artisans est le **e-reporting** (clients particuliers), pas le e-invoicing. Le suivi des paiements devient une exigence réglementaire |
 | 6 | **RGPD — désormais un sujet de P1, plus de P3.** Le carnet est exposé et contient des données personnelles (adresse, identité du propriétaire, photos de l'intérieur d'un logement). Base légale, durées de conservation, droit à l'effacement et transfert à la revente sont à cadrer | Cadrage juridique **avant la mise en marché**, pas avant P3. Visibilité asymétrique par défaut (§10) |
 | 7 | **Zéro revenu si l'abonnement Pro n'est pas adopté** | Mesurer tôt le taux de conversion vers l'offre payante sur les entreprises de 3 salariés et plus |
 | 8 | **Accès aux sources de vérification** (RNE, URSSAF, RGE, Qualibat) | Vérification technique à mener avant le plan |
@@ -395,8 +395,8 @@ Aucun plan ne peut être écrit avant qu'elles soient prises. Trois d'entre elle
 
 | # | Décision | Pourquoi elle n'est pas anodine |
 |---|---|---|
-| 1 | **Facturation électronique** — obligation de passer par une plateforme agréée, et calendrier applicable | Détermine une dépendance externe structurante sur M2. À lever **avant** M2, pas pendant |
-| 2 | **Signature électronique** — prestataire ou implémentation propre, niveau eIDAS, horodatage, piste d'audit | La signature est le **pivot du système de mesure** (§9). Si elle n'a pas de valeur probante, tout le passeport s'écroule |
+| 1 | ~~Facturation électronique~~ — **tranchée** : Solution Compatible raccordée à une Plateforme Agréée. [Recherche](../research/2026-08-07-facturation-electronique.md) | Reste à choisir la PA partenaire, avant d'écrire le module de facturation |
+| 2 | ~~Signature électronique~~ — **tranchée** : simple, en interne, code SMS, PDF archivé, horodatage RFC 3161 non bloquant. [Recherche](../research/2026-08-07-signature-electronique.md) | — |
 | 3 | **Extraction des attestations** — OCR, LLM, seuil de confiance, circuit de revue humaine | Conditionne le coût récurrent de M3 et le délai de vérification perçu par l'artisan |
 | 4 | Stack applicative, base de données, hébergement | — |
 | 5 | Authentification — deux publics distincts (entreprise, demandeur) | — |

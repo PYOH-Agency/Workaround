@@ -661,7 +661,13 @@ export const client = pgTable('client', {
   entrepriseId: uuid('entreprise_id').notNull().references(() => entreprise.id),
   nom: text('nom').notNull(),
   email: text('email').notNull(),
+  // Obligatoire a l'envoi d'un devis : porte l'identification du signataire par SMS.
   telephone: text('telephone'),
+  // Determine l'obligation applicable en M2 : e-invoicing pour un professionnel,
+  // e-reporting pour un particulier. Le SIRET du client est exige en B2B.
+  // Ajoute des M1 : le collecter plus tard supposerait de rappeler tous les clients deja saisis.
+  type: text('type', { enum: ['particulier', 'professionnel'] }).notNull().default('particulier'),
+  siret: text('siret'),
   creeLe: timestamp('cree_le', { withTimezone: true }).notNull().defaultNow(),
 })
 
@@ -1372,7 +1378,13 @@ import { empreinteAdresse, type Adresse } from '@/domain/adresse'
 
 export interface NouveauChantier {
   entrepriseId: string
-  client: { nom: string; email: string; telephone?: string }
+  client: {
+    nom: string
+    email: string
+    telephone: string
+    type: 'particulier' | 'professionnel'
+    siret?: string
+  }
   adresse: Adresse & { complement?: string }
   libelle: string
 }
@@ -1393,11 +1405,18 @@ export async function creerChantier(entree: NouveauChantier) {
       }).returning()
 
   // Le client, lui, appartient a l'entreprise et n'est jamais partage.
+  // Le SIRET du client sera exige par le e-invoicing B2B en M2 (cf. recherche facturation).
+  if (entree.client.type === 'professionnel' && !entree.client.siret) {
+    throw new Error('Le SIRET est obligatoire pour un client professionnel')
+  }
+
   const [cli] = await db.insert(client).values({
     entrepriseId: entree.entrepriseId,
     nom: entree.client.nom,
     email: entree.client.email,
-    telephone: entree.client.telephone ?? null,
+    telephone: entree.client.telephone,
+    type: entree.client.type,
+    siret: entree.client.siret ?? null,
   }).returning()
 
   const [ch] = await db.insert(chantier).values({
@@ -2084,6 +2103,7 @@ test('une entreprise redige un devis, l envoie, et le client le signe', async ({
   await page.getByLabel('Client').fill('Paul Martin')
   await page.getByLabel('E-mail du client').fill('client@test.local')
   await page.getByLabel('Téléphone du client').fill('0612345678')
+  await page.getByLabel('Type de client').selectOption('particulier')
   await page.getByLabel('Adresse du chantier').fill('12 rue Fondaudege')
   await page.getByLabel('Code postal').fill('33000')
   await page.getByLabel('Ville').fill('Bordeaux')
@@ -2160,4 +2180,5 @@ git commit -m "test: parcours complet de la redaction a la signature du devis"
 - **Aucun compte demandeur.** M5. En M1 le client signe sans compte, via le lien.
 - **Aucun agenda.** M6.
 - **Aucune gestion d'équipe.** M7. Un membre unique, rôle `proprietaire`.
+- **Aucune transmission à une plateforme agréée.** M2. Mais `client.type` et `client.siret` sont collectés dès M1 — voir [la recherche facturation électronique](../research/2026-08-07-facturation-electronique.md).
 - **Aucune bibliothèque d'ouvrages.** Les lignes de devis sont saisies librement. La table `ouvrage` a été délibérément retirée du schéma : tant qu'aucun écran ne l'utilise, c'est du schéma mort. Elle arrivera avec l'écran qui la remplit.
