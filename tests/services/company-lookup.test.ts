@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { rechercherEtablissement } from '@/services/entreprise-publique'
+import { findEstablishment } from '@/services/company-lookup'
 
-const reponse = (corps: unknown, status = 200) =>
-  new Response(JSON.stringify(corps), { status, headers: { 'Content-Type': 'application/json' } })
+const jsonResponse = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 
 /** Societe : nom_raison_sociale renseigne. */
-const SOCIETE = {
+const COMPANY = {
   results: [
     {
       siren: '507698207',
@@ -29,7 +29,7 @@ const SOCIETE = {
 }
 
 /** Entrepreneur individuel : nom_raison_sociale nul, le nom est dans nom_complet. */
-const ENTREPRENEUR_INDIVIDUEL = {
+const SOLE_TRADER = {
   results: [
     {
       siren: '100075886',
@@ -54,78 +54,74 @@ const ENTREPRENEUR_INDIVIDUEL = {
 
 afterEach(() => vi.restoreAllMocks())
 
-describe('rechercherEtablissement', () => {
+describe('findEstablishment', () => {
   it('refuse un SIRET invalide sans appeler le reseau', async () => {
-    const espion = vi.spyOn(globalThis, 'fetch')
-    await expect(rechercherEtablissement('123')).rejects.toThrow('SIRET invalide')
-    expect(espion).not.toHaveBeenCalled()
+    const spy = vi.spyOn(globalThis, 'fetch')
+    await expect(findEstablishment('123')).rejects.toThrow('SIRET invalide')
+    expect(spy).not.toHaveBeenCalled()
   })
 
   it('mappe une societe', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(reponse(SOCIETE))
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(COMPANY))
 
-    const r = await rechercherEtablissement('507 698 207 00036')
-
-    expect(r).toEqual({
+    expect(await findEstablishment('507 698 207 00036')).toEqual({
       siret: '50769820700036',
-      raisonSociale: 'BD PLOMBERIE (BD PLOMBERIE)',
-      formeJuridique: '5710',
-      dateCreation: new Date('2008-09-01'),
-      actif: true,
-      adresseLigne1: '43 RUE SIMONE SIGNORET',
-      codePostal: '33530',
-      ville: 'BASSENS',
+      legalName: 'BD PLOMBERIE (BD PLOMBERIE)',
+      legalForm: '5710',
+      foundedOn: new Date('2008-09-01'),
+      active: true,
+      addressLine1: '43 RUE SIMONE SIGNORET',
+      postalCode: '33530',
+      city: 'BASSENS',
       rge: true,
     })
   })
 
   it('mappe un entrepreneur individuel, dont la raison sociale est nulle', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(reponse(ENTREPRENEUR_INDIVIDUEL))
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(SOLE_TRADER))
 
-    const r = await rechercherEtablissement('10007588600018')
+    const found = await findEstablishment('10007588600018')
 
     // Le nom vient de nom_complet : c'est la forme dominante du metier, et
     // lire nom_raison_sociale produirait une raison sociale vide.
-    expect(r.raisonSociale).toBe('FABRICE CASSOU (FCMI PLOMBERIE)')
-    expect(r.formeJuridique).toBe('1000')
-    expect(r.adresseLigne1).toBe('627 AVENUE DU MARECHAL DE LATTRE DE TASSIGNY')
-    expect(r.rge).toBe(false)
+    expect(found.legalName).toBe('FABRICE CASSOU (FCMI PLOMBERIE)')
+    expect(found.legalForm).toBe('1000')
+    expect(found.addressLine1).toBe('627 AVENUE DU MARECHAL DE LATTRE DE TASSIGNY')
+    expect(found.rge).toBe(false)
   })
 
   it('interroge l API avec minimal=true et matching_etablissements', async () => {
-    const espion = vi.spyOn(globalThis, 'fetch').mockResolvedValue(reponse(SOCIETE))
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(COMPANY))
 
-    await rechercherEtablissement('50769820700036')
+    await findEstablishment('50769820700036')
 
-    const url = String(espion.mock.calls[0][0])
+    const url = String(spy.mock.calls[0][0])
     expect(url).toContain('q=50769820700036')
     expect(url).toContain('minimal=true')
     expect(url).toContain('matching_etablissements')
   })
 
   it('rejette une reponse dont le SIRET ne correspond pas a la demande', async () => {
-    // La recherche est floue : elle peut renvoyer un autre etablissement.
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(reponse(SOCIETE))
-
-    await expect(rechercherEtablissement('50769820700028')).rejects.toThrow('introuvable')
+    // La recherche est plein texte, donc floue.
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(COMPANY))
+    await expect(findEstablishment('50769820700028')).rejects.toThrow('introuvable')
   })
 
   it('signale une entreprise introuvable', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(reponse({ results: [] }))
-    await expect(rechercherEtablissement('50769820700036')).rejects.toThrow('introuvable')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ results: [] }))
+    await expect(findEstablishment('50769820700036')).rejects.toThrow('introuvable')
   })
 
   it('signale une panne de l API sans la confondre avec une absence de resultat', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(reponse({}, 503))
-    await expect(rechercherEtablissement('50769820700036')).rejects.toThrow('indisponible')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({}, 503))
+    await expect(findEstablishment('50769820700036')).rejects.toThrow('indisponible')
   })
 
   it('detecte un etablissement ferme', async () => {
-    const ferme = structuredClone(SOCIETE)
-    ferme.results[0].matching_etablissements[0].etat_administratif = 'F'
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(reponse(ferme))
+    const closed = structuredClone(COMPANY)
+    closed.results[0].matching_etablissements[0].etat_administratif = 'F'
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(closed))
 
-    const r = await rechercherEtablissement('50769820700036')
-    expect(r.actif).toBe(false)
+    expect((await findEstablishment('50769820700036')).active).toBe(false)
   })
 })

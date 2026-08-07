@@ -1,12 +1,14 @@
 'use client'
 
 import { useActionState } from 'react'
-import { inscrire, type EtatInscription } from './actions'
+import { signUp, type SignUpState } from './actions'
 
-const initial: EtatInscription = {}
+const initialState: SignUpState = {}
 
-export default function Inscription() {
-  const [etat, action, enCours] = useActionState(inscrire, initial)
+export default function SignUpPage() {
+  const [state, action, pending] = useActionState(signUp, initialState)
+
+  const field = 'rounded-lg border border-black/15 px-3 py-2 dark:border-white/20'
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 px-6">
@@ -28,23 +30,23 @@ export default function Inscription() {
             required
             inputMode="numeric"
             placeholder="123 456 789 00012"
-            className="rounded-lg border border-black/15 px-3 py-2 font-mono dark:border-white/20"
+            className={`${field} font-mono`}
           />
           <p className="text-xs opacity-60">14 chiffres, espaces acceptés.</p>
         </div>
 
-        {etat.erreur && (
+        {state.error && (
           <p role="alert" className="text-sm text-red-600">
-            {etat.erreur}
+            {state.error}
           </p>
         )}
 
         <button
           type="submit"
-          disabled={enCours}
+          disabled={pending}
           className="rounded-lg bg-foreground px-4 py-2 font-medium text-background disabled:opacity-50"
         >
-          {enCours ? 'Recherche…' : 'Continuer'}
+          {pending ? 'Recherche…' : 'Continuer'}
         </button>
       </form>
     </main>

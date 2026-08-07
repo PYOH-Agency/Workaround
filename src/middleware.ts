@@ -4,24 +4,23 @@ import { NextResponse, type NextRequest } from 'next/server'
 /**
  * Rafraichit la session Supabase a chaque requete.
  *
- * Absent du plan initial, et pourtant indispensable : un Server Component ne
- * peut pas ecrire de cookie. Sans ce middleware, le jeton d'acces n'est jamais
- * renouvele et la session expire en silence au bout d'une heure — l'artisan se
- * retrouve deconnecte en plein devis.
+ * Indispensable : un Server Component ne peut pas ecrire de cookie. Sans ce
+ * middleware, le jeton d'acces n'est jamais renouvele et la session expire en
+ * silence au bout d'une heure — l'artisan se retrouve deconnecte en plein devis.
  */
-export async function middleware(requete: NextRequest) {
-  let reponse = NextResponse.next({ request: requete })
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: () => requete.cookies.getAll(),
-        setAll: (liste) => {
-          liste.forEach(({ name, value }) => requete.cookies.set(name, value))
-          reponse = NextResponse.next({ request: requete })
-          liste.forEach(({ name, value, options }) => reponse.cookies.set(name, value, options))
+        getAll: () => request.cookies.getAll(),
+        setAll: (list) => {
+          list.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          list.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
         },
       },
     },
@@ -30,7 +29,7 @@ export async function middleware(requete: NextRequest) {
   // Cet appel est ce qui declenche le rafraichissement. Ne pas le supprimer.
   await supabase.auth.getUser()
 
-  return reponse
+  return response
 }
 
 export const config = {

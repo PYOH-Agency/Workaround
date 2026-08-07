@@ -3,13 +3,13 @@
 -- par la base, pour que personne — y compris nous — ne puisse reecrire
 -- l'historique sur lequel repose la reputation d'une entreprise.
 
-CREATE OR REPLACE FUNCTION refuser_modification_evenement()
+CREATE OR REPLACE FUNCTION reject_event_mutation()
 RETURNS TRIGGER AS $$
 BEGIN
   RAISE EXCEPTION 'Le journal d''evenements est append-only';
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER evenement_immuable
-BEFORE UPDATE OR DELETE ON evenement
-FOR EACH ROW EXECUTE FUNCTION refuser_modification_evenement();
+CREATE TRIGGER event_immutable
+BEFORE UPDATE OR DELETE ON event
+FOR EACH ROW EXECUTE FUNCTION reject_event_mutation();

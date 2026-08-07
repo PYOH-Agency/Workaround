@@ -1,24 +1,24 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { membre } from '@/db/schema'
-import { creerClientServeur } from './supabase-serveur'
+import { member } from '@/db/schema'
+import { createServerSupabase } from './supabase-server'
 
-export class ErreurSession extends Error {}
+export class SessionError extends Error {}
 
-export interface Utilisateur {
+export interface AuthUser {
   id: string
   email: string
 }
 
-export interface Rattachement {
-  entrepriseId: string
+export interface Membership {
+  companyId: string
   role: string
 }
 
 export interface Session {
-  utilisateurId: string
+  userId: string
   email: string
-  entrepriseId: string
+  companyId: string
   role: string
 }
 
@@ -28,33 +28,28 @@ export interface Session {
  * Les deux causes de rejet sont distinctes a dessein : « session expiree »
  * renvoie vers la connexion, « aucune entreprise » vers l'inscription.
  */
-export function resoudreEntreprise(
-  utilisateur: Utilisateur | null,
-  rattachement: Rattachement | null,
-): Session {
-  if (!utilisateur) throw new ErreurSession('Session expiree')
-  if (!rattachement) throw new ErreurSession('Aucune entreprise rattachee a ce compte')
+export function resolveCompany(user: AuthUser | null, membership: Membership | null): Session {
+  if (!user) throw new SessionError('Session expiree')
+  if (!membership) throw new SessionError('Aucune entreprise rattachee a ce compte')
 
   return {
-    utilisateurId: utilisateur.id,
-    email: utilisateur.email,
-    entrepriseId: rattachement.entrepriseId,
-    role: rattachement.role,
+    userId: user.id,
+    email: user.email,
+    companyId: membership.companyId,
+    role: membership.role,
   }
 }
 
-export async function entrepriseCourante(): Promise<Session> {
-  const supabase = await creerClientServeur()
+export async function currentCompany(): Promise<Session> {
+  const supabase = await createServerSupabase()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const ligne = user
-    ? await db.query.membre.findFirst({ where: eq(membre.utilisateurId, user.id) })
-    : null
+  const row = user ? await db.query.member.findFirst({ where: eq(member.userId, user.id) }) : null
 
-  return resoudreEntreprise(
+  return resolveCompany(
     user ? { id: user.id, email: user.email! } : null,
-    ligne ? { entrepriseId: ligne.entrepriseId, role: ligne.role } : null,
+    row ? { companyId: row.companyId, role: row.role } : null,
   )
 }

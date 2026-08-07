@@ -3,79 +3,74 @@
 import { redirect } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { entreprise, membre } from '@/db/schema'
-import { rechercherEtablissement } from '@/services/entreprise-publique'
-import { enregistrerEvenement } from '@/services/evenements'
-import { creerClientServeur } from '@/lib/supabase-serveur'
+import { company, member } from '@/db/schema'
+import { findEstablishment } from '@/services/company-lookup'
+import { recordEvent } from '@/services/events'
+import { createServerSupabase } from '@/lib/supabase-server'
 
-export interface EtatInscription {
-  erreur?: string
+export interface SignUpState {
+  error?: string
 }
 
-export async function inscrire(
-  _etat: EtatInscription,
-  donnees: FormData,
-): Promise<EtatInscription> {
-  const supabase = await creerClientServeur()
+export async function signUp(_state: SignUpState, form: FormData): Promise<SignUpState> {
+  const supabase = await createServerSupabase()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return { erreur: 'Session expirée. Reconnectez-vous.' }
+  if (!user) return { error: 'Session expirée. Reconnectez-vous.' }
 
-  const dejaRattache = await db.query.membre.findFirst({
-    where: eq(membre.utilisateurId, user.id),
-  })
-  if (dejaRattache) redirect('/devis')
+  const alreadyMember = await db.query.member.findFirst({ where: eq(member.userId, user.id) })
+  if (alreadyMember) redirect('/devis')
 
-  let etablissement
+  let establishment
   try {
-    etablissement = await rechercherEtablissement(String(donnees.get('siret') ?? ''))
+    establishment = await findEstablishment(String(form.get('siret') ?? ''))
   } catch (e) {
-    return { erreur: (e as Error).message }
+    return { error: (e as Error).message }
   }
 
-  if (!etablissement.actif) {
-    return { erreur: "Cet établissement n'est plus actif au répertoire des entreprises." }
+  if (!establishment.active) {
+    return { error: "Cet établissement n'est plus actif au répertoire des entreprises." }
   }
 
-  const dejaInscrite = await db.query.entreprise.findFirst({
-    where: eq(entreprise.siret, etablissement.siret),
+  const alreadyRegistered = await db.query.company.findFirst({
+    where: eq(company.siret, establishment.siret),
   })
-  if (dejaInscrite) {
-    return { erreur: 'Cette entreprise est déjà inscrite. Demandez une invitation à son responsable.' }
+  if (alreadyRegistered) {
+    return { error: 'Cette entreprise est déjà inscrite. Demandez une invitation à son responsable.' }
   }
 
-  const [nouvelle] = await db
-    .insert(entreprise)
+  const [created] = await db
+    .insert(company)
     .values({
-      siret: etablissement.siret,
-      raisonSociale: etablissement.raisonSociale,
-      formeJuridique: etablissement.formeJuridique,
-      adresseLigne1: etablissement.adresseLigne1,
-      codePostal: etablissement.codePostal,
-      ville: etablissement.ville,
-      dateCreationEntreprise: etablissement.dateCreation,
+      siret: establishment.siret,
+      legalName: establishment.legalName,
+      legalForm: establishment.legalForm,
+      addressLine1: establishment.addressLine1,
+      postalCode: establishment.postalCode,
+      city: establishment.city,
+      foundedOn: establishment.foundedOn,
     })
     .returning()
 
-  await db.insert(membre).values({
-    entrepriseId: nouvelle.id,
-    utilisateurId: user.id,
+  await db.insert(member).values({
+    companyId: created.id,
+    userId: user.id,
     email: user.email!,
-    role: 'proprietaire',
+    role: 'owner',
   })
 
-  await enregistrerEvenement({
-    type: 'entreprise.creee',
-    sujetType: 'entreprise',
-    sujetId: nouvelle.id,
-    entrepriseId: nouvelle.id,
-    acteurType: 'entreprise',
-    acteurId: user.id,
+  await recordEvent({
+    type: 'company.created',
+    subjectType: 'company',
+    subjectId: created.id,
+    companyId: created.id,
+    actorType: 'company',
+    actorId: user.id,
     // Le RGE est releve des l'inscription : c'est l'une des habilitations
     // bloquantes de M3, et l'API la donne gratuitement.
-    payload: { siret: nouvelle.siret, rge: etablissement.rge },
+    payload: { siret: created.siret, rge: establishment.rge },
   })
 
   redirect('/devis')

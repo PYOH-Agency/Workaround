@@ -1,11 +1,11 @@
 {
-  "id": "debf4934-8a1a-4c0c-9e98-44829f8e3b7c",
+  "id": "c47f8bfb-6c77-4499-af15-634808d6a696",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.chantier": {
-      "name": "chantier",
+    "public.company": {
+      "name": "company",
       "schema": "",
       "columns": {
         "id": {
@@ -15,39 +15,116 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "entreprise_id": {
-          "name": "entreprise_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "client_id": {
-          "name": "client_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "logement_id": {
-          "name": "logement_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "libelle": {
-          "name": "libelle",
+        "siret": {
+          "name": "siret",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "statut": {
-          "name": "statut",
+        "legal_name": {
+          "name": "legal_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "legal_form": {
+          "name": "legal_form",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address_line1": {
+          "name": "address_line1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "postal_code": {
+          "name": "postal_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "founded_on": {
+          "name": "founded_on",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "company_siret_unique": {
+          "name": "company_siret_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "siret"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.member": {
+      "name": "member",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'brouillon'"
+          "default": "'owner'"
         },
-        "cree_le": {
-          "name": "cree_le",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -56,38 +133,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "chantier_entreprise_id_entreprise_id_fk": {
-          "name": "chantier_entreprise_id_entreprise_id_fk",
-          "tableFrom": "chantier",
-          "tableTo": "entreprise",
+        "member_company_id_company_id_fk": {
+          "name": "member_company_id_company_id_fk",
+          "tableFrom": "member",
+          "tableTo": "company",
           "columnsFrom": [
-            "entreprise_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "chantier_client_id_client_id_fk": {
-          "name": "chantier_client_id_client_id_fk",
-          "tableFrom": "chantier",
-          "tableTo": "client",
-          "columnsFrom": [
-            "client_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "chantier_logement_id_logement_id_fk": {
-          "name": "chantier_logement_id_logement_id_fk",
-          "tableFrom": "chantier",
-          "tableTo": "logement",
-          "columnsFrom": [
-            "logement_id"
+            "company_id"
           ],
           "columnsTo": [
             "id"
@@ -97,13 +148,21 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "member_user_id_unique": {
+          "name": "member_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.client": {
-      "name": "client",
+    "public.property": {
+      "name": "property",
       "schema": "",
       "columns": {
         "id": {
@@ -113,14 +172,214 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "entreprise_id": {
-          "name": "entreprise_id",
+        "fingerprint": {
+          "name": "fingerprint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address_line1": {
+          "name": "address_line1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address_line2": {
+          "name": "address_line2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "postal_code": {
+          "name": "postal_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "built_year": {
+          "name": "built_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "property_postal_code_idx": {
+          "name": "property_postal_code_idx",
+          "columns": [
+            {
+              "expression": "postal_code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "property_fingerprint_unique": {
+          "name": "property_fingerprint_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "fingerprint"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.event": {
+      "name": "event",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subject_type": {
+          "name": "subject_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject_id": {
+          "name": "subject_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "nom": {
-          "name": "nom",
+        "actor_type": {
+          "name": "actor_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "event_company_idx": {
+          "name": "event_company_idx",
+          "columns": [
+            {
+              "expression": "company_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "occurred_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "event_subject_idx": {
+          "name": "event_subject_idx",
+          "columns": [
+            {
+              "expression": "subject_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "subject_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.customer": {
+      "name": "customer",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -131,8 +390,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "telephone": {
-          "name": "telephone",
+        "phone": {
+          "name": "phone",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -142,7 +401,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'particulier'"
+          "default": "'individual'"
         },
         "siret": {
           "name": "siret",
@@ -150,8 +409,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "cree_le": {
-          "name": "cree_le",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -160,12 +419,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "client_entreprise_id_entreprise_id_fk": {
-          "name": "client_entreprise_id_entreprise_id_fk",
-          "tableFrom": "client",
-          "tableTo": "entreprise",
+        "customer_company_id_company_id_fk": {
+          "name": "customer_company_id_company_id_fk",
+          "tableFrom": "customer",
+          "tableTo": "company",
           "columnsFrom": [
-            "entreprise_id"
+            "company_id"
           ],
           "columnsTo": [
             "id"
@@ -180,8 +439,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.code_signature": {
-      "name": "code_signature",
+    "public.project": {
+      "name": "project",
       "schema": "",
       "columns": {
         "id": {
@@ -191,45 +450,39 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "devis_id": {
-          "name": "devis_id",
+        "company_id": {
+          "name": "company_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "code_hash": {
-          "name": "code_hash",
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "property_id": {
+          "name": "property_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "telephone": {
-          "name": "telephone",
+        "status": {
+          "name": "status",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "expire_le": {
-          "name": "expire_le",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "tentatives": {
-          "name": "tentatives",
-          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": 0
+          "default": "'draft'"
         },
-        "valide_le": {
-          "name": "valide_le",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cree_le": {
-          "name": "cree_le",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -238,17 +491,43 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "code_signature_devis_id_devis_id_fk": {
-          "name": "code_signature_devis_id_devis_id_fk",
-          "tableFrom": "code_signature",
-          "tableTo": "devis",
+        "project_company_id_company_id_fk": {
+          "name": "project_company_id_company_id_fk",
+          "tableFrom": "project",
+          "tableTo": "company",
           "columnsFrom": [
-            "devis_id"
+            "company_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "project_customer_id_customer_id_fk": {
+          "name": "project_customer_id_customer_id_fk",
+          "tableFrom": "project",
+          "tableTo": "customer",
+          "columnsFrom": [
+            "customer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "project_property_id_property_id_fk": {
+          "name": "project_property_id_property_id_fk",
+          "tableFrom": "project",
+          "tableTo": "property",
+          "columnsFrom": [
+            "property_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -258,8 +537,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.devis": {
-      "name": "devis",
+    "public.quote": {
+      "name": "quote",
       "schema": "",
       "columns": {
         "id": {
@@ -269,14 +548,20 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "chantier_id": {
-          "name": "chantier_id",
+        "project_id": {
+          "name": "project_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "numero": {
-          "name": "numero",
+        "company_id": {
+          "name": "company_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "number": {
+          "name": "number",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -288,74 +573,103 @@
           "notNull": true,
           "default": 1
         },
-        "statut": {
-          "name": "statut",
+        "status": {
+          "name": "status",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'brouillon'"
+          "default": "'draft'"
         },
-        "delai_engage_jours": {
-          "name": "delai_engage_jours",
+        "committed_lead_time_days": {
+          "name": "committed_lead_time_days",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
-        "total_ht": {
-          "name": "total_ht",
+        "total_excl_tax": {
+          "name": "total_excl_tax",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
-        "total_tva": {
-          "name": "total_tva",
+        "total_tax": {
+          "name": "total_tax",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
-        "total_ttc": {
-          "name": "total_ttc",
+        "total_incl_tax": {
+          "name": "total_incl_tax",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
-        "token_public": {
-          "name": "token_public",
+        "public_token": {
+          "name": "public_token",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "envoye_le": {
-          "name": "envoye_le",
+        "sent_at": {
+          "name": "sent_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
-        "signe_le": {
-          "name": "signe_le",
+        "signed_at": {
+          "name": "signed_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
-        "cree_le": {
-          "name": "cree_le",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "quote_company_idx": {
+          "name": "quote_company_idx",
+          "columns": [
+            {
+              "expression": "company_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
-        "devis_chantier_id_chantier_id_fk": {
-          "name": "devis_chantier_id_chantier_id_fk",
-          "tableFrom": "devis",
-          "tableTo": "chantier",
+        "quote_project_id_project_id_fk": {
+          "name": "quote_project_id_project_id_fk",
+          "tableFrom": "quote",
+          "tableTo": "project",
           "columnsFrom": [
-            "chantier_id"
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "quote_company_id_company_id_fk": {
+          "name": "quote_company_id_company_id_fk",
+          "tableFrom": "quote",
+          "tableTo": "company",
+          "columnsFrom": [
+            "company_id"
           ],
           "columnsTo": [
             "id"
@@ -366,18 +680,19 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "devis_token_public_unique": {
-          "name": "devis_token_public_unique",
+        "quote_public_token_unique": {
+          "name": "quote_public_token_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "token_public"
+            "public_token"
           ]
         },
-        "devis_numero_version_uq": {
-          "name": "devis_numero_version_uq",
+        "quote_number_version_uq": {
+          "name": "quote_number_version_uq",
           "nullsNotDistinct": false,
           "columns": [
-            "numero",
+            "company_id",
+            "number",
             "version"
           ]
         }
@@ -386,8 +701,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.ligne_devis": {
-      "name": "ligne_devis",
+    "public.quote_line": {
+      "name": "quote_line",
       "schema": "",
       "columns": {
         "id": {
@@ -397,8 +712,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "devis_id": {
-          "name": "devis_id",
+        "quote_id": {
+          "name": "quote_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -409,33 +724,33 @@
           "primaryKey": false,
           "notNull": true
         },
-        "libelle": {
-          "name": "libelle",
+        "label": {
+          "name": "label",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "unite": {
-          "name": "unite",
+        "unit": {
+          "name": "unit",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "default": "'u'"
         },
-        "quantite": {
-          "name": "quantite",
+        "quantity": {
+          "name": "quantity",
           "type": "numeric(12, 3)",
           "primaryKey": false,
           "notNull": true
         },
-        "prix_unitaire_ht": {
-          "name": "prix_unitaire_ht",
+        "unit_price_excl_tax": {
+          "name": "unit_price_excl_tax",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "taux_tva": {
-          "name": "taux_tva",
+        "tax_rate": {
+          "name": "tax_rate",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -443,12 +758,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "ligne_devis_devis_id_devis_id_fk": {
-          "name": "ligne_devis_devis_id_devis_id_fk",
-          "tableFrom": "ligne_devis",
-          "tableTo": "devis",
+        "quote_line_quote_id_quote_id_fk": {
+          "name": "quote_line_quote_id_quote_id_fk",
+          "tableFrom": "quote_line",
+          "tableTo": "quote",
           "columnsFrom": [
-            "devis_id"
+            "quote_id"
           ],
           "columnsTo": [
             "id"
@@ -474,38 +789,38 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "devis_id": {
-          "name": "devis_id",
+        "quote_id": {
+          "name": "quote_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "nom_signataire": {
-          "name": "nom_signataire",
+        "signer_name": {
+          "name": "signer_name",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "email_signataire": {
-          "name": "email_signataire",
+        "signer_email": {
+          "name": "signer_email",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "telephone_signataire": {
-          "name": "telephone_signataire",
+        "signer_phone": {
+          "name": "signer_phone",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "code_valide_le": {
-          "name": "code_valide_le",
+        "code_validated_at": {
+          "name": "code_validated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
         },
-        "adresse_ip": {
-          "name": "adresse_ip",
+        "ip_address": {
+          "name": "ip_address",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -516,26 +831,26 @@
           "primaryKey": false,
           "notNull": true
         },
-        "hash_document": {
-          "name": "hash_document",
+        "document_hash": {
+          "name": "document_hash",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "chemin_pdf_archive": {
-          "name": "chemin_pdf_archive",
+        "archived_pdf_path": {
+          "name": "archived_pdf_path",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "jeton_horodatage": {
-          "name": "jeton_horodatage",
+        "timestamp_token": {
+          "name": "timestamp_token",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "signe_le": {
-          "name": "signe_le",
+        "signed_at": {
+          "name": "signed_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -544,12 +859,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "signature_devis_id_devis_id_fk": {
-          "name": "signature_devis_id_devis_id_fk",
+        "signature_quote_id_quote_id_fk": {
+          "name": "signature_quote_id_quote_id_fk",
           "tableFrom": "signature",
-          "tableTo": "devis",
+          "tableTo": "quote",
           "columnsFrom": [
-            "devis_id"
+            "quote_id"
           ],
           "columnsTo": [
             "id"
@@ -560,11 +875,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "signature_devis_id_unique": {
-          "name": "signature_devis_id_unique",
+        "signature_quote_id_unique": {
+          "name": "signature_quote_id_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "devis_id"
+            "quote_id"
           ]
         }
       },
@@ -572,8 +887,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.entreprise": {
-      "name": "entreprise",
+    "public.signature_code": {
+      "name": "signature_code",
       "schema": "",
       "columns": {
         "id": {
@@ -583,203 +898,45 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "siret": {
-          "name": "siret",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "raison_sociale": {
-          "name": "raison_sociale",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "forme_juridique": {
-          "name": "forme_juridique",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "adresse_ligne1": {
-          "name": "adresse_ligne1",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "code_postal": {
-          "name": "code_postal",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "ville": {
-          "name": "ville",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "date_creation_entreprise": {
-          "name": "date_creation_entreprise",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cree_le": {
-          "name": "cree_le",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "entreprise_siret_unique": {
-          "name": "entreprise_siret_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "siret"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.logement": {
-      "name": "logement",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
+        "quote_id": {
+          "name": "quote_id",
           "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "primaryKey": false,
+          "notNull": true
         },
-        "empreinte": {
-          "name": "empreinte",
+        "code_hash": {
+          "name": "code_hash",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "adresse_ligne1": {
-          "name": "adresse_ligne1",
+        "phone": {
+          "name": "phone",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "complement": {
-          "name": "complement",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "code_postal": {
-          "name": "code_postal",
-          "type": "text",
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
         },
-        "ville": {
-          "name": "ville",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "annee_construction": {
-          "name": "annee_construction",
+        "attempts": {
+          "name": "attempts",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": 0
         },
-        "cree_le": {
-          "name": "cree_le",
+        "validated_at": {
+          "name": "validated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "logement_code_postal_idx": {
-          "name": "logement_code_postal_idx",
-          "columns": [
-            {
-              "expression": "code_postal",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "logement_empreinte_unique": {
-          "name": "logement_empreinte_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "empreinte"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.membre": {
-      "name": "membre",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "entreprise_id": {
-          "name": "entreprise_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "utilisateur_id": {
-          "name": "utilisateur_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "nom": {
-          "name": "nom",
-          "type": "text",
-          "primaryKey": false,
           "notNull": false
         },
-        "role": {
-          "name": "role",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'proprietaire'"
-        },
-        "cree_le": {
-          "name": "cree_le",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -788,141 +945,20 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "membre_entreprise_id_entreprise_id_fk": {
-          "name": "membre_entreprise_id_entreprise_id_fk",
-          "tableFrom": "membre",
-          "tableTo": "entreprise",
+        "signature_code_quote_id_quote_id_fk": {
+          "name": "signature_code_quote_id_quote_id_fk",
+          "tableFrom": "signature_code",
+          "tableTo": "quote",
           "columnsFrom": [
-            "entreprise_id"
+            "quote_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "membre_utilisateur_id_unique": {
-          "name": "membre_utilisateur_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "utilisateur_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.evenement": {
-      "name": "evenement",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "entreprise_id": {
-          "name": "entreprise_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sujet_type": {
-          "name": "sujet_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sujet_id": {
-          "name": "sujet_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "acteur_type": {
-          "name": "acteur_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "acteur_id": {
-          "name": "acteur_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "payload": {
-          "name": "payload",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
-        },
-        "horodate_le": {
-          "name": "horodate_le",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "evenement_entreprise_idx": {
-          "name": "evenement_entreprise_idx",
-          "columns": [
-            {
-              "expression": "entreprise_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "horodate_le",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "evenement_sujet_idx": {
-          "name": "evenement_sujet_idx",
-          "columns": [
-            {
-              "expression": "sujet_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "sujet_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

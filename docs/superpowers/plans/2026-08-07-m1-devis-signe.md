@@ -8,6 +8,10 @@
 
 **Tech Stack:** Next.js 16 (App Router) · TypeScript · PostgreSQL (Supabase EU) · Drizzle ORM · Supabase Auth · `@react-pdf/renderer` · Vitest · Playwright · pnpm · Node 24
 
+> **Convention de nommage (2026-08-08).** Tous les identifiants de code sont en **anglais** — variables, fonctions, types, noms de tables et de colonnes. Restent en **français** : les libellés d'interface, les messages d'erreur destinés à l'utilisateur, les commentaires, et les **URL** (`/connexion`, `/devis`), qui sont vues par l'utilisateur.
+>
+> Le socle (Tasks 1–11) a été renommé. Les extraits de code des **Tasks 12 à 15 sont encore en français** et seront traduits au moment de leur implémentation — la correspondance est mécanique : `entreprise`→`company`, `chantier`→`project`, `devis`→`quote`, `logement`→`property`, `client`→`customer`, `evenement`→`event`, `signature`→`signature`.
+
 **Référence produit :** [`docs/superpowers/specs/2026-08-07-socle-artisan-design.md`](../specs/2026-08-07-socle-artisan-design.md)
 
 ---

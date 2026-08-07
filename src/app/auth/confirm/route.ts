@@ -1,20 +1,19 @@
 import { redirect } from 'next/navigation'
 import type { EmailOtpType } from '@supabase/supabase-js'
-import { creerClientServeur } from '@/lib/supabase-serveur'
+import { createServerSupabase } from '@/lib/supabase-server'
 
 /**
  * Point d'atterrissage du lien magique. Echange le jeton contre une session,
- * puis oriente : vers l'inscription si l'utilisateur n'a pas encore
- * d'entreprise, vers les devis sinon.
+ * puis oriente vers l'espace entreprise.
  */
-export async function GET(requete: Request) {
-  const url = new URL(requete.url)
-  const token_hash = url.searchParams.get('token_hash')
+export async function GET(request: Request) {
+  const url = new URL(request.url)
+  const tokenHash = url.searchParams.get('token_hash')
   const type = url.searchParams.get('type') as EmailOtpType | null
 
-  if (token_hash && type) {
-    const supabase = await creerClientServeur()
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash })
+  if (tokenHash && type) {
+    const supabase = await createServerSupabase()
+    const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash })
     if (!error) redirect('/devis')
   }
 

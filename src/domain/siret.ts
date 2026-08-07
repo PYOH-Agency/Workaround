@@ -1,27 +1,27 @@
 /**
  * Validation du SIRET par cle de Luhn.
  *
- * Sert de garde-fou avant tout appel reseau : inutile d'interroger Sirene pour
- * un numero dont la cle est fausse.
+ * Sert de garde-fou avant tout appel reseau : inutile d'interroger l'annuaire
+ * des entreprises pour un numero dont la cle est fausse.
  */
 
-export function normaliserSiret(valeur: string): string {
-  return valeur.replace(/[\s.\-]/g, '')
+export function normalizeSiret(value: string): string {
+  return value.replace(/[\s.\-]/g, '')
 }
 
-export function siretValide(valeur: string): boolean {
-  const s = normaliserSiret(valeur)
-  if (!/^\d{14}$/.test(s)) return false
+export function isValidSiret(value: string): boolean {
+  const siret = normalizeSiret(value)
+  if (!/^\d{14}$/.test(siret)) return false
 
-  let somme = 0
+  let sum = 0
   for (let i = 0; i < 14; i++) {
-    let chiffre = Number(s[i])
+    let digit = Number(siret[i])
     // Les positions paires (index 0, 2, ...) sont doublees.
     if (i % 2 === 0) {
-      chiffre *= 2
-      if (chiffre > 9) chiffre -= 9
+      digit *= 2
+      if (digit > 9) digit -= 9
     }
-    somme += chiffre
+    sum += digit
   }
-  return somme % 10 === 0
+  return sum % 10 === 0
 }
