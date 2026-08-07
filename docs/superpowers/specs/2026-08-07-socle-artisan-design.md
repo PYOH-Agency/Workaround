@@ -44,7 +44,9 @@ Trois briques que l'on croyait séparées sont le même objet. **L'outil est le 
         ↺ retour en 1, en s'amplifiant
 ```
 
-P1 couvre les étapes **1 → 3**, et amorce **5** en silence.
+**P1 couvre les étapes 1, 2, 3 et 5.**
+
+L'étape **4** n'est couverte qu'à moitié : le passeport est public et référencé, donc un demandeur peut trouver une entreprise et lui faire confiance — mais il n'y a aucune mise en relation dans le produit. Il appelle. La boucle complète se referme en **P2**, et l'étape **6** en P3.
 
 ## 4. Périmètre de P1
 
@@ -60,7 +62,9 @@ P1 couvre les étapes **1 → 3**, et amorce **5** en silence.
 | Agenda & RDV | Créneaux, synchronisation externe, RDV de visite et d'intervention |
 | Suivi de chantier | Jalons, photos, statuts |
 | Passeport public | Page SEO, métriques dérivées, vérifications par activité |
-| Carnet du logement | Alimenté automatiquement — **non exposé au demandeur en P1** |
+| Carnet du logement | Alimenté automatiquement par les devis et factures |
+| Espace demandeur | Compte créé **à la signature du devis**, accès en lecture au carnet de son logement |
+| Observatoire des prix | Fourchettes de prix réelles par type de travaux et par zone, anonymisées |
 
 ### Le périmètre métier
 
@@ -72,17 +76,32 @@ Sont hors sujet les autres secteurs de l'artisanat (alimentation, services à la
 
 ### Explicitement hors périmètre
 
-- **Aucune marketplace.** Pas de compte demandeur, pas de dépôt de projet, pas de mise en relation. Le demandeur n'interagit qu'en signant un devis et en validant une facture.
-- Pas de paiement ni de séquestre (→ P4).
+- **Aucune marketplace.** Pas de dépôt de projet, pas d'appel d'offres, pas de mise en relation, pas de recherche d'artisan à l'intérieur du produit. Le demandeur a un compte, mais ce compte ne sert qu'à consulter *son* logement.
 - Pas de réservation de créneau par un demandeur (→ P2).
-- Pas de carnet exposé ni de maintenance prédictive (→ P3).
+- Pas de paiement ni de séquestre (→ P4).
+- Pas de maintenance prédictive ni d'abonnement Logement (→ P3).
 - Pas de flux professionnels (→ P5), pas de multi-corps d'état (→ P6).
+
+La frontière est nette : **en P1 le demandeur consulte, il ne sollicite pas.** Tout ce qui relève de la demande entrante appartient à P2.
 
 ## 5. Les acteurs
 
 - **L'entreprise artisanale** — utilisateur principal. Du solo (majorité des entreprises du bâtiment en France) à la structure de 10 salariés.
 - **Le membre d'équipe** — compagnon rattaché à une entreprise. Porte ses propres qualifications, mais **n'a pas de page publique**.
-- **Le client final** — n'a pas de compte en P1. Il reçoit un lien, signe un devis, valide une facture. **Son rôle est essentiel : il est le témoin qui authentifie la mesure.**
+- **Le demandeur** — reçoit un lien, signe un devis, valide une facture. **Il est le témoin qui authentifie la mesure** (§9). Son compte se crée au moment de la signature et lui donne accès au carnet de son logement.
+
+### Le demandeur prioritaire : le bailleur
+
+Le propriétaire occupant est le cas évident, mais c'est le plus difficile : besoin rare, forte anxiété, aucun repère pour juger, peu fidélisable. Le **propriétaire bailleur** est un bien meilleur point d'entrée :
+
+- plusieurs logements — le carnet a du sens dès le premier jour ;
+- souvent à distance — il doit déléguer, donc il a besoin de preuve et de traces ;
+- fréquence élevée — chaque rotation locative entraîne une remise en état ;
+- obligations légales (DPE, décence, diagnostics) — sa demande est contrainte, pas discrétionnaire ;
+- raisonnement financier — il compare et il paie ;
+- un bailleur à trois lots est un mini-syndic : c'est le pont naturel vers P5.
+
+Cela n'exclut personne du produit — c'est une priorité de conception et d'acquisition, pas une restriction d'accès.
 
 > **Décision.** La page publique appartient à l'**entreprise**, jamais à l'individu. Un patron ne veut pas que ses compagnons aient une vitrine personnelle avec agenda — c'est un risque de désintermédiation. Le solo est simplement une entreprise à une personne. Cette décision élimine la tension patron/salarié dès le modèle de données.
 
@@ -95,6 +114,7 @@ Sont hors sujet les autres secteurs de l'artisanat (alimentation, services à la
 | `Logement` | Permanent. Adresse normalisée, typologie, année, équipements, garanties, historique. |
 | `Entreprise` | Le professionnel. SIRET, forme juridique, membres, activités. |
 | `Chantier` | Relie un logement et une entreprise. Porte RDV, devis, avenants, factures, photos. |
+| `Demandeur` | Le particulier ou le bailleur. Rattaché à un ou plusieurs logements. |
 | `Passeport` | **Dérivé, jamais saisi.** Calculé depuis les événements et les vérifications. |
 
 ### Entités
@@ -107,6 +127,8 @@ Activite            code, libelle, metier_parent, assurance_requise,
 EntrepriseActivite  entreprise × activite, statut_verification, preuve, controle_le
 PieceJustificative  type, fichier, valide_du, valide_au, donnees_extraites, statut_revue
 Logement            adresse_normalisee, type, annee, surface
+Demandeur           email, telephone, nom, cree_le, source (signature|invitation)
+LienLogement        demandeur × logement, role (occupant|bailleur), depuis_le
 Equipement          logement, type, marque, modele, pose_le, echeance, garantie
 Chantier            entreprise, logement, activites, statut, dates
 RendezVous          chantier, type (visite|intervention), creneau, statut, presence
@@ -139,6 +161,8 @@ Chaque module a une responsabilité unique, une interface explicite, et peut êt
 | **Agenda** | Créneaux, disponibilités, synchronisation externe, RDV | Identité, Chantier |
 | **Mesure** | Journalise les faits, calcule les métriques, applique les seuils | Evenement (tous les modules émettent) |
 | **Passeport** | Page publique, rendu, SEO, exposition des vérifications | Mesure, Vérification |
+| **Espace Demandeur** | Création de compte à la signature, rattachement aux logements, consultation du carnet | Identité, Logement, Chantier |
+| **Observatoire** | Agrégation des prix, contrôle d'anonymat, pages publiques de fourchettes | Devis, Bibliothèque |
 
 Le module **Mesure** est le seul autorisé à calculer une métrique. Aucun autre module ne peut écrire dans le passeport.
 
@@ -225,7 +249,7 @@ Fenêtre glissante de douze mois, pour qu'un bon historique ne masque pas une d�
 
 ### L'authentification de la mesure
 
-> **Décision structurante.** Un chantier ne compte dans le passeport **que si le devis a été signé électroniquement par le client final** (lien envoyé par e-mail ou SMS).
+> **Décision structurante.** Un chantier ne compte dans le passeport **que si le devis a été signé électroniquement par le demandeur** (lien envoyé par e-mail ou SMS).
 
 Sans cela, l'artisan saisit lui-même son devis et sa propre facture : les métriques seraient auto-déclarées et falsifiables. La signature client fait du client un **témoin** et co-authentifie l'événement. Elle apporte par ailleurs une vraie valeur juridique à l'artisan, qui en a besoin de toute façon.
 
@@ -235,7 +259,37 @@ Les chantiers non signés existent dans l'outil mais ne comptent pas dans le pas
 
 Le passeport est exportable : widget pour le site de l'entreprise, bloc sur ses devis, QR code. Le label devient son argument commercial, donc il le défend et le diffuse gratuitement.
 
-## 10. Business model
+## 10. L'espace demandeur
+
+### L'acquisition par la signature
+
+> **Décision structurante.** Le compte demandeur se crée **au moment où il signe un devis**, jamais avant.
+
+C'est le seul instant où le demandeur est réellement engagé : il vient de s'engager sur plusieurs milliers d'euros et il fournit son adresse e-mail de toute façon. Le compte n'est donc pas une friction ajoutée, c'est une conséquence de la signature.
+
+Conséquence stratégique : **chaque devis signé apporte un demandeur qualifié, gratuitement, apporté par l'artisan lui-même.** C'est le canal d'acquisition le moins cher qui existe, et il retourne le modèle du secteur — au lieu d'acheter de la demande, on la reçoit du côté de l'offre. La marketplace de P2 ne démarrera pas à zéro : elle démarrera avec l'ensemble des clients passés par l'outil pendant la phase P1.
+
+Un demandeur peut par ailleurs être **invité** par un artisan sur un logement existant (`Demandeur.source = invitation`), notamment pour un bailleur multi-lots.
+
+### Ce que le demandeur voit — et ce qu'il ne voit pas
+
+> **Décision structurante.** Le carnet appartient au demandeur, mais **une entreprise ne voit que ses propres interventions** sur un logement. L'historique des autres entreprises ne lui est jamais visible, sauf partage explicite par le propriétaire.
+
+Sans cette règle, deux problèmes rédhibitoires : les artisans verraient les prix et les travaux de leurs concurrents — et refuseraient l'outil —, et le carnet exposerait la vie privée du propriétaire à des tiers. La visibilité par défaut est donc **asymétrique** : le demandeur voit tout son logement, l'entreprise ne voit que sa part.
+
+Le demandeur accède à : ses chantiers, ses devis et factures, les photos, les équipements posés, les garanties en cours et leurs dates d'expiration.
+
+### L'observatoire des prix
+
+Le capteur agrège les prix réels de tous les devis. Cela permet de publier ce que personne ne sait dire aujourd'hui : *« remplacer un chauffe-eau à Bordeaux : 800 – 1 400 € posé, médiane 1 050 €, sur 214 devis réels »*. Valeur unique pour le demandeur — qui n'a aucun repère de prix — et aimant à référencement naturel.
+
+> **Décision.** Aucune fourchette n'est publiée en dessous d'un seuil de **k-anonymat** : au minimum 20 devis émanant d'au moins 5 entreprises distinctes. En dessous, on affiche l'absence de donnée, jamais une estimation.
+
+Sans ce seuil, publier une fourchette reviendrait à exposer la grille tarifaire d'une entreprise identifiable — ce qui violerait le principe n°5 et détruirait la confiance des artisans, dont dépend tout le capteur.
+
+**L'observatoire est construit en P1 mais reste vide au lancement**, par construction : il n'y a pas encore de devis. Il s'active zone par zone et type de travaux par type de travaux, à mesure que les seuils sont franchis. Le plan d'implémentation doit en tenir compte et ne pas le placer sur le chemin critique de la mise en marché.
+
+## 11. Business model
 
 Trois sources de revenus classiques du secteur nous sont **volontairement interdites** : vendre des leads, vendre le classement, facturer l'outil au prix du marché. C'est le prix de la confiance.
 
@@ -249,7 +303,7 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 
 **Cible :** 600 à 1 200 € de marge par entreprise active et par an, toutes sources confondues.
 
-## 11. Principes non négociables
+## 12. Principes non négociables
 
 1. **Le classement n'est jamais achetable.** Aucune mise en avant payante, jamais. C'est la faute originelle de tous les concurrents.
 2. **Jamais de commission sur les clients apportés par l'artisan.** Deux flux visiblement séparés dans le produit. Si l'on taxe tout, l'artisan sort ses vrais chantiers de l'outil — et l'on perd le capteur, donc le label, donc le produit entier.
@@ -257,16 +311,18 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 4. **L'outil est ouvert, la vitrine se mérite.**
 5. **Aucune donnée identifiante n'est vendue.** Les prix de marché agrégés et anonymisés sont exploitables ; le comportement d'une entreprise identifiable ne l'est jamais.
 
-## 12. Risques et hypothèses à valider
+## 13. Risques et hypothèses à valider
 
 | # | Risque | Traitement |
 |---|---|---|
-| 1 | **Le périmètre de P1 est important** (option « socle complet » retenue) | Le plan d'implémentation devra le découper en incréments livrables, l'agenda et les situations de travaux venant après le noyau devis/facture/passeport |
+| 1 | **Le périmètre de P1 est large** — option « socle complet », tous les métiers, et face demandeur incluse. Chaque élargissement repousse la date à laquelle un artisan bordelais utilise réellement le produit, et c'est cette date qui compte | Le plan d'implémentation doit impérativement le découper en incréments livrables. Chemin critique : devis → facture → passeport. Hors chemin critique : agenda, situations de travaux, espace demandeur, observatoire |
 | 2 | **Falsification des métriques** en l'absence de paiement transitant par la plateforme | Signature client obligatoire (§9). Risque résiduel assumé : faux clients. Détection d'anomalies à prévoir |
 | 3 | **Extraction fiable des attestations de décennale** — PDF hétérogènes, sans standard | Revue humaine systématique au démarrage, automatisation progressive |
 | 4 | **Marché des outils de devis/facture mature et concurrentiel** | Notre différenciateur n'est pas l'outil mais le passeport. L'outil doit être bon, pas révolutionnaire |
 | 5 | **Facturation électronique obligatoire** — calendrier et obligation de passer par une plateforme agréée | **À vérifier en priorité.** Connaissance non à jour. Probablement un partenariat plutôt qu'un agrément propre |
-| 6 | **RGPD** — le carnet du logement contient des données personnelles (adresse, propriétaire), et son transfert à la revente est à cadrer | Cadrage juridique requis avant P3 ; en P1 le carnet n'est pas exposé |
+| 6 | **RGPD — désormais un sujet de P1, plus de P3.** Le carnet est exposé et contient des données personnelles (adresse, identité du propriétaire, photos de l'intérieur d'un logement). Base légale, durées de conservation, droit à l'effacement et transfert à la revente sont à cadrer | Cadrage juridique **avant la mise en marché**, pas avant P3. Visibilité asymétrique par défaut (§10) |
+| 11 | **Anonymat de l'observatoire** — une fourchette calculée sur trop peu de devis expose la grille tarifaire d'une entreprise identifiable | Seuil de k-anonymat : ≥ 20 devis issus de ≥ 5 entreprises distinctes (§10). À auditer, le seuil est une hypothèse |
+| 12 | **L'observatoire est vide au lancement**, par construction | Le sortir du chemin critique. Activation progressive par zone et par type de travaux, à mesure que les seuils sont franchis |
 | 7 | **Zéro revenu si l'abonnement Pro n'est pas adopté** | Mesurer tôt le taux de conversion vers l'offre payante sur les entreprises de 3 salariés et plus |
 | 8 | **Accès aux sources de vérification** (RNE, URSSAF, RGE, Qualibat) | Vérification technique à mener avant le plan |
 | 9 | **Volume du référentiel d'activités** — couvrir tous les métiers demande une nomenclature large, et la correspondance avec les libellés d'assurance est le point dur | Partir d'une nomenclature existante plutôt que d'en créer une. Le référentiel est une donnée, pas du code : il peut s'enrichir en continu sans refonte |
@@ -277,12 +333,12 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 - **Le métier de départ à Bordeaux** n'a pas besoin d'être tranché en P1 : un outil de devis/facture est transversal et P1 est mono-utilisateur. Ce choix ne devient structurant qu'en P2, quand la liquidité locale compte.
 - **Profondeur du référentiel d'activités.** La granularité exacte reste à arrêter. Piste : s'aligner sur une nomenclature existante (Qualibat, listes d'activités des assureurs) plutôt que d'en inventer une — la correspondance avec les libellés d'assurance étant le cœur du contrôle, partir de leur vocabulaire réduit le risque d'écart.
 
-## 13. La suite
+## 14. La suite
 
 | | Produit | Contenu |
 |---|---|---|
-| **P2** | Agenda & réservation | Créneau de visite réservable, comptes demandeurs, « créneau vert » (l'artisan passe déjà dans le quartier). *La marketplace naît ici.* |
-| **P3** | Carnet du logement | Exposé au demandeur, maintenance prédictive, abonnement Logement |
+| **P2** | Réservation & demande entrante | Créneau de visite réservable par le demandeur, recherche d'artisan, dépôt de projet, « créneau vert » (l'artisan passe déjà dans le quartier). *La marketplace naît ici — et elle démarre déjà peuplée des demandeurs acquis en P1.* |
+| **P3** | Le carnet actif | Maintenance prédictive (échéances d'entretien, garanties qui expirent), transfert à la revente, abonnement Logement. *Le carnet existe dès P1 ; ici il devient un générateur de demande.* |
 | **P4** | Paiement & séquestre | Acompte bloqué, libération au jalon, garantie, avance de trésorerie |
 | **P5** | Flux professionnels | Syndics, bailleurs, agences, assureurs |
 | **P6** | Multi-corps d'état | Séquençage automatique des corps d'état. Le sommet. |
