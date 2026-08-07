@@ -5,6 +5,7 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { quote } from '@/db/schema'
 import { assertSendable } from '@/services/quote-public'
+import { hasLegalInsuranceMentions } from '@/domain/insurance'
 import { sendQuoteLink } from '@/services/email'
 import { recordEvent } from '@/services/events'
 import { currentCompany } from '@/lib/session'
@@ -31,6 +32,7 @@ export async function sendQuote(quoteId: string, _state: SendState): Promise<Sen
       committedLeadTimeDays: found.committedLeadTimeDays,
       lineCount: found.lines.length,
       customerPhone: found.project.customer.phone,
+      hasInsuranceMentions: hasLegalInsuranceMentions(found.project.company),
     })
   } catch (e) {
     return { error: (e as Error).message }

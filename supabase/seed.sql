@@ -9,7 +9,10 @@
 -- jamais. Les tests, eux, s'isolent par identifiants generes : ils ne peuvent
 -- pas entrer en collision avec ces lignes.
 
-INSERT INTO company (id, siret, legal_name, legal_form, address_line1, postal_code, city, founded_on)
+INSERT INTO company (
+  id, siret, legal_name, legal_form, address_line1, postal_code, city, founded_on,
+  insurer_name, insurer_address, policy_number, covered_activities, coverage_area
+)
 VALUES (
   '00000000-0000-4000-8000-000000000001',
   '50769820700036',
@@ -18,7 +21,13 @@ VALUES (
   '43 RUE SIMONE SIGNORET',
   '33530',
   'BASSENS',
-  '2008-09-01'
+  '2008-09-01',
+  -- Mentions obligatoires sur tout devis (art. L243-2 du Code des assurances).
+  'SMABTP',
+  '114 avenue Émile Zola, 75015 Paris',
+  'D-2024-889321',
+  'Plomberie, chauffage, installations sanitaires',
+  'France métropolitaine'
 );
 
 INSERT INTO customer (id, company_id, name, email, phone, type)

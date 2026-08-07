@@ -92,6 +92,16 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
         </p>
       )}
 
+      <section className="border-t border-black/10 pt-4 text-xs opacity-70 dark:border-white/15">
+        <p className="font-medium">Assurance professionnelle</p>
+        <p>
+          {found.company.insurance.insurerName} — {found.company.insurance.insurerAddress}
+        </p>
+        <p>Contrat n° {found.company.insurance.policyNumber}</p>
+        <p>Activités garanties : {found.company.insurance.coveredActivities}</p>
+        <p>Couverture géographique : {found.company.insurance.coverageArea}</p>
+      </section>
+
       {found.status === 'signed' ? (
         <p role="status" className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-4">
           Devis signé.

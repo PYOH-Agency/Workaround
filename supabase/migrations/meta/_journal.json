@@ -8,6 +8,13 @@
       "when": 1786143485477,
       "tag": "0000_furry_ezekiel",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786145340498,
+      "tag": "0001_certain_shocker",
+      "breakpoints": true
     }
   ]
 }

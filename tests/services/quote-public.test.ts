@@ -6,6 +6,7 @@ const complete: SendableState = {
   committedLeadTimeDays: 5,
   lineCount: 2,
   customerPhone: '0612345678',
+  hasInsuranceMentions: true,
 }
 
 describe('assertSendable', () => {
@@ -30,6 +31,13 @@ describe('assertSendable', () => {
     // signature ne peut pas etablir qui a signe.
     expect(() => assertSendable({ ...complete, customerPhone: null })).toThrow('telephone')
     expect(() => assertSendable({ ...complete, customerPhone: '  ' })).toThrow('telephone')
+  })
+
+  it("refuse un devis sans les mentions d'assurance obligatoires", () => {
+    // Art. L243-2 : un devis sans elles expose l'artisan a une amende.
+    expect(() => assertSendable({ ...complete, hasInsuranceMentions: false })).toThrow(
+      "mentions d'assurance",
+    )
   })
 
   it('refuse un devis deja envoye', () => {

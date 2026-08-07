@@ -44,6 +44,15 @@ const styles = StyleSheet.create({
     padding: 14,
     width: 260,
   },
+  insurance: {
+    marginTop: 26,
+    borderTopWidth: 0.5,
+    borderTopColor: '#ccc',
+    paddingTop: 8,
+    fontSize: 7.5,
+    color: '#555',
+    lineHeight: 1.5,
+  },
   footer: { position: 'absolute', bottom: 28, left: 44, right: 44, fontSize: 7.5, color: '#888' },
 })
 
@@ -129,6 +138,21 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
             Date, nom et signature du client
           </Text>
           <Text style={{ marginTop: 34 }} />
+        </View>
+
+        {/*
+          Mentions imposees par l'article L243-2 du Code des assurances sur tout
+          devis et toute facture du batiment. Leur absence expose l'artisan a
+          une amende administrative de 3 000 EUR, 15 000 EUR pour une societe.
+        */}
+        <View style={styles.insurance}>
+          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Assurance professionnelle</Text>
+          <Text>
+            {quote.company.insurance.insurerName} — {quote.company.insurance.insurerAddress}
+          </Text>
+          <Text>Contrat n° {quote.company.insurance.policyNumber}</Text>
+          <Text>Activités garanties : {quote.company.insurance.coveredActivities}</Text>
+          <Text>Couverture géographique : {quote.company.insurance.coverageArea}</Text>
         </View>
 
         <Text style={styles.footer} fixed>

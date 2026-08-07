@@ -2,12 +2,14 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { quote } from '@/db/schema'
 import { computeTotals, type Totals } from '@/domain/quote-totals'
+import type { InsuranceMentions } from '@/domain/insurance'
 
 export interface SendableState {
   status: string
   committedLeadTimeDays: number | null
   lineCount: number
   customerPhone: string | null
+  hasInsuranceMentions: boolean
 }
 
 /**
@@ -23,6 +25,11 @@ export function assertSendable(state: SendableState): void {
   if (state.lineCount === 0) throw new Error('Un devis doit comporter au moins une ligne')
   if (state.committedLeadTimeDays === null) throw new Error("Le delai d'execution est obligatoire")
   if (!state.customerPhone?.trim()) throw new Error('Le telephone du client est obligatoire')
+  // Garde de derniere ligne : la redaction est deja bloquee sans ces mentions,
+  // mais un devis anterieur a leur mise en place ne doit pas passer non plus.
+  if (!state.hasInsuranceMentions) {
+    throw new Error("Renseignez les mentions d'assurance avant d'envoyer un devis")
+  }
 }
 
 export interface QuoteLineView {
@@ -39,7 +46,12 @@ export interface PublicQuote {
   companyId: string
   number: string
   issuedOn: string
-  company: { legalName: string; siret: string; address: string }
+  company: {
+    legalName: string
+    siret: string
+    address: string
+    insurance: InsuranceMentions
+  }
   customer: { name: string; phone: string | null; propertyAddress: string }
   committedLeadTimeDays: number | null
   lines: QuoteLineView[]
@@ -75,6 +87,13 @@ export async function loadQuoteByToken(token: string): Promise<PublicQuote | nul
       legalName: company.legalName,
       siret: company.siret,
       address: [company.addressLine1, company.postalCode, company.city].filter(Boolean).join(' '),
+      insurance: {
+        insurerName: company.insurerName,
+        insurerAddress: company.insurerAddress,
+        policyNumber: company.policyNumber,
+        coveredActivities: company.coveredActivities,
+        coverageArea: company.coverageArea,
+      },
     },
     customer: {
       name: customer.name,

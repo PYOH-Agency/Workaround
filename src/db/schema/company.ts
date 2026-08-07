@@ -10,6 +10,17 @@ export const company = pgTable('company', {
   postalCode: text('postal_code'),
   city: text('city'),
   foundedOn: timestamp('founded_on', { withTimezone: true }),
+
+  // Mentions d'assurance obligatoires sur tout devis et toute facture du
+  // batiment (art. L243-2 du Code des assurances). Nullables en base — on
+  // n'alourdit pas l'inscription —, mais exigees avant toute emission de devis.
+  // Declaratives ici ; M3 les confrontera a l'attestation.
+  insurerName: text('insurer_name'),
+  insurerAddress: text('insurer_address'),
+  policyNumber: text('policy_number'),
+  coveredActivities: text('covered_activities'),
+  coverageArea: text('coverage_area'),
+
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
