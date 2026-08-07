@@ -714,14 +714,32 @@ export const ligneDevis = pgTable('ligne_devis', {
   tauxTVA: integer('taux_tva').notNull(),
 })
 
+/** Code a usage unique envoye par SMS. Le code n'est jamais stocke en clair. */
+export const codeSignature = pgTable('code_signature', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  devisId: uuid('devis_id').notNull().references(() => devis.id, { onDelete: 'cascade' }),
+  codeHash: text('code_hash').notNull(),
+  telephone: text('telephone').notNull(),
+  expireLe: timestamp('expire_le', { withTimezone: true }).notNull(),
+  tentatives: integer('tentatives').notNull().default(0),
+  valideLe: timestamp('valide_le', { withTimezone: true }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export const signature = pgTable('signature', {
   id: uuid('id').primaryKey().defaultRandom(),
   devisId: uuid('devis_id').notNull().references(() => devis.id).unique(),
   nomSignataire: text('nom_signataire').notNull(),
   emailSignataire: text('email_signataire').notNull(),
+  telephoneSignataire: text('telephone_signataire').notNull(),
+  // Horodatage de la validation du code SMS : c'est la preuve d'identification.
+  codeValideLe: timestamp('code_valide_le', { withTimezone: true }).notNull(),
   adresseIp: text('adresse_ip').notNull(),
   userAgent: text('user_agent').notNull(),
   hashDocument: text('hash_document').notNull(),
+  // Chemin du PDF exact soumis a la signature, archive en ecriture unique.
+  // Sans lui, un changement de gabarit invalide silencieusement toute la preuve.
+  cheminPdfArchive: text('chemin_pdf_archive').notNull(),
   jetonHorodatage: text('jeton_horodatage'),
   signeLe: timestamp('signe_le', { withTimezone: true }).notNull().defaultNow(),
 })
@@ -1473,24 +1491,26 @@ import { describe, it, expect } from 'vitest'
 import { verifierEnvoiPossible } from '../../src/services/devis-public'
 
 describe('verifierEnvoiPossible', () => {
+  const complet = { statut: 'brouillon', delaiEngageJours: 5, nombreLignes: 2, telephoneClient: '0612345678' }
+
   it('refuse un devis sans ligne', () => {
-    expect(() => verifierEnvoiPossible({ statut: 'brouillon', delaiEngageJours: 5, nombreLignes: 0 }))
-      .toThrow('au moins une ligne')
+    expect(() => verifierEnvoiPossible({ ...complet, nombreLignes: 0 })).toThrow('au moins une ligne')
   })
 
   it('refuse un devis sans delai engage', () => {
-    expect(() => verifierEnvoiPossible({ statut: 'brouillon', delaiEngageJours: null, nombreLignes: 2 }))
-      .toThrow("delai d'execution")
+    expect(() => verifierEnvoiPossible({ ...complet, delaiEngageJours: null })).toThrow("delai d'execution")
+  })
+
+  it('refuse un devis sans telephone client', () => {
+    expect(() => verifierEnvoiPossible({ ...complet, telephoneClient: null })).toThrow('telephone du client')
   })
 
   it('refuse un devis deja envoye', () => {
-    expect(() => verifierEnvoiPossible({ statut: 'envoye', delaiEngageJours: 5, nombreLignes: 2 }))
-      .toThrow('deja ete envoye')
+    expect(() => verifierEnvoiPossible({ ...complet, statut: 'envoye' })).toThrow('deja ete envoye')
   })
 
   it('accepte un brouillon complet', () => {
-    expect(() => verifierEnvoiPossible({ statut: 'brouillon', delaiEngageJours: 5, nombreLignes: 2 }))
-      .not.toThrow()
+    expect(() => verifierEnvoiPossible(complet)).not.toThrow()
   })
 })
 ```
@@ -1523,12 +1543,15 @@ export interface EtatEnvoi {
   statut: string
   delaiEngageJours: number | null
   nombreLignes: number
+  telephoneClient: string | null
 }
 
 export function verifierEnvoiPossible(etat: EtatEnvoi): void {
   if (etat.statut !== 'brouillon') throw new Error('Ce devis a deja ete envoye')
   if (etat.nombreLignes === 0) throw new Error('Un devis doit comporter au moins une ligne')
   if (etat.delaiEngageJours === null) throw new Error("Le delai d'execution est obligatoire")
+  // Le telephone porte l'identification du signataire par SMS (cf. recherche Task 1).
+  if (!etat.telephoneClient) throw new Error('Le telephone du client est obligatoire')
 }
 
 export async function chargerDevisParToken(token: string): Promise<DossierDevis | null> {
@@ -1579,7 +1602,7 @@ export async function chargerDevisParToken(token: string): Promise<DossierDevis 
 - [ ] **Step 4 : Lancer les tests**
 
 Run: `pnpm vitest run tests/services/devis-public.test.ts`
-Expected: PASS — 4 tests
+Expected: PASS — 5 tests
 
 - [ ] **Step 5 : Écrire l'action d'envoi**
 
@@ -1609,6 +1632,7 @@ export async function envoyer(devisId: string) {
       statut: d.statut,
       delaiEngageJours: d.delaiEngageJours,
       nombreLignes: d.lignes.length,
+      telephoneClient: d.chantier.client.telephone,
     })
   } catch (e) {
     return { erreur: (e as Error).message }
@@ -1781,7 +1805,12 @@ git commit -m "feat: generation du PDF de devis"
 
 ## Task 14 : La signature et sa piste d'audit
 
-**Dépend de la Task 1.** La composition exacte de la piste d'audit doit venir du document de recherche.
+**Task 1 conclue** — voir [la décision](../research/2026-08-07-signature-electronique.md). Deux exigences en découlent, et elles ne sont pas négociables : la charge de la preuve pèse sur **nous** en signature simple (art. 1367 al. 2 : la présomption de fiabilité est réservée au qualifié), et il faut donc prouver séparément **l'intégrité**, **l'identification** et **le lien signature ↔ acte**.
+
+- **Identification par code SMS**, en plus du lien e-mail. Un clic sur un lien prouve le contrôle d'une boîte de réception, pas une identité. Deux canaux distincts, c'est ce qui tient devant un juge.
+- **Archivage du PDF exact soumis à la signature.** Le régénérer plus tard depuis un gabarit modifié produirait un document différent, et l'empreinte stockée ne correspondrait plus à rien.
+
+> **Ne jamais qualifier cette signature d'« avancée »** dans l'interface ou la documentation commerciale. Le niveau avancé au sens d'eIDAS suppose un contrôle exclusif du dispositif par le signataire, qu'un lien e-mail ne procure pas. Sur-vendre le niveau serait un risque juridique en soi.
 
 **Files:**
 - Create: `src/services/signature.ts`, `src/app/devis/[token]/page.tsx`, `src/app/devis/[token]/signer/actions.ts`
@@ -1792,7 +1821,9 @@ git commit -m "feat: generation du PDF de devis"
 ```typescript
 // tests/services/signature.test.ts
 import { describe, it, expect } from 'vitest'
-import { empreinteDocument, constituerPreuve } from '../../src/services/signature'
+import {
+  empreinteDocument, constituerPreuve, genererCode, hacherCode, verifierCode,
+} from '../../src/services/signature'
 
 describe('signature', () => {
   it('produit une empreinte SHA-256 stable du document', () => {
@@ -1806,26 +1837,63 @@ describe('signature', () => {
       .not.toBe(empreinteDocument(Buffer.from('devis B')))
   })
 
+  const valide = {
+    nomSignataire: 'Paul Martin',
+    emailSignataire: 'paul@example.com',
+    telephoneSignataire: '+33612345678',
+    codeValideLe: new Date('2026-08-07T10:00:00Z'),
+    adresseIp: '1.2.3.4',
+    userAgent: 'Mozilla/5.0',
+    hashDocument: 'a'.repeat(64),
+    cheminPdfArchive: 'signatures/devis-1.pdf',
+  }
+
   it('refuse de constituer une preuve sans nom de signataire', () => {
-    expect(() => constituerPreuve({
-      nomSignataire: '  ',
-      emailSignataire: 'client@example.com',
-      adresseIp: '1.2.3.4',
-      userAgent: 'Mozilla/5.0',
-      hashDocument: 'a'.repeat(64),
-    })).toThrow('nom du signataire')
+    expect(() => constituerPreuve({ ...valide, nomSignataire: '  ' })).toThrow('nom du signataire')
+  })
+
+  it('refuse une preuve sans code SMS valide — l identification manquerait', () => {
+    expect(() => constituerPreuve({ ...valide, codeValideLe: null as unknown as Date }))
+      .toThrow('code SMS')
+  })
+
+  it('refuse une preuve sans PDF archive — l integrite ne serait pas prouvable', () => {
+    expect(() => constituerPreuve({ ...valide, cheminPdfArchive: '' })).toThrow('PDF archive')
   })
 
   it('constitue une preuve complete', () => {
-    const preuve = constituerPreuve({
-      nomSignataire: 'Paul Martin',
-      emailSignataire: 'paul@example.com',
-      adresseIp: '1.2.3.4',
-      userAgent: 'Mozilla/5.0',
-      hashDocument: 'a'.repeat(64),
-    })
+    const preuve = constituerPreuve(valide)
     expect(preuve.nomSignataire).toBe('Paul Martin')
     expect(preuve.hashDocument).toBe('a'.repeat(64))
+    expect(preuve.cheminPdfArchive).toBe('signatures/devis-1.pdf')
+  })
+})
+
+describe('code SMS', () => {
+  it('genere un code numerique a six chiffres', () => {
+    expect(genererCode()).toMatch(/^\d{6}$/)
+  })
+
+  it('accepte le bon code avant expiration', () => {
+    const code = '123456'
+    const etat = { codeHash: hacherCode(code), expireLe: new Date(Date.now() + 60_000), tentatives: 0 }
+    expect(verifierCode(etat, code)).toBe(true)
+  })
+
+  it('refuse un code expire', () => {
+    const code = '123456'
+    const etat = { codeHash: hacherCode(code), expireLe: new Date(Date.now() - 1), tentatives: 0 }
+    expect(() => verifierCode(etat, code)).toThrow('expire')
+  })
+
+  it('refuse au-dela de trois tentatives', () => {
+    const etat = { codeHash: hacherCode('123456'), expireLe: new Date(Date.now() + 60_000), tentatives: 3 }
+    expect(() => verifierCode(etat, '123456')).toThrow('Trop de tentatives')
+  })
+
+  it('renvoie faux sur un mauvais code', () => {
+    const etat = { codeHash: hacherCode('123456'), expireLe: new Date(Date.now() + 60_000), tentatives: 0 }
+    expect(verifierCode(etat, '000000')).toBe(false)
   })
 })
 ```
@@ -1839,18 +1907,25 @@ Expected: FAIL — module introuvable
 
 ```typescript
 // src/services/signature.ts
-import { createHash } from 'node:crypto'
+import { createHash, randomInt, timingSafeEqual } from 'node:crypto'
 
 export function empreinteDocument(contenu: Buffer): string {
   return createHash('sha256').update(contenu).digest('hex')
 }
 
+// --- Preuve -----------------------------------------------------------------
+
 export interface Preuve {
   nomSignataire: string
   emailSignataire: string
+  telephoneSignataire: string
+  /** Horodatage de la validation du code SMS : c'est la preuve d'identification. */
+  codeValideLe: Date
   adresseIp: string
   userAgent: string
   hashDocument: string
+  /** Chemin du PDF exact soumis a la signature : c'est la preuve d'integrite. */
+  cheminPdfArchive: string
 }
 
 export function constituerPreuve(entree: Preuve): Preuve {
@@ -1859,15 +1934,44 @@ export function constituerPreuve(entree: Preuve): Preuve {
     throw new Error('Adresse e-mail du signataire invalide')
   }
   if (!/^[0-9a-f]{64}$/.test(entree.hashDocument)) throw new Error('Empreinte de document invalide')
+  if (!entree.codeValideLe) throw new Error('Le code SMS doit avoir ete valide avant la signature')
+  if (!entree.cheminPdfArchive) throw new Error('Le PDF archive est obligatoire')
 
   return { ...entree, nomSignataire: entree.nomSignataire.trim() }
+}
+
+// --- Code a usage unique ----------------------------------------------------
+
+export function genererCode(): string {
+  return String(randomInt(0, 1_000_000)).padStart(6, '0')
+}
+
+export function hacherCode(code: string): string {
+  return createHash('sha256').update(`${process.env.SEL_CODE_SMS ?? ''}${code}`).digest('hex')
+}
+
+export interface EtatCode {
+  codeHash: string
+  expireLe: Date
+  tentatives: number
+}
+
+export const TENTATIVES_MAX = 3
+
+export function verifierCode(etat: EtatCode, saisi: string): boolean {
+  if (etat.tentatives >= TENTATIVES_MAX) throw new Error('Trop de tentatives')
+  if (etat.expireLe.getTime() <= Date.now()) throw new Error('Ce code a expire')
+
+  const attendu = Buffer.from(etat.codeHash, 'hex')
+  const fourni = Buffer.from(hacherCode(saisi), 'hex')
+  return attendu.length === fourni.length && timingSafeEqual(attendu, fourni)
 }
 ```
 
 - [ ] **Step 4 : Lancer les tests**
 
 Run: `pnpm vitest run tests/services/signature.test.ts`
-Expected: PASS — 4 tests
+Expected: PASS — 11 tests
 
 - [ ] **Step 5 : Écrire l'action de signature**
 
@@ -1879,7 +1983,8 @@ import { headers } from 'next/headers'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { devis, signature } from '@/db/schema'
+import { devis, signature, codeSignature } from '@/db/schema'
+import { creerClientServeur } from '@/lib/supabase-serveur'
 import { DevisPdf } from '@/pdf/devis-pdf'
 import { chargerDevisParToken } from '@/services/devis-public'
 import { empreinteDocument, constituerPreuve } from '@/services/signature'
@@ -1892,17 +1997,36 @@ export async function signer(token: string, donnees: FormData) {
   if (!dossier) return { erreur: 'Devis introuvable' }
   if (dossier.statut !== 'envoye') return { erreur: 'Ce devis ne peut plus etre signe' }
 
+  // 1. Identification : le code SMS doit avoir ete valide.
+  const code = await db.query.codeSignature.findFirst({
+    where: eq(codeSignature.devisId, dossier.id),
+    orderBy: (c, { desc }) => [desc(c.creeLe)],
+  })
+  if (!code?.valideLe) return { erreur: 'Validez le code recu par SMS avant de signer' }
+
+  // 2. Integrite : on rend le PDF UNE fois, on le hache, et on l'archive tel quel.
+  // Le regenerer plus tard depuis un gabarit modifie invaliderait l'empreinte.
   const pdf = await renderToBuffer(<DevisPdf d={dossier} />)
   const hash = empreinteDocument(pdf)
+  const cheminPdfArchive = `signatures/${dossier.id}.pdf`
+
+  const stockage = await creerClientServeur()
+  const { error: erreurStockage } = await stockage.storage
+    .from('devis-signes')
+    .upload(cheminPdfArchive, pdf, { contentType: 'application/pdf', upsert: false })
+  if (erreurStockage) return { erreur: "Impossible d'archiver le devis signe" }
 
   let preuve
   try {
     preuve = constituerPreuve({
       nomSignataire: String(donnees.get('nom') ?? ''),
       emailSignataire: String(donnees.get('email') ?? ''),
+      telephoneSignataire: code.telephone,
+      codeValideLe: code.valideLe,
       adresseIp: enTetes.get('x-forwarded-for')?.split(',')[0].trim() ?? 'inconnue',
       userAgent: enTetes.get('user-agent') ?? 'inconnu',
       hashDocument: hash,
+      cheminPdfArchive,
     })
   } catch (e) {
     return { erreur: (e as Error).message }
@@ -1959,6 +2083,7 @@ test('une entreprise redige un devis, l envoie, et le client le signe', async ({
   await page.goto('/devis/nouveau')
   await page.getByLabel('Client').fill('Paul Martin')
   await page.getByLabel('E-mail du client').fill('client@test.local')
+  await page.getByLabel('Téléphone du client').fill('0612345678')
   await page.getByLabel('Adresse du chantier').fill('12 rue Fondaudege')
   await page.getByLabel('Code postal').fill('33000')
   await page.getByLabel('Ville').fill('Bordeaux')
@@ -1982,6 +2107,12 @@ test('une entreprise redige un devis, l envoie, et le client le signe', async ({
 
   await pageClient.getByLabel('Votre nom').fill('Paul Martin')
   await pageClient.getByLabel('Votre e-mail').fill('client@test.local')
+
+  // Identification par SMS : sans code valide, la signature est refusee.
+  await pageClient.getByRole('button', { name: 'Recevoir le code' }).click()
+  await pageClient.getByLabel('Code recu par SMS').fill(await codeSmsDeTest(devisId))
+  await pageClient.getByRole('button', { name: 'Valider le code' }).click()
+
   await pageClient.getByRole('button', { name: 'Signer le devis' }).click()
 
   await expect(pageClient.getByText('Devis signé')).toBeVisible()
@@ -1991,7 +2122,7 @@ test('une entreprise redige un devis, l envoie, et le client le signe', async ({
 })
 ```
 
-> `lienMagiqueDeTest` est un utilitaire à écrire dans `tests/e2e/helpers.ts` : il interroge l'API d'administration Supabase pour récupérer le lien de connexion du projet de test. Ne jamais l'utiliser hors environnement de test.
+> `lienMagiqueDeTest` et `codeSmsDeTest` sont des utilitaires à écrire dans `tests/e2e/helpers.ts` — le second lit `code_signature` en base plutôt que d'envoyer un vrai SMS. `devisId` est extrait de l'URL après l'enregistrement du devis. Le premier : il interroge l'API d'administration Supabase pour récupérer le lien de connexion du projet de test. Ne jamais l'utiliser hors environnement de test.
 
 - [ ] **Step 2 : Lancer le test**
 
