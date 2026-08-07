@@ -19,11 +19,13 @@ export function euros(valeur: string): Centimes {
   if (!match) throw new Error(`Montant invalide (au plus deux decimales) : ${valeur}`)
 
   const [, signe, entier, decimales = ''] = match
-  const total = BigInt(entier) * 100n + BigInt(decimales.padEnd(2, '0'))
+  const total = Number(entier) * 100 + Number(decimales.padEnd(2, '0'))
 
-  // Le signe vient de la chaine, jamais du BigInt : BigInt('-0') vaut 0n,
-  // ce qui ferait passer -0,50 EUR pour +0,50 EUR.
-  return Number(signe === '-' ? -total : total)
+  if (!Number.isSafeInteger(total)) throw new Error(`Montant hors limites : ${valeur}`)
+
+  // Le signe est lu dans la chaine, jamais deduit du nombre : '-0.50' a une
+  // partie entiere nulle, dont le signe est perdu des la conversion.
+  return signe === '-' ? -total : total
 }
 
 /** Arrondi commercial : 0,5 s'arrondit vers le haut en valeur absolue. */

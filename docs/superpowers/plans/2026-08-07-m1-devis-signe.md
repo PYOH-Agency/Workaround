@@ -282,12 +282,17 @@ export type Centimes = number
 export type Taux = number
 
 export function euros(valeur: string): Centimes {
-  const match = /^(-?\d+)(?:\.(\d{1,2}))?$/.exec(valeur.trim())
+  const match = /^(-?)(\d+)(?:\.(\d{1,2}))?$/.exec(valeur.trim())
   if (!match) throw new Error(`Montant invalide (au plus deux decimales) : ${valeur}`)
-  const entier = BigInt(match[1])
-  const decimales = BigInt((match[2] ?? '').padEnd(2, '0'))
-  const signe = entier < 0n ? -1n : 1n
-  return Number(entier * 100n + signe * decimales)
+
+  const [, signe, entier, decimales = ''] = match
+  const total = Number(entier) * 100 + Number(decimales.padEnd(2, '0'))
+
+  if (!Number.isSafeInteger(total)) throw new Error(`Montant hors limites : ${valeur}`)
+
+  // Le signe est lu dans la chaine, jamais deduit du nombre : '-0.50' a une
+  // partie entiere nulle, dont le signe est perdu des la conversion.
+  return signe === '-' ? -total : total
 }
 
 export const centimes = (n: number): Centimes => Math.trunc(n)
@@ -319,7 +324,11 @@ export function formater(montant: Centimes): string {
 - [ ] **Step 4 : Lancer les tests**
 
 Run: `pnpm vitest run tests/domain/money.test.ts`
-Expected: PASS — 5 tests
+Expected: PASS — 6 tests
+
+> **Deux pièges corrigés à l'exécution :**
+> - Le signe ne peut pas être déduit de la partie entière : `-0.50` a une partie entière nulle, dont le signe disparaît à la conversion. Il se lit dans la chaîne. Un test couvre le cas.
+> - **Ne pas utiliser de littéraux `BigInt`** (`100n`). L'étape de vérification TypeScript de Next.js impose sa propre cible de compilation, inférieure à ES2020, et les rejette — alors que `tsc` seul les accepte. BigInt était de toute façon inutile : les centimes tiennent dans un entier JS sûr jusqu'à environ 90 000 milliards d'euros.
 
 - [ ] **Step 5 : Commit**
 
