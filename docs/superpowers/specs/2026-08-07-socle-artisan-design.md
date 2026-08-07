@@ -368,6 +368,8 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 | 9 | **Volume du référentiel d'activités** — couvrir tous les métiers demande une nomenclature large, et la correspondance avec les libellés d'assurance est le point dur | Partir d'une nomenclature existante plutôt que d'en créer une. Le référentiel est une donnée, pas du code : il peut s'enrichir en continu sans refonte |
 | 10 | **Promesse marketing plus générique** — « l'outil des plombiers bordelais » convertit mieux que « l'outil des artisans » | Problème de go-to-market, pas de produit : acquisition ciblée métier par métier sur un produit générique |
 
+| 13 | **Mention d'assurance obligatoire sur les devis et factures.** L'article L243-2 du Code des assurances, renforcé par la loi Macron de 2015, impose de faire figurer sur tout devis et toute facture du bâtiment : la mention « Assurance professionnelle », le nom et l'adresse de l'assureur, la référence du contrat, les activités garanties et la zone géographique couverte. Amende administrative de 3 000 € pour un artisan individuel, 15 000 € pour une société, **par infraction constatée** | **Bloquant dès M1.** Un devis émis sans ces mentions expose l'artisan à une amende — inacceptable sur un produit dont l'argument central est la confiance. Ces données sont collectées **de façon déclarative dès l'inscription** ; M3 ne fait qu'y ajouter la vérification. La donnée déclarée en M1 devient exactement ce que M3 contrôle |
+
 ### Hypothèses ouvertes
 
 - **Le métier de départ à Bordeaux** n'a pas besoin d'être tranché en P1 : un outil de devis/facture est transversal et P1 est mono-utilisateur. Ce choix ne devient structurant qu'en P2, quand la liquidité locale compte.
