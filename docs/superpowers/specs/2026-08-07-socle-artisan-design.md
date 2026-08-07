@@ -64,7 +64,6 @@ L'étape **4** n'est couverte qu'à moitié : le passeport est public et référ
 | Passeport public | Page SEO, métriques dérivées, vérifications par activité |
 | Carnet du logement | Alimenté automatiquement par les devis et factures |
 | Espace demandeur | Compte créé **à la signature du devis**, carnet de son logement, suivi du chantier en cours, reprise de contact avec une entreprise déjà intervenue |
-| Observatoire des prix | Fourchettes de prix réelles par type de travaux et par zone, anonymisées |
 
 ### Le périmètre métier
 
@@ -129,6 +128,8 @@ PieceJustificative  type, fichier, valide_du, valide_au, donnees_extraites, stat
 Logement            adresse_normalisee, type, annee, surface
 Demandeur           email, telephone, nom, cree_le, source (signature|invitation)
 LienLogement        demandeur × logement, role (occupant|bailleur), depuis_le
+EntreeRepertoire    demandeur, entreprise?, nom_libre, telephone, activite,
+                    source (intervention|saisie_manuelle)
 Equipement          logement, type, marque, modele, pose_le, echeance, garantie
 Chantier            entreprise, logement, activites, statut, dates
 RendezVous          chantier, type (visite|intervention), creneau, statut, presence
@@ -161,8 +162,7 @@ Chaque module a une responsabilité unique, une interface explicite, et peut êt
 | **Agenda** | Créneaux, disponibilités, synchronisation externe, RDV | Identité, Chantier |
 | **Mesure** | Journalise les faits, calcule les métriques, applique les seuils | Evenement (tous les modules émettent) |
 | **Passeport** | Page publique, rendu, SEO, exposition des vérifications | Mesure, Vérification |
-| **Espace Demandeur** | Création de compte à la signature, rattachement aux logements, consultation du carnet | Identité, Logement, Chantier |
-| **Observatoire** | Agrégation des prix, contrôle d'anonymat, pages publiques de fourchettes | Devis, Bibliothèque |
+| **Espace Demandeur** | Création de compte à la signature, rattachement aux logements, consultation du carnet, répertoire, reprise de contact | Identité, Logement, Chantier |
 
 Le module **Mesure** est le seul autorisé à calculer une métrique. Aucun autre module ne peut écrire dans le passeport.
 
@@ -303,6 +303,12 @@ Le demandeur dispose de **son répertoire d'entreprises** : celles qui sont déj
 
 C'est l'objet que les gens perdent réellement aujourd'hui — *« c'était qui, le plombier qui était venu il y a trois ans ? »* — et qu'ils gèrent aujourd'hui avec un aimant sur le frigo ou un contact mal nommé dans leur téléphone.
 
+**Le demandeur peut y ajouter lui-même une entreprise absente de la plateforme** — le couvreur de 2019, l'électricien du voisin. Sans cela le répertoire est incomplet, donc inutile, donc il ne fidélise personne.
+
+> **Décision.** On **stocke** le contact saisi manuellement, on **n'envoie aucune invitation** à l'entreprise en P1.
+>
+> Deux raisons. Avec quelques dizaines de demandeurs, la boucle d'invitation ne produit statistiquement rien : c'est un mécanisme de croissance qui exige du volume. Et surtout, **on n'a qu'un seul premier contact avec un artisan.** « Votre client vous a ajouté à son répertoire » est un message redoutable en P2, quand une demande réelle l'accompagne. Le dépenser en P1 pour proposer un logiciel de devis, c'est griller le meilleur signal d'acquisition dont on dispose, au moment où l'offre en face est la plus faible. Le mécanisme sera prêt le jour où il vaudra quelque chose.
+
 Trois propriétés le rendent stratégique :
 
 - **C'est le meilleur objet de rétention de P1.** Le carnet se consulte rarement ; le répertoire sert à chaque fois qu'il y a un problème.
@@ -324,16 +330,6 @@ Trois, et trois seulement :
 > **Décision.** *Afficher* une échéance relève de P1 : c'est un calcul trivial (date de pose + périodicité). *Relancer, proposer une entreprise, proposer un créneau et mesurer la conversion* est un moteur de génération de demande — c'est P3.
 
 En P1, le demandeur voit donc « entretien chaudière : février 2027 » sans pouvoir cliquer. C'est délibéré : **cette frustration est la demande de P2 qui se constitue d'elle-même.**
-
-### L'observatoire des prix
-
-Le capteur agrège les prix réels de tous les devis. Cela permet de publier ce que personne ne sait dire aujourd'hui : *« remplacer un chauffe-eau à Bordeaux : 800 – 1 400 € posé, médiane 1 050 €, sur 214 devis réels »*. Valeur unique pour le demandeur — qui n'a aucun repère de prix — et aimant à référencement naturel.
-
-> **Décision.** Aucune fourchette n'est publiée en dessous d'un seuil de **k-anonymat** : au minimum 20 devis émanant d'au moins 5 entreprises distinctes. En dessous, on affiche l'absence de donnée, jamais une estimation.
-
-Sans ce seuil, publier une fourchette reviendrait à exposer la grille tarifaire d'une entreprise identifiable — ce qui violerait le principe n°5 et détruirait la confiance des artisans, dont dépend tout le capteur.
-
-**L'observatoire est construit en P1 mais reste vide au lancement**, par construction : il n'y a pas encore de devis. Il s'active zone par zone et type de travaux par type de travaux, à mesure que les seuils sont franchis. Le plan d'implémentation doit en tenir compte et ne pas le placer sur le chemin critique de la mise en marché.
 
 ## 11. Business model
 
@@ -361,14 +357,12 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 
 | # | Risque | Traitement |
 |---|---|---|
-| 1 | **Le périmètre de P1 est large** — option « socle complet », tous les métiers, et face demandeur incluse. Chaque élargissement repousse la date à laquelle un artisan bordelais utilise réellement le produit, et c'est cette date qui compte | Le plan d'implémentation doit impérativement le découper en incréments livrables. Chemin critique : devis → facture → passeport. Hors chemin critique : agenda, situations de travaux, espace demandeur, observatoire |
+| 1 | **Le périmètre de P1 est large** — option « socle complet », tous les métiers, et face demandeur incluse. Chaque élargissement repousse la date à laquelle un artisan bordelais utilise réellement le produit, et c'est cette date qui compte | Le plan d'implémentation doit impérativement le découper en incréments livrables. Chemin critique : devis → facture → passeport. Hors chemin critique : agenda, situations de travaux, espace demandeur |
 | 2 | **Falsification des métriques** en l'absence de paiement transitant par la plateforme | Signature client obligatoire (§9). Risque résiduel assumé : faux clients. Détection d'anomalies à prévoir |
 | 3 | **Extraction fiable des attestations de décennale** — PDF hétérogènes, sans standard | Revue humaine systématique au démarrage, automatisation progressive |
 | 4 | **Marché des outils de devis/facture mature et concurrentiel** | Notre différenciateur n'est pas l'outil mais le passeport. L'outil doit être bon, pas révolutionnaire |
 | 5 | **Facturation électronique obligatoire** — calendrier et obligation de passer par une plateforme agréée | **À vérifier en priorité.** Connaissance non à jour. Probablement un partenariat plutôt qu'un agrément propre |
 | 6 | **RGPD — désormais un sujet de P1, plus de P3.** Le carnet est exposé et contient des données personnelles (adresse, identité du propriétaire, photos de l'intérieur d'un logement). Base légale, durées de conservation, droit à l'effacement et transfert à la revente sont à cadrer | Cadrage juridique **avant la mise en marché**, pas avant P3. Visibilité asymétrique par défaut (§10) |
-| 11 | **Anonymat de l'observatoire** — une fourchette calculée sur trop peu de devis expose la grille tarifaire d'une entreprise identifiable | Seuil de k-anonymat : ≥ 20 devis issus de ≥ 5 entreprises distinctes (§10). À auditer, le seuil est une hypothèse |
-| 12 | **L'observatoire est vide au lancement**, par construction | Le sortir du chemin critique. Activation progressive par zone et par type de travaux, à mesure que les seuils sont franchis |
 | 7 | **Zéro revenu si l'abonnement Pro n'est pas adopté** | Mesurer tôt le taux de conversion vers l'offre payante sur les entreprises de 3 salariés et plus |
 | 8 | **Accès aux sources de vérification** (RNE, URSSAF, RGE, Qualibat) | Vérification technique à mener avant le plan |
 | 9 | **Volume du référentiel d'activités** — couvrir tous les métiers demande une nomenclature large, et la correspondance avec les libellés d'assurance est le point dur | Partir d'une nomenclature existante plutôt que d'en créer une. Le référentiel est une donnée, pas du code : il peut s'enrichir en continu sans refonte |
@@ -390,3 +384,15 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 | **P6** | Multi-corps d'état | Séquençage automatique des corps d'état. Le sommet. |
 
 Chaque produit fera l'objet de son propre cycle spec → plan → implémentation.
+
+### Hors séquence : l'observatoire des prix
+
+Publier les fourchettes de prix réelles par type de travaux et par zone — *« remplacer un chauffe-eau à Bordeaux : 800 – 1 400 € posé, médiane 1 050 €, sur 214 devis réels »*. Valeur unique pour le demandeur, qui n'a aucun repère de prix, et fort aimant à référencement naturel.
+
+**Retiré de P1 délibérément.** Il n'est pas déclenché par une phase mais **par la donnée** :
+
+- il serait vide au lancement, par construction — on coderait une fonctionnalité impossible à tester, à montrer ou à valider ;
+- le seuil de k-anonymat envisagé (≥ 20 devis émanant de ≥ 5 entreprises distinctes) est une hypothèse **invérifiable sans données réelles** ;
+- la forme même de l'agrégation — libellés retenus, dispersion des prix, granularité géographique tenable — dépend de ce à quoi ressemblent les vrais devis. La spécifier avant d'en avoir observé plusieurs centaines revient à deviner.
+
+À reprendre quand le volume de devis le permet. Le principe d'anonymat, lui, est acquis : aucune fourchette ne sera jamais publiée en dessous d'un seuil, sous peine d'exposer la grille tarifaire d'une entreprise identifiable — ce qui violerait le principe n°5 et détruirait la confiance des artisans, dont dépend tout le capteur.
