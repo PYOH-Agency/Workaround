@@ -56,11 +56,19 @@ P1 couvre les étapes **1 → 3**, et amorce **5** en silence.
 | Vérification | Pièces, extraction, contrôle de couverture, re-contrôle automatique |
 | Devis | Lignes structurées, TVA multi-taux, versions, avenants, signature client |
 | Facturation | Acomptes, situations de travaux, factures, avoirs, relances |
-| Bibliothèque d'ouvrages | Postes préremplis, 2 métiers au lancement |
+| Bibliothèque d'ouvrages | Personnelle : saisie libre, import, extraction depuis les anciens devis |
 | Agenda & RDV | Créneaux, synchronisation externe, RDV de visite et d'intervention |
 | Suivi de chantier | Jalons, photos, statuts |
 | Passeport public | Page SEO, métriques dérivées, vérifications par activité |
 | Carnet du logement | Alimenté automatiquement — **non exposé au demandeur en P1** |
+
+### Le périmètre métier
+
+**Tous les métiers dès P1**, sans restriction. P1 étant mono-utilisateur, il n'y a aucun enjeu de liquidité à protéger : chaque métier supplémentaire n'apporte que des passeports, de la surface de référencement et des données de prix.
+
+La borne n'est pas le métier mais **l'objet** : sont concernées toutes les activités qui **interviennent sur un logement ou un bâtiment** — du gros œuvre au paysagisme, en passant par le ramonage, le diagnostic, la pose de cuisine ou la dératisation.
+
+Sont hors sujet les autres secteurs de l'artisanat (alimentation, services à la personne, fabrication) : sans logement, sans chantier et sans assurance de travaux, le modèle de données ne s'applique pas.
 
 ### Explicitement hors périmètre
 
@@ -94,7 +102,8 @@ P1 couvre les étapes **1 → 3**, et amorce **5** en silence.
 ```
 Entreprise          siret, raison_sociale, forme, date_creation, adresse, statut
 Membre              entreprise, personne, role, qualifications
-Activite            code, libelle, metier_parent, habilitations_requises   [référentiel]
+Activite            code, libelle, metier_parent, assurance_requise,
+                    habilitations_requises                                [référentiel]
 EntrepriseActivite  entreprise × activite, statut_verification, preuve, controle_le
 PieceJustificative  type, fichier, valide_du, valide_au, donnees_extraites, statut_revue
 Logement            adresse_normalisee, type, annee, surface
@@ -105,7 +114,7 @@ Devis               chantier, version, statut, totaux, delai_engage, signe_par_c
 LigneDevis          devis, ouvrage, quantite, prix_unitaire, taux_tva
 Avenant             devis, lignes, signe_le
 Facture             chantier, type (acompte|situation|solde|avoir), montants, statut
-Ouvrage             libelle, unite, prix_indicatif, tva_defaut, activite   [bibliothèque]
+Ouvrage             entreprise, libelle, unite, prix, tva_defaut, activite [bibliothèque]
 Evenement           type, acteur, horodatage, payload                      [journal immuable]
 ```
 
@@ -120,10 +129,10 @@ Chaque module a une responsabilité unique, une interface explicite, et peut êt
 | Module | Fait quoi | Dépend de |
 |---|---|---|
 | **Identité** | Comptes, entreprises, membres, rôles, permissions | — |
-| **Référentiel Activités** | Nomenclature des activités, habilitations requises, correspondance avec les libellés d'assurance | — |
+| **Référentiel Activités** | Nomenclature de **toutes** les activités du bâtiment et du logement, assurance et habilitations requises par activité, correspondance avec les libellés d'assurance | — |
 | **Vérification** | Collecte de pièces, extraction, contrôle de couverture, re-contrôle planifié, statut par activité | Identité, Référentiel |
 | **Logement** | Normalisation d'adresse, déduplication, équipements, garanties | — |
-| **Bibliothèque** | Catalogue d'ouvrages par activité | Référentiel |
+| **Bibliothèque** | Ouvrages **propres à chaque entreprise** : saisie, import, extraction depuis d'anciens devis, agrégation anonymisée | Identité |
 | **Chantier** | Agrégat racine : cycle de vie, jalons, photos | Identité, Logement |
 | **Devis** | Rédaction, versions, avenants, envoi, signature client | Chantier, Bibliothèque |
 | **Facturation** | Acomptes, situations, factures, avoirs, relances | Chantier, Devis |
@@ -151,15 +160,22 @@ Le code APE/NAF est **déclaratif et non fiable** : il ne détermine jamais ce q
 
 ### Niveau 2 — La couverture (le différenciateur)
 
-La décennale est souscrite **par activité déclarée**. Un artisan assuré en plomberie-chauffage qui refait un tableau électrique n'est pas couvert, et le client n'a aucun recours en cas de sinistre. C'est le piège numéro un du secteur et personne ne le contrôle.
+L'assurance est souscrite **par activité déclarée**. Un artisan assuré en plomberie-chauffage qui refait un tableau électrique n'est pas couvert, et le client n'a aucun recours en cas de sinistre. C'est le piège numéro un du secteur et personne ne le contrôle.
 
-**Contrôle :** croiser les activités listées sur l'attestation de décennale avec les activités déclarées sur le profil. Toute activité non couverte n'est pas affichable publiquement.
+**L'assurance requise dépend de l'activité**, portée par `Activite.assurance_requise` :
+
+| Nature de l'activité | Assurance exigée |
+|---|---|
+| Travaux de construction au sens de l'article 1792 du Code civil (gros œuvre, second œuvre, équipements indissociables) | **Décennale** couvrant l'activité |
+| Prestations n'engageant pas la garantie décennale (paysagisme, ramonage, nettoyage, dératisation, diagnostic…) | **RC Pro** couvrant l'activité |
+
+**Contrôle :** croiser les activités listées sur l'attestation avec les activités déclarées sur le profil. Toute activité non couverte n'est pas affichable publiquement.
 
 L'attestation est un PDF non structuré, de format libre selon l'assureur, sans API standard. Traitement : **extraction OCR + LLM, puis revue humaine**. Les premières entreprises étant rencontrées physiquement, la revue humaine est de toute façon disponible au démarrage.
 
-**Re-contrôle automatique à chaque date d'expiration. Décennale périmée → passeport suspendu immédiatement.** C'est le point que le marché ne fait pas.
+**Re-contrôle automatique à chaque date d'expiration. Attestation périmée → les activités qu'elle couvrait disparaissent du passeport immédiatement.** La suspension est donc granulaire : une entreprise peut perdre la visibilité sur une activité et la garder sur une autre. C'est le point que le marché ne fait pas.
 
-Également collectés : RC Pro, attestation de vigilance URSSAF.
+Également collectée : l'attestation de vigilance URSSAF.
 
 ### Niveau 3 — Habilitations bloquantes par activité
 
@@ -175,11 +191,11 @@ Sans elles, l'activité est illégale. Aucune tolérance, aucun affichage.
 
 ### Le seuil de visibilité
 
-> **Décision.** L'outil est ouvert à tous — on entre avec un SIRET en trente secondes, et le capteur ne doit jamais être bloqué. La **vitrine publique** exige une décennale valide **et couvrant les activités affichées**.
+> **Décision.** L'outil est ouvert à tous — on entre avec un SIRET en trente secondes, et le capteur ne doit jamais être bloqué. La **vitrine publique** exige une **assurance valide et adaptée à chaque activité affichée** : décennale pour les activités qui l'engagent, RC Pro pour les autres.
 
 Cela donne une phrase que personne d'autre en France ne peut prononcer : *« tout professionnel visible ici est assuré pour ce qu'il fait. »*
 
-La jauge de vérification devient un moteur d'engagement : l'artisan voit son passeport se débloquer. Une décennale absente ou mal dimensionnée est **signalée à l'artisan** plutôt que de le rejeter silencieusement — orientation vers un courtier partenaire à terme.
+La jauge de vérification devient un moteur d'engagement : l'artisan voit son passeport se débloquer. Une assurance absente ou mal dimensionnée est **signalée à l'artisan** plutôt que de le rejeter silencieusement — orientation vers un courtier partenaire à terme.
 
 ## 9. Le passeport
 
@@ -253,11 +269,13 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 | 6 | **RGPD** — le carnet du logement contient des données personnelles (adresse, propriétaire), et son transfert à la revente est à cadrer | Cadrage juridique requis avant P3 ; en P1 le carnet n'est pas exposé |
 | 7 | **Zéro revenu si l'abonnement Pro n'est pas adopté** | Mesurer tôt le taux de conversion vers l'offre payante sur les entreprises de 3 salariés et plus |
 | 8 | **Accès aux sources de vérification** (RNE, URSSAF, RGE, Qualibat) | Vérification technique à mener avant le plan |
+| 9 | **Volume du référentiel d'activités** — couvrir tous les métiers demande une nomenclature large, et la correspondance avec les libellés d'assurance est le point dur | Partir d'une nomenclature existante plutôt que d'en créer une. Le référentiel est une donnée, pas du code : il peut s'enrichir en continu sans refonte |
+| 10 | **Promesse marketing plus générique** — « l'outil des plombiers bordelais » convertit mieux que « l'outil des artisans » | Problème de go-to-market, pas de produit : acquisition ciblée métier par métier sur un produit générique |
 
 ### Hypothèses ouvertes
 
-- **Bibliothèque d'ouvrages :** hypothèse de départ **plomberie-chauffage + électricité**, transversales à la fois au dépannage et à la rénovation. À confirmer — c'est de la donnée, donc réversible.
-- **Le métier de départ à Bordeaux** n'a pas besoin d'être tranché en P1 : un outil de devis/facture est transversal. Ce choix ne devient structurant qu'en P2, quand la liquidité locale compte.
+- **Le métier de départ à Bordeaux** n'a pas besoin d'être tranché en P1 : un outil de devis/facture est transversal et P1 est mono-utilisateur. Ce choix ne devient structurant qu'en P2, quand la liquidité locale compte.
+- **Profondeur du référentiel d'activités.** La granularité exacte reste à arrêter. Piste : s'aligner sur une nomenclature existante (Qualibat, listes d'activités des assureurs) plutôt que d'en inventer une — la correspondance avec les libellés d'assurance étant le cœur du contrôle, partir de leur vocabulaire réduit le risque d'écart.
 
 ## 13. La suite
 
