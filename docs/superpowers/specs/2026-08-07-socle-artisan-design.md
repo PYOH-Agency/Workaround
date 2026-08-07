@@ -63,7 +63,7 @@ L'étape **4** n'est couverte qu'à moitié : le passeport est public et référ
 | Suivi de chantier | Jalons, photos, statuts |
 | Passeport public | Page SEO, métriques dérivées, vérifications par activité |
 | Carnet du logement | Alimenté automatiquement par les devis et factures |
-| Espace demandeur | Compte créé **à la signature du devis**, accès en lecture au carnet de son logement |
+| Espace demandeur | Compte créé **à la signature du devis**, carnet de son logement, suivi du chantier en cours, reprise de contact avec une entreprise déjà intervenue |
 | Observatoire des prix | Fourchettes de prix réelles par type de travaux et par zone, anonymisées |
 
 ### Le périmètre métier
@@ -76,13 +76,13 @@ Sont hors sujet les autres secteurs de l'artisanat (alimentation, services à la
 
 ### Explicitement hors périmètre
 
-- **Aucune marketplace.** Pas de dépôt de projet, pas d'appel d'offres, pas de mise en relation, pas de recherche d'artisan à l'intérieur du produit. Le demandeur a un compte, mais ce compte ne sert qu'à consulter *son* logement.
+- **Aucune marketplace.** Pas de dépôt de projet, pas d'appel d'offres, pas de mise en relation, pas de recherche d'artisan à l'intérieur du produit.
 - Pas de réservation de créneau par un demandeur (→ P2).
 - Pas de paiement ni de séquestre (→ P4).
 - Pas de maintenance prédictive ni d'abonnement Logement (→ P3).
 - Pas de flux professionnels (→ P5), pas de multi-corps d'état (→ P6).
 
-La frontière est nette : **en P1 le demandeur consulte, il ne sollicite pas.** Tout ce qui relève de la demande entrante appartient à P2.
+La frontière est nette : **en P1, le demandeur peut recontacter une entreprise qu'il connaît déjà, mais il ne peut pas en découvrir une nouvelle.** Toute forme de découverte ou de mise en relation appartient à P2.
 
 ## 5. Les acteurs
 
@@ -278,6 +278,52 @@ Un demandeur peut par ailleurs être **invité** par un artisan sur un logement 
 Sans cette règle, deux problèmes rédhibitoires : les artisans verraient les prix et les travaux de leurs concurrents — et refuseraient l'outil —, et le carnet exposerait la vie privée du propriétaire à des tiers. La visibilité par défaut est donc **asymétrique** : le demandeur voit tout son logement, l'entreprise ne voit que sa part.
 
 Le demandeur accède à : ses chantiers, ses devis et factures, les photos, les équipements posés, les garanties en cours et leurs dates d'expiration.
+
+### Le contenu de l'espace
+
+L'unité n'est pas « ma demande » mais **« mon logement »** — cohérent avec la thèse. Un bailleur voit son parc, un occupant voit son bien. Une fois le compte créé, le demandeur peut **ajouter lui-même un logement** à son parc : indispensable au bailleur, dont tous les lots n'ont pas encore fait l'objet d'un chantier.
+
+| Bloc | Contenu |
+|---|---|
+| Chantier en cours | Jalons, photos, délai engagé confronté à la réalité, reste à payer |
+| Historique | Toutes les interventions du logement, toutes entreprises confondues |
+| Équipements | Type, marque, modèle, date de pose |
+| Garanties | Décennales et biennales en cours, avec dates d'expiration |
+| Ce qui arrive | Échéances calculées — entretien annuel obligatoire, garantie qui expire, équipement en fin de vie |
+| **Répertoire** | Ses entreprises : qui est déjà intervenu, sur quoi, quand, et où en est leur vérification |
+| Documents | Devis, avenants, factures |
+
+Le suivi du chantier en cours est **le vrai moment de valeur** : c'est la seule période où le demandeur est activement anxieux, et où il téléphone aujourd'hui à un artisan qui ne répond pas. Il sert donc les deux côtés — l'artisan reçoit moins d'appels.
+
+> **Ce qui justifie l'espace à soi seul.** Sur une rénovation, le demandeur a trois artisans, et chacun ne voit que son propre chantier. **Le demandeur est le seul acteur de toute la chaîne à posséder la vue consolidée de son logement.** Cela préfigure P6 (le multi-corps d'état) sans avoir à le construire.
+
+### Le répertoire
+
+Le demandeur dispose de **son répertoire d'entreprises** : celles qui sont déjà intervenues sur ses logements, avec l'activité réalisée, la date de dernière intervention, un lien vers leur passeport et **leur statut de vérification actuel**.
+
+C'est l'objet que les gens perdent réellement aujourd'hui — *« c'était qui, le plombier qui était venu il y a trois ans ? »* — et qu'ils gèrent aujourd'hui avec un aimant sur le frigo ou un contact mal nommé dans leur téléphone.
+
+Trois propriétés le rendent stratégique :
+
+- **C'est le meilleur objet de rétention de P1.** Le carnet se consulte rarement ; le répertoire sert à chaque fois qu'il y a un problème.
+- **Il fait vivre le label après la vente.** Si la décennale d'une entreprise du répertoire expire, le demandeur le voit. Le passeport cesse d'être une page d'acquisition pour devenir un service continu.
+- **Ses trous sont le signal de demande de P2.** Un répertoire sans couvreur ni électricien indique exactement ce que le demandeur devra chercher un jour. En P1 on ne fait qu'afficher ; en P2, chaque case vide devient un point d'entrée.
+
+### Les actions du demandeur en P1
+
+Trois, et trois seulement :
+
+1. **Signer** un devis — l'action qui crée son compte et authentifie la mesure.
+2. **Valider** une facture.
+3. **Recontacter une entreprise de son répertoire.**
+
+> **Décision.** La reprise de contact est autorisée en P1 parce qu'elle ne franchit pas la ligne de la marketplace : ce n'est ni de la recherche, ni du matching — c'est un fil avec quelqu'un dont il a déjà le numéro. Côté entreprise, c'est du réachat sur son propre client, donc sans commission (principe n°2).
+
+### La ligne de partage sur les échéances
+
+> **Décision.** *Afficher* une échéance relève de P1 : c'est un calcul trivial (date de pose + périodicité). *Relancer, proposer une entreprise, proposer un créneau et mesurer la conversion* est un moteur de génération de demande — c'est P3.
+
+En P1, le demandeur voit donc « entretien chaudière : février 2027 » sans pouvoir cliquer. C'est délibéré : **cette frustration est la demande de P2 qui se constitue d'elle-même.**
 
 ### L'observatoire des prix
 
