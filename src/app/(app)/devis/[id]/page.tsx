@@ -6,6 +6,7 @@ import { quote } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
 import { computeTotals } from '@/domain/quote-totals'
 import { format } from '@/domain/money'
+import { SendButton } from './SendButton'
 
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Brouillon',
@@ -106,6 +107,17 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
       {found.committedLeadTimeDays !== null && (
         <p className="text-sm opacity-70">
           Délai d’exécution engagé : {found.committedLeadTimeDays} jours ouvrés.
+        </p>
+      )}
+
+      {found.status === 'draft' ? (
+        <SendButton quoteId={found.id} />
+      ) : (
+        <p className="text-sm">
+          Lien du client :{' '}
+          <a href={`/d/${found.publicToken}`} data-testid="lien-public" className="underline">
+            /d/{found.publicToken}
+          </a>
         </p>
       )}
 
