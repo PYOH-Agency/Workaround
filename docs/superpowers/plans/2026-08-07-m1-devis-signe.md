@@ -96,8 +96,13 @@ git commit -m "research: valeur probante de la signature electronique du devis"
 - [ ] **Step 1 : Créer l'application**
 
 ```bash
-pnpm create next-app@latest . --typescript --app --src-dir --eslint --tailwind --no-import-alias
+pnpm create next-app@latest . --typescript --app --src-dir --eslint --tailwind --turbopack --import-alias "@/*"
 ```
+
+> **Trois pièges rencontrés à l'exécution :**
+> - `pnpm` peut ne pas être installé — `corepack enable pnpm` suffit, Node 24 embarque corepack.
+> - Le dossier du projet s'appelle `Workaround`, avec une majuscule que npm refuse comme nom de paquet : `create-next-app .` échoue. Générer dans un dossier temporaire au nom valide, puis rapatrier en excluant `.git`, `node_modules`, `.next`, `README.md` et `.gitignore`.
+> - pnpm 11 bloque les scripts de post-installation. `esbuild` (dont dépend Vitest) et `supabase` en ont besoin : les autoriser dans **`pnpm-workspace.yaml`** sous `allowBuilds` — pnpm 11 ne lit plus le champ `pnpm` de `package.json`.
 
 - [ ] **Step 2 : Ajouter les dépendances**
 

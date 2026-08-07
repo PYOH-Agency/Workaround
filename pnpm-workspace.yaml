@@ -1,0 +1,7 @@
+allowBuilds:
+  # esbuild telecharge son binaire natif en postinstall : sans lui, vitest ne demarre pas.
+  esbuild: true
+  # supabase telecharge le binaire de la CLI.
+  supabase: true
+  sharp: false
+  unrs-resolver: false
