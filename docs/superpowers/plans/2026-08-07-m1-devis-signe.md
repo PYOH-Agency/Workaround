@@ -36,7 +36,7 @@
 | `src/domain/adresse.ts` | Normalisation et empreinte d'adresse pour déduplication |
 | `src/lib/supabase-serveur.ts` | Client Supabase côté serveur |
 | `src/lib/session.ts` | Résolution de la session et de l'entreprise courante |
-| `src/services/sirene.ts` | Client de l'API Sirene |
+| `src/services/entreprise-publique.ts` | Client de l'API Recherche d'Entreprises |
 | `src/services/chantier.ts` | Création d'un chantier, déduplication du logement |
 | `src/services/devis-public.ts` | Chargement par token public, règle d'envoi |
 | `src/services/courriel.ts` | Envoi du lien de devis |
@@ -1200,8 +1200,15 @@ git commit -m "feat: authentification par lien magique et resolution de session"
 
 ## Task 10 : L'inscription par SIRET
 
+> **API changée — voir [la recherche](../research/2026-08-08-api-entreprise.md).** On abandonne l'API Sirene de l'INSEE au profit de l'**API Recherche d'Entreprises de data.gouv** : ouverte, sans clé, sans inscription. Trois pièges à connaître avant d'écrire le code :
+> - `q=<siret>` fait une recherche **plein texte** et renvoie le *siège*, pas l'établissement demandé. Il faut `include=matching_etablissements` — et `include` exige `minimal=true`.
+> - La recherche étant floue, **vérifier que le SIRET retourné est bien celui demandé**.
+> - Pour un **entrepreneur individuel**, `nom_raison_sociale` est `null` : le nom est dans `nom_complet`. C'est la forme dominante du métier, pas un cas marginal.
+>
+> Bonus : `complements.est_rge` et `liste_rge` sont exposés dans le même appel — l'une des habilitations bloquantes de M3 est déjà couverte, sans passer par l'open data ADEME.
+
 **Files:**
-- Create: `src/services/sirene.ts`, `src/app/(app)/inscription/page.tsx`, `src/app/(app)/inscription/actions.ts`
+- Create: `src/services/entreprise-publique.ts`, `src/app/(app)/inscription/page.tsx`, `src/app/(app)/inscription/actions.ts`
 - Test: `tests/services/sirene.test.ts`
 
 - [ ] **Step 1 : Écrire le test qui échoue**
