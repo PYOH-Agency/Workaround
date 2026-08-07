@@ -17,6 +17,15 @@ const transport = createTransport({
 
 const FROM = process.env.SMTP_FROM ?? 'Workaround <devis@workaround.local>'
 
+/** Envoi brut, utilise notamment par la passerelle SMS de developpement. */
+export async function sendRawMail(input: {
+  to: string
+  subject: string
+  text: string
+}): Promise<void> {
+  await transport.sendMail({ from: FROM, ...input })
+}
+
 export async function sendQuoteLink(input: {
   to: string
   customerName: string

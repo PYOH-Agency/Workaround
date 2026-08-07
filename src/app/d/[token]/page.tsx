@@ -1,12 +1,15 @@
 import { notFound } from 'next/navigation'
 import { loadQuoteByToken } from '@/services/quote-public'
 import { format } from '@/domain/money'
+import { SignatureBlock } from './SignatureBlock'
+
+/** On ne reaffiche jamais le numero en entier : la page est publique. */
+const maskPhone = (phone: string) => `${phone.slice(0, 2)} •• •• •• ${phone.slice(-2)}`
 
 /**
  * Vue publique d'un devis, accessible sans compte.
  *
- * Le jeton fait office d'autorisation : le demandeur n'a pas de session en M1.
- * La signature arrive en Task 14.
+ * Le jeton fait office d'autorisation : le demandeur n'a pas de compte en M1.
  */
 const formatRate = (rate: number) => `${(rate / 100).toFixed(1).replace('.', ',')} %`
 
@@ -106,9 +109,9 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
         <p role="status" className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-4">
           Devis signé.
         </p>
-      ) : (
-        <p className="text-sm opacity-60">La signature en ligne arrive prochainement.</p>
-      )}
+      ) : found.status === 'sent' && found.customer.phone ? (
+        <SignatureBlock token={token} phoneHint={maskPhone(found.customer.phone)} />
+      ) : null}
     </main>
   )
 }
