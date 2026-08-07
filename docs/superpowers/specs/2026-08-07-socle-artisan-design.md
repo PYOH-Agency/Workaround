@@ -373,7 +373,37 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 - **Le métier de départ à Bordeaux** n'a pas besoin d'être tranché en P1 : un outil de devis/facture est transversal et P1 est mono-utilisateur. Ce choix ne devient structurant qu'en P2, quand la liquidité locale compte.
 - **Profondeur du référentiel d'activités.** La granularité exacte reste à arrêter. Piste : s'aligner sur une nomenclature existante (Qualibat, listes d'activités des assureurs) plutôt que d'en inventer une — la correspondance avec les libellés d'assurance étant le cœur du contrôle, partir de leur vocabulaire réduit le risque d'écart.
 
-## 14. La suite
+## 14. Jalons de livraison
+
+P1 ne se construit pas d'un bloc. Chaque jalon doit produire un logiciel utilisable et faire l'objet de son propre plan d'implémentation.
+
+| Jalon | Contenu | Ce qu'un artisan peut en faire |
+|---|---|---|
+| **M1 — Le devis qui se signe** | Compte entreprise (SIRET pré-rempli via Sirene), client, logement, devis à lignes libres, TVA multi-taux, PDF, envoi par lien, **signature électronique** | Faire ses devis et les faire signer. C'est déjà mieux que Word. |
+| **M2 — La facture** | Acompte, solde, avoir, PDF, suivi payé / impayé | Abandonner son outil actuel. Le capteur est complet. |
+| **M3 — Vérification et passeport** | Sirene + BODACC automatiques, dépôt d'attestation, extraction, revue humaine, référentiel d'activités minimal, page publique | Être trouvé sur Google avec ses vérifications à jour. **La différenciation apparaît ici.** |
+| **M4 — Les métriques** | Journal d'événements, calcul des six métriques, seuils de volume | Son passeport se remplit tout seul. |
+| **M5 — L'espace demandeur** | Compte à la signature, carnet, suivi de chantier, répertoire, reprise de contact | Ses clients ont un espace. |
+| **M6 — Agenda et RDV** | Créneaux, synchronisation externe, rendez-vous de visite et d'intervention | Arrêter de gérer ses rendez-vous au téléphone. |
+| **M7 — L'offre payante** | Équipe et rôles, situations de travaux, relances d'impayés | Ce qui justifie l'abonnement Pro. |
+
+> **Première mise en marché : M1 → M3.** C'est le plus petit ensemble qui soit à la fois utilisable au quotidien et porteur de la différenciation. M4 suit naturellement puisque la donnée existe déjà. Tout ce qui vient après enrichit un produit déjà en service.
+
+### Décisions techniques préalables
+
+Aucun plan ne peut être écrit avant qu'elles soient prises. Trois d'entre elles sont des décisions produit déguisées en choix techniques :
+
+| # | Décision | Pourquoi elle n'est pas anodine |
+|---|---|---|
+| 1 | **Facturation électronique** — obligation de passer par une plateforme agréée, et calendrier applicable | Détermine une dépendance externe structurante sur M2. À lever **avant** M2, pas pendant |
+| 2 | **Signature électronique** — prestataire ou implémentation propre, niveau eIDAS, horodatage, piste d'audit | La signature est le **pivot du système de mesure** (§9). Si elle n'a pas de valeur probante, tout le passeport s'écroule |
+| 3 | **Extraction des attestations** — OCR, LLM, seuil de confiance, circuit de revue humaine | Conditionne le coût récurrent de M3 et le délai de vérification perçu par l'artisan |
+| 4 | Stack applicative, base de données, hébergement | — |
+| 5 | Authentification — deux publics distincts (entreprise, demandeur) | — |
+| 6 | Génération de PDF, stockage des pièces et photos | — |
+| 7 | Outillage de test | — |
+
+## 15. La suite
 
 | | Produit | Contenu |
 |---|---|---|
