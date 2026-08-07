@@ -994,7 +994,15 @@ Sans cette tâche, `creerClientServeur` et `entrepriseCourante` — utilisés pa
 
 **Files:**
 - Create: `src/lib/supabase-serveur.ts`, `src/lib/session.ts`, `src/app/connexion/page.tsx`, `src/app/auth/confirm/route.ts`
+- Create: `src/middleware.ts`, `supabase/templates/magic-link.html`
+- Modify: `supabase/config.toml`
 - Test: `tests/lib/session.test.ts`
+
+> **Deux fichiers absents du plan initial, et tous deux indispensables — découverts en vérifiant le parcours réel, qu'aucun test unitaire ne couvre :**
+>
+> **`src/middleware.ts`.** Un Server Component ne peut pas écrire de cookie. Sans middleware appelant `supabase.auth.getUser()` à chaque requête, le jeton d'accès n'est jamais renouvelé : la session expire en silence au bout d'une heure et l'artisan se retrouve déconnecté en plein devis.
+>
+> **`supabase/templates/magic-link.html`.** Le gabarit d'e-mail par défaut pointe vers `/auth/v1/verify?token=…&type=magiclink`, l'ancien flux : Supabase valide le jeton puis redirige **sans jamais traverser l'application**, donc sans poser nos cookies de session côté serveur. La route `/auth/confirm` n'est jamais appelée et la connexion échoue silencieusement. Il faut un gabarit utilisant `{{ .TokenHash }}` et pointant sur `{{ .SiteURL }}/auth/confirm`, déclaré dans `config.toml` sous `[auth.email.template.magic_link]`. Penser aussi à aligner `site_url` sur `http://localhost:3000`.
 
 - [ ] **Step 1 : Écrire le test qui échoue**
 
@@ -1169,7 +1177,17 @@ export async function GET(requete: Request) {
 - [ ] **Step 7 : Lancer les tests**
 
 Run: `pnpm vitest run tests/lib/session.test.ts`
-Expected: PASS — 3 tests
+Expected: PASS — 4 tests
+
+- [ ] **Step 7bis : Vérifier le parcours réel à la main**
+
+Les tests ne couvrent que la fonction pure. Le reste est de l'I/O, et c'est là que se cachaient les deux défauts ci-dessus. Vérifier bout en bout :
+
+```bash
+curl -s -X POST "http://127.0.0.1:54321/auth/v1/otp" -H "apikey: $ANON" -H "Content-Type: application/json" -d '{"email":"artisan@test.local","create_user":true}'
+```
+
+Récupérer le lien dans la boîte locale (`http://127.0.0.1:54324`), le suivre, et attendre : **HTTP 307 vers `/devis`**, un cookie `sb-…` posé, et une ligne dans `auth.users`.
 
 - [ ] **Step 8 : Commit**
 

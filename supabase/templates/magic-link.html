@@ -1,0 +1,19 @@
+<h2>Votre lien de connexion</h2>
+
+<p>Cliquez sur le lien ci-dessous pour vous connecter. Il expire rapidement et ne peut servir qu'une fois.</p>
+
+<!--
+  On passe par {{ .TokenHash }} et notre propre route /auth/confirm, et non par
+  le lien /auth/v1/verify du gabarit par defaut. Ce dernier utilise l'ancien
+  flux : il valide le jeton chez Supabase puis redirige, sans jamais traverser
+  l'application — donc sans que nos cookies de session cote serveur soient
+  poses. Avec token_hash, c'est notre route qui echange le jeton, et la session
+  est etablie la ou on en a besoin.
+-->
+<p>
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">
+    Se connecter
+  </a>
+</p>
+
+<p style="color:#666;font-size:12px">Si vous n'avez pas demandé ce lien, ignorez ce message.</p>
