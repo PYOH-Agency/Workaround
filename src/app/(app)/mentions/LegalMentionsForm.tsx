@@ -1,10 +1,16 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import { Button } from '@/ui/atoms/button'
+import { Checkbox } from '@/ui/atoms/checkbox'
+import { Heading } from '@/ui/atoms/heading'
+import { Input } from '@/ui/atoms/input'
+import { Text } from '@/ui/atoms/text'
+import { Textarea } from '@/ui/atoms/textarea'
+import { Field } from '@/ui/molecules/field'
 import { saveLegalMentions, type LegalFormState } from './actions'
 
 const initialState: LegalFormState = {}
-const field = 'rounded-lg border border-black/15 px-3 py-2 dark:border-white/20'
 
 export interface LegalDefaults {
   legalFormLabel: string
@@ -27,183 +33,176 @@ export function LegalMentionsForm({ defaults }: { defaults: LegalDefaults }) {
   const [vatExempt, setVatExempt] = useState(defaults.vatExempt)
 
   return (
-    <form action={action} className="flex flex-col gap-8">
-      <section className="flex flex-col gap-4">
-        <h2 className="font-medium">Votre entreprise</h2>
+    <form action={action} className="flex flex-col gap-10">
+      <section className="flex flex-col gap-5">
+        <Heading level={3} as="h2">
+          Votre entreprise
+        </Heading>
 
-        <label className="flex flex-col gap-2 text-sm">
-          Forme juridique
-          <input
-            name="legal_form_label"
-            required
-            defaultValue={defaults.legalFormLabel}
-            className={field}
-          />
-          <span className="text-xs opacity-60">
-            Pour un entrepreneur individuel, la mention « EI » doit apparaître.
-          </span>
-        </label>
+        <Field
+          label="Forme juridique"
+          help="Pour un entrepreneur individuel, la mention « EI » doit apparaître."
+          required
+        >
+          {(p) => (
+            <Input {...p} name="legal_form_label" defaultValue={defaults.legalFormLabel} />
+          )}
+        </Field>
 
-        <label className="flex flex-col gap-2 text-sm">
-          Numéro d’immatriculation
-          <input
-            name="registration_number"
-            required
-            placeholder="RCS Bordeaux 507 698 207"
-            defaultValue={defaults.registrationNumber}
-            className={field}
-          />
-          <span className="text-xs opacity-60">RCS ou Répertoire des métiers, avec la ville.</span>
-        </label>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm">
-            Téléphone
-            <input name="phone" required defaultValue={defaults.phone} className={field} />
-          </label>
-          <label className="flex flex-col gap-2 text-sm">
-            E-mail
-            <input
-              name="email"
-              type="email"
-              required
-              defaultValue={defaults.email}
-              className={field}
+        <Field
+          label="Numéro d’immatriculation"
+          help="RCS ou Répertoire des métiers, avec la ville."
+          required
+        >
+          {(p) => (
+            <Input
+              {...p}
+              name="registration_number"
+              placeholder="RCS Bordeaux 507 698 207"
+              defaultValue={defaults.registrationNumber}
             />
-          </label>
+          )}
+        </Field>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label="Téléphone" required>
+            {(p) => (
+              <Input {...p} name="phone" type="tel" defaultValue={defaults.phone} />
+            )}
+          </Field>
+          <Field label="E-mail" required>
+            {(p) => (
+              <Input {...p} name="email" type="email" defaultValue={defaults.email} />
+            )}
+          </Field>
         </div>
 
-        <label className="flex items-center gap-3 text-sm">
-          <input
-            type="checkbox"
-            name="vat_exempt"
-            checked={vatExempt}
-            onChange={(e) => setVatExempt(e.target.checked)}
-          />
-          Je suis en franchise en base de TVA
-        </label>
+        <Field label="Je suis en franchise en base de TVA" layout="checkbox">
+          {(p) => (
+            <Checkbox
+              {...p}
+              name="vat_exempt"
+              checked={vatExempt}
+              onChange={(e) => setVatExempt(e.target.checked)}
+            />
+          )}
+        </Field>
 
         {!vatExempt && (
-          <label className="flex flex-col gap-2 text-sm">
-            Numéro de TVA intracommunautaire
-            <input
-              name="vat_number"
-              required
-              defaultValue={defaults.vatNumber}
-              className={`${field} font-mono`}
-            />
-            <span className="text-xs opacity-60">Récupéré automatiquement depuis votre SIRET.</span>
-          </label>
+          <Field
+            label="Numéro de TVA intracommunautaire"
+            help="Récupéré automatiquement depuis votre SIRET."
+            required
+          >
+            {(p) => <Input {...p} name="vat_number" defaultValue={defaults.vatNumber} />}
+          </Field>
         )}
       </section>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="font-medium">Conditions de vos devis</h2>
+      <section className="flex flex-col gap-5">
+        <Heading level={3} as="h2">
+          Conditions de vos devis
+        </Heading>
 
-        <label className="flex flex-col gap-2 text-sm sm:max-w-xs">
-          Durée de validité (jours)
-          <input
-            name="quote_validity_days"
-            type="number"
-            min="1"
-            required
-            defaultValue={defaults.quoteValidityDays}
-            className={field}
-          />
-          <span className="text-xs opacity-60">Usage courant : 90 jours.</span>
-        </label>
-
-        <label className="flex flex-col gap-2 text-sm">
-          Modalités de paiement
-          <textarea
-            name="payment_terms"
-            required
-            rows={2}
-            defaultValue={defaults.paymentTerms}
-            className={field}
-          />
-          <span className="text-xs opacity-60">
-            Acompte, échéances et moyens de paiement acceptés.
-          </span>
-        </label>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <h2 className="font-medium">Votre assurance professionnelle</h2>
-        <p className="-mt-2 text-sm opacity-70">
-          Ces mentions figurent sur votre attestation d’assurance décennale.
-        </p>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm">
-            Nom de l’assureur
-            <input
-              name="insurer_name"
-              required
-              defaultValue={defaults.insurerName}
-              className={field}
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm">
-            Référence du contrat
-            <input
-              name="policy_number"
-              required
-              defaultValue={defaults.policyNumber}
-              className={`${field} font-mono`}
-            />
-          </label>
+        <div className="sm:max-w-xs">
+          <Field label="Durée de validité (jours)" help="Usage courant : 90 jours." required>
+            {(p) => (
+              <Input
+                {...p}
+                name="quote_validity_days"
+                type="number"
+                min="1"
+                defaultValue={defaults.quoteValidityDays}
+              />
+            )}
+          </Field>
         </div>
 
-        <label className="flex flex-col gap-2 text-sm">
-          Adresse de l’assureur
-          <input
-            name="insurer_address"
-            required
-            defaultValue={defaults.insurerAddress}
-            className={field}
-          />
-        </label>
-
-        <label className="flex flex-col gap-2 text-sm">
-          Activités garanties
-          <textarea
-            name="covered_activities"
-            required
-            rows={2}
-            defaultValue={defaults.coveredActivities}
-            className={field}
-          />
-          <span className="text-xs opacity-60">
-            Reprenez la liste exacte de votre attestation. C’est elle qui déterminera plus tard les
-            activités que vous pourrez afficher publiquement.
-          </span>
-        </label>
-
-        <label className="flex flex-col gap-2 text-sm">
-          Zone géographique couverte
-          <input
-            name="coverage_area"
-            required
-            defaultValue={defaults.coverageArea}
-            className={field}
-          />
-        </label>
+        <Field
+          label="Modalités de paiement"
+          help="Acompte, échéances et moyens de paiement acceptés."
+          required
+        >
+          {(p) => (
+            <Textarea
+              {...p}
+              name="payment_terms"
+              rows={2}
+              defaultValue={defaults.paymentTerms}
+            />
+          )}
+        </Field>
       </section>
 
+      <section className="flex flex-col gap-5">
+        <Heading level={3} as="h2">
+          Votre assurance professionnelle
+        </Heading>
+        <Text size="sm" tone="soft">
+          Ces mentions figurent sur votre attestation d’assurance décennale.
+        </Text>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label="Nom de l’assureur" required>
+            {(p) => (
+              <Input {...p} name="insurer_name" defaultValue={defaults.insurerName} />
+            )}
+          </Field>
+          <Field label="Référence du contrat" required>
+            {(p) => (
+              <Input {...p} name="policy_number" defaultValue={defaults.policyNumber} />
+            )}
+          </Field>
+        </div>
+
+        <Field label="Adresse de l’assureur" required>
+          {(p) => (
+            <Input {...p} name="insurer_address" defaultValue={defaults.insurerAddress} />
+          )}
+        </Field>
+
+        <Field
+          label="Activités garanties"
+          help="Reprenez la liste exacte de votre attestation. C’est elle qui déterminera plus tard les activités que vous pourrez afficher publiquement."
+          required
+        >
+          {(p) => (
+            <Textarea
+              {...p}
+              name="covered_activities"
+              rows={2}
+              defaultValue={defaults.coveredActivities}
+            />
+          )}
+        </Field>
+
+        <Field label="Zone géographique couverte" required>
+          {(p) => (
+            <Input {...p} name="coverage_area" defaultValue={defaults.coverageArea} />
+          )}
+        </Field>
+      </section>
+
+      {/*
+        L'action ne renvoie qu'un message global — `LegalFormState` ne porte pas
+        d'erreurs par champ. On l'affiche donc ici plutot que de le passer aux
+        `Field` : elargir l'action releverait du metier, pas de la reprise
+        d'interface.
+      */}
       {state.error && (
-        <p role="alert" className="text-sm text-red-600">
+        <div
+          role="alert"
+          className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+        >
           {state.error}
-        </p>
+        </div>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="self-start rounded-lg bg-foreground px-5 py-2.5 font-medium text-background disabled:opacity-50"
-      >
-        {pending ? 'Enregistrement…' : 'Enregistrer'}
-      </button>
+      <div className="self-start">
+        <Button type="submit" size="lg" pending={pending}>
+          {pending ? 'Enregistrement…' : 'Enregistrer'}
+        </Button>
+      </div>
     </form>
   )
 }

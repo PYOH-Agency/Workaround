@@ -3,6 +3,9 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { company } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
+import { Heading } from '@/ui/atoms/heading'
+import { Text } from '@/ui/atoms/text'
+import { AppShell } from '@/ui/shells/app-shell'
 import { LegalMentionsForm } from './LegalMentionsForm'
 
 export default async function LegalMentionsPage() {
@@ -19,17 +22,19 @@ export default async function LegalMentionsPage() {
   const [current] = await db.select().from(company).where(eq(company.id, session.companyId))
 
   return (
-    <main className="mx-auto flex max-w-xl flex-col gap-8 px-6 py-12">
-      <div>
-        <h1 className="text-2xl font-semibold">Mentions de vos devis</h1>
-        <p className="mt-2 text-sm opacity-70">
-          Ces informations sont <strong>obligatoires sur tout devis</strong> adressé à un
-          particulier. Sans elles, vos documents vous exposent à une amende — on ne peut donc pas
-          les émettre. Vous ne les saisissez qu’une fois.
-        </p>
-      </div>
+    <AppShell companyName={current.legalName}>
+      {/* Un formulaire long reste lisible en colonne etroite, meme sous un gabarit large. */}
+      <div className="flex w-full max-w-xl flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <Heading level={1}>Mentions de vos devis</Heading>
+          <Text size="sm" tone="soft">
+            Ces informations sont <strong>obligatoires sur tout devis</strong> adressé à un
+            particulier. Sans elles, vos documents vous exposent à une amende — on ne peut donc
+            pas les émettre. Vous ne les saisissez qu’une fois.
+          </Text>
+        </div>
 
-      <LegalMentionsForm
+        <LegalMentionsForm
         defaults={{
           legalFormLabel: current.legalFormLabel ?? '',
           registrationNumber: current.registrationNumber ?? '',
@@ -44,9 +49,10 @@ export default async function LegalMentionsPage() {
           insurerAddress: current.insurerAddress ?? '',
           policyNumber: current.policyNumber ?? '',
           coveredActivities: current.coveredActivities ?? '',
-          coverageArea: current.coverageArea ?? 'France métropolitaine',
-        }}
-      />
-    </main>
+            coverageArea: current.coverageArea ?? 'France métropolitaine',
+          }}
+        />
+      </div>
+    </AppShell>
   )
 }
