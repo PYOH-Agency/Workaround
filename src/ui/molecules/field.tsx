@@ -49,18 +49,20 @@ export function Field({
   })
 
   /**
-   * L'asterisque est purement visuelle : `aria-hidden`, et aucun texte de
-   * doublure en lecture d'ecran.
+   * L'asterisque vit **en dehors** de l'element `<label>`, et c'est structurant.
    *
-   * Une precision « (obligatoire) » en `sr-only` serait redondante — l'attribut
+   * `aria-hidden` ne suffit pas : Playwright resout `getByLabel` sur le contenu
+   * texte de l'etiquette, pas sur le nom accessible calcule. Une asterisque
+   * placee dans le label donnait « Client * », et les correspondances exactes
+   * echouaient — verifie a l'execution, pas suppose.
+   *
+   * Aucune doublure « (obligatoire) » en `sr-only` non plus : l'attribut
    * `required` pose sur le controle est deja annonce par tous les lecteurs
-   * d'ecran — et surtout elle s'ajouterait au **nom accessible** du champ. Or
-   * les tests de parcours interrogent les champs par leur etiquette, dont un en
-   * correspondance exacte : la doublure les casserait tous.
+   * d'ecran, et elle polluerait le nom accessible.
    */
   const requiredMark = required ? (
     <span className="text-danger" aria-hidden="true">
-      {' *'}
+      *
     </span>
   ) : null
 
@@ -83,13 +85,13 @@ export function Field({
   if (layout === 'checkbox') {
     return (
       <div className="flex flex-col gap-1.5">
-        <label htmlFor={id} className="flex min-h-11 items-center gap-3 text-sm text-ink">
-          {control}
-          <span>
-            {label}
-            {requiredMark}
-          </span>
-        </label>
+        <div className="flex min-h-11 items-center gap-1">
+          <label htmlFor={id} className="flex items-center gap-3 text-sm text-ink">
+            {control}
+            <span>{label}</span>
+          </label>
+          {requiredMark}
+        </div>
         {messages}
       </div>
     )
@@ -97,10 +99,12 @@ export function Field({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-ink">
-        {label}
+      <div className="flex items-baseline gap-1">
+        <label htmlFor={id} className="text-sm font-medium text-ink">
+          {label}
+        </label>
         {requiredMark}
-      </label>
+      </div>
       {control}
       {messages}
     </div>

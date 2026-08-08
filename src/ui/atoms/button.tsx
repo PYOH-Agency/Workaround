@@ -43,6 +43,7 @@ export function Button({
   disabled = false,
   name,
   value,
+  onClick,
   children,
 }: {
   tone?: keyof typeof TONES
@@ -52,6 +53,15 @@ export function Button({
   disabled?: boolean
   name?: string
   value?: string
+  /**
+   * N'oblige pas ce fichier a passer client.
+   *
+   * Un composant sans directive rendu depuis un composant client fait partie du
+   * paquet client : `onClick` y fonctionne. Rendu depuis un composant serveur,
+   * il reste serveur — a condition de ne pas lui passer `onClick`, ce que
+   * TypeScript ne peut pas verifier mais que le build signalera.
+   */
+  onClick?: () => void
   children: React.ReactNode
 }) {
   return (
@@ -59,6 +69,7 @@ export function Button({
       type={type}
       name={name}
       value={value}
+      onClick={onClick}
       // Desactiver pendant l'attente empeche la double soumission — le defaut le
       // plus couteux sur une emission de facture. `aria-busy` l'annonce.
       disabled={disabled || pending}

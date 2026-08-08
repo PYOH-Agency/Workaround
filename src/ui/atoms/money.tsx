@@ -18,10 +18,20 @@ export function Money({
   cents,
   currency = true,
   emphasis = 'normal',
+  testId,
 }: {
   cents: Cents
   currency?: boolean
   emphasis?: 'normal' | 'strong'
+  /**
+   * Pose `data-testid` sur **le nombre seul**, sans son unite.
+   *
+   * Les parcours affirment `toHaveText('1 007,00')` en correspondance exacte.
+   * Envelopper le montant avec son symbole casserait l'assertion ; renoncer au
+   * symbole sur un total serait pire. Cibler le nombre satisfait les deux : le
+   * test lit les chiffres, l'utilisateur recoit l'unite.
+   */
+  testId?: string
 }) {
   return (
     <span
@@ -30,7 +40,7 @@ export function Money({
         emphasis === 'strong' && 'font-display font-bold',
       )}
     >
-      {format(cents)}
+      <span data-testid={testId}>{format(cents)}</span>
       {currency ? ' €' : null}
     </span>
   )
