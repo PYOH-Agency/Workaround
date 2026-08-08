@@ -8,6 +8,7 @@ import { assertSendable } from '@/services/quote-public'
 import { hasLegalMentions } from '@/domain/legal-mentions'
 import { sendQuoteLink } from '@/services/email'
 import { recordEvent } from '@/services/events'
+import { passportUrl } from '@/services/passport'
 import { currentCompany } from '@/lib/session'
 import { format } from '@/domain/money'
 
@@ -43,6 +44,11 @@ export async function sendQuote(quoteId: string, _state: SendState): Promise<Sen
   // un `/devis/[token]` — deux slugs differents au meme niveau.
   const link = `${process.env.APP_URL}/d/${found.publicToken}`
 
+  // Le passeport n'accompagne le devis que si l'entreprise en a un. Une panne
+  // de ce calcul ne doit surtout pas empecher l'envoi : le devis est
+  // l'obligation, le passeport est le supplement.
+  const passportUrl = await safePassportUrl(found.project.company)
+
   try {
     await sendQuoteLink({
       to: found.project.customer.email,
@@ -51,6 +57,7 @@ export async function sendQuote(quoteId: string, _state: SendState): Promise<Sen
       quoteNumber: found.number,
       totalInclTax: format(found.totalInclTax),
       link,
+      passportUrl,
     })
   } catch {
     // L'envoi echoue : on ne marque surtout pas le devis comme envoye, sinon
@@ -74,4 +81,17 @@ export async function sendQuote(quoteId: string, _state: SendState): Promise<Sen
 
   revalidatePath(`/devis/${quoteId}`)
   return { link }
+}
+
+/** Le passeport ne doit jamais faire echouer un envoi de devis. */
+async function safePassportUrl(company: {
+  id: string
+  legalName: string
+  siret: string
+}): Promise<string | null> {
+  try {
+    return await passportUrl(company, new Date(), 'courriel')
+  } catch {
+    return null
+  }
 }

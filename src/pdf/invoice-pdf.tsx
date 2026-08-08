@@ -194,6 +194,10 @@ function InvoiceDocument({ invoice }: { invoice: PublicInvoice }) {
           <Text>Contrat n° {invoice.company.legal.policyNumber}</Text>
           <Text>Activités garanties : {invoice.company.legal.coveredActivities}</Text>
           <Text>Couverture géographique : {invoice.company.legal.coverageArea}</Text>
+          {/* Les quatre lignes ci-dessus sont declaratives ; celle-ci mene au controle. */}
+          {invoice.company.passportUrl && (
+            <Text>Vérifier ces garanties : {invoice.company.passportUrl}</Text>
+          )}
         </View>
 
         <Text style={styles.footer} fixed>
