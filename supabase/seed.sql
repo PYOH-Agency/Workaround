@@ -90,3 +90,30 @@ INSERT INTO quote_line (quote_id, position, label, unit, quantity, unit_price_ex
 VALUES
   ('00000000-0000-4000-8000-000000000005', 0, 'Chauffe-eau 200 L posé', 'u', 1, 85000, 1000),
   ('00000000-0000-4000-8000-000000000005', 1, 'Déplacement', 'u', 1, 6000, 2000);
+
+-- Un second devis, celui-la signe : c'est le point de depart de tout parcours de
+-- facturation. Le premier reste au statut « envoye » pour que la signature
+-- elle-meme demeure verifiable a la main sans rejouer le parcours entier.
+--
+-- Deux taux de TVA, volontairement : un acompte sur devis mono-taux ne
+-- revelerait jamais une erreur de ventilation.
+INSERT INTO quote (
+  id, project_id, company_id, number, status,
+  committed_lead_time_days, validity_days, total_excl_tax, total_tax, total_incl_tax,
+  public_token, sent_at, signed_at
+)
+VALUES (
+  '00000000-0000-4000-8000-000000000006',
+  '00000000-0000-4000-8000-000000000004',
+  '00000000-0000-4000-8000-000000000001',
+  'D2026-0002',
+  'signed',
+  5, 90, 91000, 9700, 100700,
+  'demo0000token0000devis0000signe00',
+  now(), now()
+);
+
+INSERT INTO quote_line (quote_id, position, label, unit, quantity, unit_price_excl_tax, tax_rate)
+VALUES
+  ('00000000-0000-4000-8000-000000000006', 0, 'Chauffe-eau 200 L posé', 'u', 1, 85000, 1000),
+  ('00000000-0000-4000-8000-000000000006', 1, 'Déplacement', 'u', 1, 6000, 2000);
