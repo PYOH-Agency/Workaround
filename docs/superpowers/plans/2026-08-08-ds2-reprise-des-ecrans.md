@@ -1194,6 +1194,30 @@ git push
 
 ---
 
+## Journal d'exécution — 2026-08-08
+
+Plan exécuté en entier. Chaîne finale verte : `tsc`, `lint`, `pnpm build` (12 pages), **210 tests unitaires**, parcours Playwright.
+
+**Cinq défauts réels trouvés par la vérification, dont aucun n'était visible à la relecture du code.**
+
+| # | Défaut | Ce qu'il a coûté |
+|---|---|---|
+| 1 | En mode sombre, le bouton de conversion (`#F0A87E`) et le bouton destructif (`#EC8B80`) étaient deux pêches à 29 de distance RVB | Le rapport de contraste ne le voyait pas : il mesure la luminance, pas la teinte. D'où le principe manquant — **un jeton qui porte à la fois son fond et son texte ne s'inverse pas** — et un test de distance RVB entre actions pleines. |
+| 2 | `Field` ajoutait « (obligatoire) » en `sr-only` au nom accessible | Aurait cassé les 26 `getByLabel` au premier écran migré. |
+| 3 | `aria-hidden` sur l'astérisque **ne suffit pas** : Playwright résout `getByLabel` sur le contenu texte de l'étiquette, pas sur le nom accessible calculé | Découvert à l'exécution, pas au raisonnement. L'astérisque a dû sortir de l'élément `<label>`. |
+| 4 | Un `<button>` imbriqué dans un `<a>` pour « Créer un devis » | HTML invalide, rôle annoncé incohérent. D'où `ButtonLink`. |
+| 5 | Les fichiers Inter du dépôt officiel sont devenus des **pages HTML de 302 Ko** que `curl` télécharge sans broncher | Et un `Font.register` qui échoue ne lève pas : il retombe silencieusement sur Helvetica. D'où un test qui rend un vrai PDF et inspecte les polices embarquées. |
+
+**Écarts assumés par rapport au plan.**
+
+- `SealBadge` n'a **pas** été construit : la vérification n'existe pas avant M3, et afficher « vérifiée » sur des mentions déclaratives serait le mensonge que le produit existe pour supprimer. Le `LegalMentionsPanel` le remplace sur la page publique.
+- `PdfShell` s'est révélé inutile : `src/pdf/tokens.ts` et le style de `Page` suffisent, un gabarit de plus aurait été une couche vide.
+- `PublicShell` a gagné une variante `plain` au lieu d'un quatrième gabarit pour la connexion et l'inscription.
+- Le PDF n'embarque qu'une graisse d'Inter : dans un document, tout ce qui est gras est du titrage, donc de l'Archivo. La police variable suffit, et il n'y a pas eu de fichier statique introuvable à chasser.
+- `unsafeClassName` n'a jamais été nécessaire. Trois variantes nommées l'ont remplacé là où le besoin était réel : `Input variant="code"`, `Link newTab`, `PublicShell variant`.
+
+**Reste ouvert.** `SMS_SENDER` passe à `DEQUERRE` dans `.env.example` mais pas en production : un émetteur alphanumérique doit être déclaré au registre de l'AF2M avant usage. Le `name` de `package.json` reste `workaround` — le renommer touche au verrou de dépendances pour zéro gain.
+
 ## Auto-revue
 
 **Couverture des rangs de la spec §7.1.** Rang 2 → Task 4. Rang 3 → Task 5. Rang 4 → Task 6. Rang 5 → Task 7. Rang 6 → Task 8. Rang 7 → Task 9. Rang 8 (vitrine) → déjà livré en DS1, puisque les composants existaient au moment de l'écrire. Les Tasks 1 à 3 sont les prérequis transverses que la spec plaçait implicitement dans les rangs.
