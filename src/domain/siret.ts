@@ -25,3 +25,23 @@ export function isValidSiret(value: string): boolean {
   }
   return sum % 10 === 0
 }
+
+/**
+ * Lit une saisie libre de SIRET et en tire le SIREN.
+ *
+ * Deux messages distincts, et c'est delibere : « incomplet » se corrige en
+ * continuant a taper, « n'existe pas » demande de relire. Les confondre laisse
+ * l'utilisateur devant un champ rouge sans savoir quoi faire.
+ */
+export function parseSiretInput(value: string): { siren: string } | { error: string } {
+  const digits = normalizeSiret(value)
+
+  if (digits.length !== 14) {
+    return { error: 'Ce SIRET est incomplet : il compte 14 chiffres.' }
+  }
+  if (!isValidSiret(digits)) {
+    return { error: 'Ce SIRET n’existe pas : vérifiez les chiffres.' }
+  }
+
+  return { siren: digits.slice(0, 9) }
+}
