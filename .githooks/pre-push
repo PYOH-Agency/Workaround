@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Rien ne part vers le distant sans que la validation complete soit passee.
+#
+# Contourner ponctuellement : git push --no-verify
+set -e
+
+ZERO=0000000000000000000000000000000000000000
+pushed=0
+
+# git fournit sur l'entree standard une ligne par reference poussee. Une
+# reference dont le sha local est nul est une suppression de branche : il n'y a
+# aucun code a valider.
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+  [ "$local_sha" = "$ZERO" ] || pushed=1
+done
+
+if [ "$pushed" -eq 0 ]; then
+  echo "pre-push : aucun commit poussé, rien à valider."
+  exit 0
+fi
+
+# Les commandes de validation ne doivent pas lire ce qu'il reste de l'entree
+# standard du hook.
+exec pnpm run validate </dev/null
