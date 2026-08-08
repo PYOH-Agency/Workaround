@@ -1,8 +1,10 @@
 import { and, eq, isNotNull } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { company, event, insuranceCertificate } from '@/db/schema'
+import { company, event, insuranceCertificate, staff } from '@/db/schema'
 import { noticesDue } from '@/domain/expiry'
 import { recordEvent } from '@/services/events'
+import { currentAnomalies } from '@/services/anomalies'
+import { sendAnomalyDigest } from '@/services/anomaly-digest'
 import { runLegalChecks } from '@/services/legal-checks'
 import { sendExpiryNotice } from '@/services/expiry-notice'
 
@@ -70,10 +72,22 @@ export async function GET(request: Request) {
   const companies = await db.select({ id: company.id, siret: company.siret }).from(company)
   for (const row of companies) await runLegalChecks(row.id, row.siret)
 
+  // Apres les controles : ils viennent d'ecrire les constats que le detecteur
+  // de silence lit. Calculer avant produirait une alerte sur une source qu'on
+  // vient d'interroger avec succes.
+  const anomalies = await currentAnomalies(now)
+  const reviewers = await db.select({ email: staff.email }).from(staff)
+  const alerted = await sendAnomalyDigest(
+    anomalies,
+    reviewers.map((r) => r.email),
+  )
+
   return Response.json({
     checked: certificates.length,
     sent,
     unreachable,
     companies: companies.length,
+    anomalies: anomalies.length,
+    alerted,
   })
 }
