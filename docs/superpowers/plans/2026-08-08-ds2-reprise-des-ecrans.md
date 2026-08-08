@@ -170,6 +170,8 @@ Le rendu n'est pas testable en environnement `node`, mais la **table de correspo
 import { describe, expect, it } from 'vitest'
 import { QUOTE_STATUS, PAYMENT_STATUS } from '@/ui/molecules/status-badge'
 
+import type { PaymentStatus } from '@/domain/payment-status'
+
 describe('correspondance des statuts', () => {
   it('couvre tous les statuts de devis du schema', () => {
     expect(Object.keys(QUOTE_STATUS).sort()).toEqual(
@@ -177,20 +179,28 @@ describe('correspondance des statuts', () => {
     )
   })
 
-  it('couvre tous les statuts de paiement du schema', () => {
-    expect(Object.keys(PAYMENT_STATUS).sort()).toEqual(
-      ['unpaid', 'partial', 'paid', 'late'].sort(),
-    )
+  it('couvre tous les statuts de paiement du domaine', () => {
+    const all: PaymentStatus[] = ['unpaid', 'partially_paid', 'paid', 'overdue']
+    expect(Object.keys(PAYMENT_STATUS).sort()).toEqual([...all].sort())
   })
 
-  it('n\'utilise jamais le ton neutre pour un etat problematique', () => {
+  it("n'utilise jamais le ton neutre pour un etat problematique", () => {
     expect(QUOTE_STATUS.refused.tone).toBe('danger')
-    expect(PAYMENT_STATUS.late.tone).toBe('danger')
+    expect(PAYMENT_STATUS.overdue.tone).toBe('danger')
   })
 })
 ```
 
-**Avant d'écrire le test, lire `src/db/schema/quote.ts` et `src/db/schema/invoice.ts` et remplacer les deux listes ci-dessus par les valeurs réelles du schéma.** Les cinq et quatre valeurs écrites ici sont l'hypothèse de départ, pas la vérité.
+**Valeurs vérifiées dans le code le 2026-08-08**, et deux d'entre elles contredisaient l'hypothèse de départ de ce plan :
+
+| Source | Valeurs |
+|---|---|
+| `src/db/schema/quote.ts:30` | `draft` · `sent` · `signed` · `refused` · `expired` |
+| `src/domain/payment-status.ts` | `unpaid` · **`partially_paid`** · `paid` · **`overdue`** |
+
+J'avais écrit `partial` et `late`. Le type `PaymentStatus` est importé dans le test plutôt que recopié, pour que l'ajout d'un statut au domaine casse la compilation du test au lieu de passer inaperçu.
+
+**Hors périmètre :** `project.status` (`draft` · `in_progress` · `completed` · `abandoned`) et `invoice.type` (`deposit` · `progress` · `balance` · `credit_note`) existent aussi, mais aucun écran actuel ne les affiche. Inventaire fermé : on les ajoutera quand un écran en aura besoin.
 
 - [ ] **Step 2 : Lancer le test, le voir échouer**
 
