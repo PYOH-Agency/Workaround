@@ -16,6 +16,16 @@ const DS_DIR = 'src/ui/'
  * - `QuoteLinesTable` — distinct de `QuoteLineEditor` : l'un lit, l'autre
  *   saisit, et ils n'ont ni les memes contraintes ni les memes balises.
  *
+ * Huit entrees supplementaires pour la landing (spec landing §7.1) :
+ *
+ * - `SectionHeader`, `StepCard` — repetes onze fois sur les deux pages.
+ * - `Reveal`, `Stagger` — les deux gestes de marque encapsules. Sans eux,
+ *   chaque section reimplemente l'animation et oublie prefers-reduced-motion.
+ * - `SiretLookup`, `QuoteLinkForm` — les deux actions publiques.
+ * - `PrinciplePanel` — les engagements du §12 du socle.
+ * - `LandingShell` — navigation a lien croise. `PublicShell` est un gabarit de
+ *   document : lui greffer une navigation commerciale le denaturerait.
+ *
  * Toute autre addition doit passer par la spec avant d'arriver ici.
  */
 const INVENTORY = {
@@ -27,12 +37,14 @@ const INVENTORY = {
   molecules: [
     'Field', 'Card', 'StatusBadge', 'SealBadge', 'LogoLockup', 'EmptyState',
     'Toast', 'Tooltip', 'ButtonGroup', 'SummaryLine', 'Dialog', 'ThemeToggle',
+    'SectionHeader', 'StepCard', 'Reveal', 'Stagger',
   ],
   organisms: [
     'AppHeader', 'QuoteTable', 'QuoteLineEditor', 'QuoteLinesTable', 'TotalsPanel',
     'VatBreakdown', 'LegalMentionsPanel', 'PaymentTimeline', 'SignaturePanel',
+    'SiretLookup', 'QuoteLinkForm', 'PrinciplePanel',
   ],
-  shells: ['AppShell', 'PublicShell', 'PdfShell'],
+  shells: ['AppShell', 'PublicShell', 'PdfShell', 'LandingShell'],
   brand: ['Mark', 'Seal', 'Lockup'],
 }
 
