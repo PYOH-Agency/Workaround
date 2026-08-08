@@ -4,32 +4,13 @@ import { useActionState, useMemo, useState } from 'react'
 import { saveQuote, type QuoteFormState } from '../actions'
 import { computeTotals } from '@/domain/quote-totals'
 import { toCents, format } from '@/domain/money'
-
-const TAX_RATES = [
-  { value: 550, label: '5,5 %' },
-  { value: 1000, label: '10 %' },
-  { value: 2000, label: '20 %' },
-]
-
-interface LineDraft {
-  label: string
-  unit: string
-  quantity: string
-  price: string
-  taxRate: number
-}
-
-const emptyLine = (): LineDraft => ({
-  label: '',
-  unit: 'u',
-  quantity: '1',
-  price: '',
-  taxRate: 1000,
-})
+import { emptyLine, QuoteLineRow, type LineDraft } from './QuoteLines'
 
 const initialState: QuoteFormState = {}
 
 const formatRate = (rate: number) => `${(rate / 100).toFixed(1).replace('.', ',')} %`
+
+const field = 'rounded-lg border border-black/15 px-3 py-2 dark:border-white/20'
 
 export function NewQuoteForm({ validityDays }: { validityDays: number }) {
   const [state, action, pending] = useActionState(saveQuote, initialState)
@@ -55,8 +36,6 @@ export function NewQuoteForm({ validityDays }: { validityDays: number }) {
       return null
     }
   }, [lines])
-
-  const field = 'rounded-lg border border-black/15 px-3 py-2 dark:border-white/20'
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-12">
@@ -136,62 +115,7 @@ export function NewQuoteForm({ validityDays }: { validityDays: number }) {
           <h2 className="font-medium">Les prestations</h2>
 
           {lines.map((line, i) => (
-            <div key={i} className="grid gap-3 sm:grid-cols-12">
-              <label className="flex flex-col gap-1 text-sm sm:col-span-5">
-                {i === 0 && 'Désignation'}
-                <input
-                  aria-label="Désignation"
-                  name={`ligne[${i}][libelle]`}
-                  value={line.label}
-                  onChange={(e) => update(i, 'label', e.target.value)}
-                  className={field}
-                />
-              </label>
-
-              <label className="flex flex-col gap-1 text-sm sm:col-span-2">
-                {i === 0 && 'Quantité'}
-                <input
-                  aria-label="Quantité"
-                  name={`ligne[${i}][quantite]`}
-                  inputMode="decimal"
-                  value={line.quantity}
-                  onChange={(e) => update(i, 'quantity', e.target.value)}
-                  className={field}
-                />
-              </label>
-
-              <label className="flex flex-col gap-1 text-sm sm:col-span-3">
-                {i === 0 && 'Prix unitaire HT'}
-                <input
-                  aria-label="Prix unitaire HT"
-                  name={`ligne[${i}][prix]`}
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  value={line.price}
-                  onChange={(e) => update(i, 'price', e.target.value)}
-                  className={field}
-                />
-              </label>
-
-              <label className="flex flex-col gap-1 text-sm sm:col-span-2">
-                {i === 0 && 'TVA'}
-                <select
-                  aria-label="TVA"
-                  name={`ligne[${i}][tva]`}
-                  value={line.taxRate}
-                  onChange={(e) => update(i, 'taxRate', Number(e.target.value))}
-                  className={field}
-                >
-                  {TAX_RATES.map((rate) => (
-                    <option key={rate.value} value={rate.value}>
-                      {rate.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <input type="hidden" name={`ligne[${i}][unite]`} value={line.unit} />
-            </div>
+            <QuoteLineRow key={i} index={i} line={line} onChange={update} />
           ))}
 
           <button

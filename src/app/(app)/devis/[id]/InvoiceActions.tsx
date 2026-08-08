@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { issueBalance, issueDeposit, issueProgress, type InvoiceFormState } from '../../factures/actions'
+import { issueBalance, issueDeposit, issueProgress, type InvoiceFormState } from '@/actions/invoices'
 
 const field = 'rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20'
 

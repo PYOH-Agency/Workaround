@@ -1,7 +1,8 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { addPayment, type InvoiceFormState } from '../actions'
+import { addPayment } from '../actions'
+import type { InvoiceFormState } from '@/actions/invoices'
 
 const initialState: InvoiceFormState = {}
 
