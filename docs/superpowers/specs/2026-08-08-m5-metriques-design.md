@@ -93,6 +93,18 @@ Chacune se calcule sur une **fenêtre glissante de douze mois**, et n'est affich
 | **Respect du délai annoncé** | Part des chantiers terminés dans le délai engagé, compté **en jours ouvrés** de la signature à la fin | 10 chantiers |
 | **Volume de chantiers terminés** | Nombre, sur 12 mois et au total | — |
 
+### 4.0 Jamais un taux seul
+
+> **Décision, prise dans la spec produit avant l'écriture de ce jalon** ([§9, *Le biais de sélection*](2026-08-07-socle-artisan-design.md)) : **le volume de chantiers signés dans l'outil s'affiche à côté de chaque taux.** Jamais un taux seul.
+
+La signature client empêche d'**inventer** un chantier. Elle n'empêche pas d'en **omettre** un. Un artisan qui comprend que ces deux taux le pénalisent sortira de l'outil ses chantiers difficiles — l'appartement occupé, le client qui change d'avis. Ce n'est pas de la fraude, c'est un arbitrage rationnel, et il est **invisible par construction** : le backoffice ne voit que ce qui entre.
+
+Le passeport resterait exact ligne à ligne, et deviendrait faux dans ce qu'il laisse croire.
+
+Le biais découle de la règle « seul un devis signé compte », qui est indispensable par ailleurs. On ne peut donc pas le supprimer — **seulement refuser de le masquer**. C'est la règle du seuil, étendue d'un cran : le seuil empêche d'afficher un chiffre non significatif ; le volume affiché empêche de lire un chiffre significatif comme s'il était exhaustif.
+
+**Conséquence d'implémentation :** un taux et son volume forment **une seule valeur de retour**, jamais deux champs qu'un écran pourrait dissocier. Le type les rend indissociables ; le compilateur applique la règle plutôt que la revue.
+
 Le délai engagé est déclaré **en jours ouvrés** — c'est ce que porte le devis depuis M1, et c'est donc ainsi qu'il doit être compté. La fonction `businessDaysSince`, écrite pour le backoffice, sert ici sans modification.
 
 **En dessous du seuil : « pas encore assez de données », jamais un chiffre.** Une entreprise à trois chantiers parfaits paraîtrait meilleure qu'une entreprise à deux cents chantiers à 96 %.
@@ -106,6 +118,7 @@ Trois exigences de l'AIPD s'appliquent ici, et elles sont d'implémentation :
 - **La fenêtre glissante est imposée par le code du calcul**, pas par la discipline. Les événements sont conservés dix ans au titre de l'obligation comptable ; la lecture ne va jamais au-delà de douze mois.
 - **Les exclusions sont portées par la requête**, jamais par un filtre d'affichage — comme pour la page publique de M3 et l'annuaire de M4.
 - **La définition de chaque métrique est publique.** Un chiffre dont on ignore la règle de calcul est incontestable, donc arbitraire — et un droit de rectification qu'on ne peut pas exercer faute de comprendre le calcul n'est pas un droit.
+- **Et elle énonce son périmètre.** Chaque définition dit explicitement qu'elle porte sur **les chantiers passés par l'outil**, non sur l'activité de l'entreprise. Ce que le produit peut promettre est *« voici ce qui s'est passé sur les chantiers que nous avons vus »*, jamais *« voici comment travaille cette entreprise »* — et c'est pourtant la seconde que le lecteur suppose tant qu'on ne le corrige pas.
 
 ## 5. La contestation
 
