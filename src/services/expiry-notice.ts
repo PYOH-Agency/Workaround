@@ -7,7 +7,7 @@ interface ExpiringCertificate {
 }
 
 /**
- * Le message de preavis.
+ * Le message de preavis. Renvoie `false` si aucune adresse ne permet de l'envoyer.
  *
  * L'article 22.3 impose d'expliquer QUOI et POURQUOI : une notification qui
  * n'enonce pas sa consequence n'est pas lue, et une suspension muette est
@@ -17,10 +17,10 @@ interface ExpiringCertificate {
 export async function sendExpiryNotice(input: {
   certificate: ExpiringCertificate
   day: number
-}): Promise<void> {
+}): Promise<boolean> {
   const { certificate, day } = input
   const address = certificate.company.email
-  if (!address || !certificate.validUntil) return
+  if (!address || !certificate.validUntil) return false
 
   const kind =
     certificate.kind === 'decennale' ? 'de garantie décennale' : 'de RC professionnelle'
@@ -38,4 +38,6 @@ export async function sendExpiryNotice(input: {
       'Si vous estimez ce retrait injustifié, répondez à ce message : une personne réexaminera votre dossier.',
     ].join('\n'),
   })
+
+  return true
 }

@@ -30,6 +30,9 @@ export async function GET(request: Request) {
   })
 
   let sent = 0
+  // Une entreprise sans adresse ne peut pas etre prevenue. On la compte pour
+  // que le suivi la voie : sans preavis, la suspension serait irreguliere.
+  let unreachable = 0
 
   for (const certificate of certificates) {
     const history = await db
@@ -41,7 +44,14 @@ export async function GET(request: Request) {
     const [day] = noticesDue(certificate.validUntil!, now, alreadySent)
     if (day === undefined) continue
 
-    await sendExpiryNotice({ certificate, day })
+    // L'evenement n'est ecrit QUE si le preavis est parti. Le journal est la
+    // preuve du preavis exige par l'article 22.3 : y inscrire un avertissement
+    // qui n'a jamais quitte le serveur fabriquerait une fausse preuve, et
+    // l'artisan suspendu sans avoir rien recu se verrait opposer notre journal.
+    if (!(await sendExpiryNotice({ certificate, day }))) {
+      unreachable++
+      continue
+    }
 
     await recordEvent({
       type: 'certificate.expiring',
@@ -60,5 +70,10 @@ export async function GET(request: Request) {
   const companies = await db.select({ id: company.id, siret: company.siret }).from(company)
   for (const row of companies) await runLegalChecks(row.id, row.siret)
 
-  return Response.json({ checked: certificates.length, sent, companies: companies.length })
+  return Response.json({
+    checked: certificates.length,
+    sent,
+    unreachable,
+    companies: companies.length,
+  })
 }
