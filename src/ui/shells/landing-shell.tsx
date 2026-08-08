@@ -16,6 +16,12 @@ import { Lockup } from '@/ui/brand/lockup'
  *
  * Le lien croise apparait en haut et en bas : pas d'ecran de choix a l'entree,
  * qui ajouterait un clic a tout le monde pour n'aider personne.
+ *
+ * Le logotype n'est pas un lien : les deux pages sont deja les points
+ * d'entree, et le seul deplacement qui aurait un sens — vers l'autre public —
+ * est deja porte, nomme, par le bouton croise. Sur la page pro il pointerait
+ * vers la page courante, et sur la page demandeur il pointerait vers `/`, la
+ * page de l'autre public : trompeur plutot qu'inutile.
  */
 export function LandingShell({
   audience,
@@ -33,9 +39,7 @@ export function LandingShell({
     <div data-theme="light" className="flex min-h-full flex-1 flex-col bg-surface">
       <header className="border-b border-rule bg-card">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-4 px-6 py-4">
-          <Link href="/" tone="bare">
-            <Lockup size="sm" />
-          </Link>
+          <Lockup size="sm" />
           <div className="ml-auto flex items-center gap-3">
             <Text size="sm" tone="muted" as="span">
               {cross.question}
