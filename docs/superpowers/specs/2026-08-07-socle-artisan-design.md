@@ -382,7 +382,7 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 | 5 | ~~**Facturation électronique**~~ — **levé**, voir [la recherche](../research/2026-08-07-facturation-electronique.md) | Nous serons **Solution Compatible** raccordée à une **Plateforme Agréée**, jamais agréés nous-mêmes. Échéance TPE : 1ᵉʳ septembre 2027. L'obligation dominante de nos artisans est le **e-reporting** (clients particuliers), pas le e-invoicing. Le suivi des paiements devient une exigence réglementaire |
 | 6 | ~~**RGPD**~~ — **cadré**, voir [le document](../research/2026-08-08-cadrage-rgpd.md) | Rôles répartis, durées arrêtées, information des personnes écrite. Deux défauts corrigés : un e-mail en clair dans le journal ineffaçable, et des numéros de téléphone conservés sans fin. **Reste bloquant : l'AIPD du passeport, obligatoire avant M4** — le traitement remplit six des neuf critères du G29 |
 | 7 | **Zéro revenu si l'abonnement Pro n'est pas adopté** | Mesurer tôt le taux de conversion vers l'offre payante sur les entreprises de 3 salariés et plus |
-| 8 | **Accès aux sources de vérification** (RNE, URSSAF, RGE, Qualibat) | Vérification technique à mener avant le plan |
+| 8 | ~~**Accès aux sources de vérification**~~ — **levé**, voir [la recherche](../research/2026-08-08-sources-de-verification.md) | Quatre sources ouvertes et gratuites testées en direct : Sirene, BODACC, ADEME RGE — qui porte aussi Qualibat, avec les dates de validité. **API Entreprise nous est fermée** (réservée aux missions de service public) : l'URSSAF sort du périmètre de M3, et ce qu'on ne peut pas récupérer, l'artisan le fournit. Le RNE direct est redondant |
 | 9 | **Volume du référentiel d'activités** — couvrir tous les métiers demande une nomenclature large, et la correspondance avec les libellés d'assurance est le point dur | Partir d'une nomenclature existante plutôt que d'en créer une. Le référentiel est une donnée, pas du code : il peut s'enrichir en continu sans refonte |
 | 10 | **Promesse marketing plus générique** — « l'outil des plombiers bordelais » convertit mieux que « l'outil des artisans » | Problème de go-to-market, pas de produit : acquisition ciblée métier par métier sur un produit générique |
 
@@ -391,7 +391,7 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 ### Hypothèses ouvertes
 
 - **Le métier de départ à Bordeaux** n'a pas besoin d'être tranché en P1 : un outil de devis/facture est transversal et P1 est mono-utilisateur. Ce choix ne devient structurant qu'en P2, quand la liquidité locale compte.
-- **Profondeur du référentiel d'activités.** La granularité exacte reste à arrêter. Piste : s'aligner sur une nomenclature existante (Qualibat, listes d'activités des assureurs) plutôt que d'en inventer une — la correspondance avec les libellés d'assurance étant le cœur du contrôle, partir de leur vocabulaire réduit le risque d'écart.
+- ~~**Profondeur du référentiel d'activités.**~~ **Tranchée** : la **nomenclature France Assureurs** — 50 activités en 5 familles, révision 2019 —, référentiel commun à tous les assureurs construction. Pas Qualibat, qui nomme des *compétences* et non des *activités* : partir de lui obligerait à traduire chaque libellé d'attestation vers une nomenclature étrangère, au point le plus fragile de la chaîne. Bénéfice second : ces cinquante activités *sont* celles soumises à la décennale, donc `assurance_requise` découle de l'appartenance à la liste au lieu de se juger au cas par cas. Voir [la recherche](../research/2026-08-08-sources-de-verification.md).
 
 ## 14. Jalons de livraison
 
@@ -417,7 +417,7 @@ Aucun plan ne peut être écrit avant qu'elles soient prises. Trois d'entre elle
 |---|---|---|
 | 1 | ~~Facturation électronique~~ — **tranchée** : Solution Compatible raccordée à une Plateforme Agréée. [Recherche](../research/2026-08-07-facturation-electronique.md) | Reste à choisir la PA partenaire, avant d'écrire le module de facturation |
 | 2 | ~~Signature électronique~~ — **tranchée** : simple, en interne, code SMS, PDF archivé, horodatage RFC 3161 non bloquant. [Recherche](../research/2026-08-07-signature-electronique.md) | — |
-| 3 | **Extraction des attestations** — OCR, LLM, seuil de confiance, circuit de revue humaine | Conditionne le coût récurrent de M3 et le délai de vérification perçu par l'artisan |
+| 3 | ~~**Extraction des attestations**~~ — **tranchée** : [recherche](../research/2026-08-08-sources-de-verification.md) | **La revue humaine se construit d'abord, l'extraction ensuite.** Si un humain valide chaque attestation au démarrage, l'extraction n'est pas un mécanisme de justesse mais un accélérateur de saisie : la construire en premier reviendrait à bâtir la partie facultative avant l'essentielle. Le coût récurrent n'était pas le vrai risque — quelques centimes par document. Le délai perçu dépend du circuit de revue, pas du modèle. Et le point dur n'est pas l'extraction du libellé, c'est sa **correspondance** avec une activité du référentiel : c'est elle qui engage |
 | 4 | Stack applicative, base de données, hébergement | — |
 | 5 | Authentification — deux publics distincts (entreprise, demandeur) | — |
 | 6 | Génération de PDF, stockage des pièces et photos | — |
