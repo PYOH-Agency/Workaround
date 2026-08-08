@@ -21,6 +21,7 @@ const DS_DIR = 'src/ui/'
  * - `SectionHeader`, `StepCard` — repetes onze fois sur les deux pages.
  * - `Reveal`, `Stagger` — les deux gestes de marque encapsules. Sans eux,
  *   chaque section reimplemente l'animation et oublie prefers-reduced-motion.
+ *   `RevealTick` les accompagne : le carre qui se pose dans un `Reveal`.
  * - `SiretLookup`, `QuoteLinkForm` — les deux actions publiques.
  * - `PrinciplePanel` — les engagements du §12 du socle.
  * - `LandingShell` — navigation a lien croise. `PublicShell` est un gabarit de
@@ -37,7 +38,7 @@ const INVENTORY = {
   molecules: [
     'Field', 'Card', 'StatusBadge', 'SealBadge', 'LogoLockup', 'EmptyState',
     'Toast', 'Tooltip', 'ButtonGroup', 'SummaryLine', 'Dialog', 'ThemeToggle',
-    'SectionHeader', 'StepCard', 'Reveal', 'Stagger',
+    'SectionHeader', 'StepCard', 'Reveal', 'Stagger', 'RevealTick',
   ],
   organisms: [
     'AppHeader', 'QuoteTable', 'QuoteLineEditor', 'QuoteLinesTable', 'TotalsPanel',
