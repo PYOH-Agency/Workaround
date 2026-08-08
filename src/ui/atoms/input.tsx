@@ -24,8 +24,23 @@ export const controlStyle = cn(
  * des types : contourner le design system sur ce composant devient une erreur
  * de compilation, pas une remarque de revue.
  */
-type InputProps = Omit<React.ComponentProps<'input'>, 'className' | 'style'>
+type InputProps = Omit<React.ComponentProps<'input'>, 'className' | 'style'> & {
+  /**
+   * `code` espace les caracteres et les centre : un code a usage unique se
+   * relit chiffre par chiffre, et c'est le seul cas du produit ou l'espacement
+   * de la chasse sert la lecture plutot que la decoration.
+   *
+   * Une variante nommee plutot qu'un `className` : la regle du design system
+   * tient, et le besoin est reel.
+   */
+  variant?: 'default' | 'code'
+}
 
-export function Input(props: InputProps) {
-  return <input {...props} className={controlStyle} />
+export function Input({ variant = 'default', ...props }: InputProps) {
+  return (
+    <input
+      {...props}
+      className={cn(controlStyle, variant === 'code' && 'text-center tracking-[0.4em]')}
+    />
+  )
 }

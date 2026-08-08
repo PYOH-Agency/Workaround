@@ -1,103 +1,106 @@
 import { notFound } from 'next/navigation'
 import { loadQuoteByToken } from '@/services/quote-public'
-import { format } from '@/domain/money'
+import { ButtonLink } from '@/ui/atoms/button-link'
+import { Heading } from '@/ui/atoms/heading'
+import { IconCheck } from '@/ui/atoms/icon'
+import { Text } from '@/ui/atoms/text'
+import { Card } from '@/ui/molecules/card'
+import { LegalMentionsPanel } from '@/ui/organisms/legal-mentions-panel'
+import { QuoteLinesTable } from '@/ui/organisms/quote-lines-table'
+import { TotalsPanel } from '@/ui/organisms/totals-panel'
+import { PublicShell } from '@/ui/shells/public-shell'
 import { SignatureBlock } from './SignatureBlock'
 
 /** On ne reaffiche jamais le numero en entier : la page est publique. */
-const maskPhone = (phone: string) => `${phone.slice(0, 2)} •• •• •• ${phone.slice(-2)}`
+const maskPhone = (phone: string) => `${phone.slice(0, 2)} •• •• •• ${phone.slice(-2)}`
+
+/**
+ * Les mentions legales sont nullables en base, mais un devis ne peut pas etre
+ * emis sans elles : `hasLegalMentions` le bloque a la redaction.
+ *
+ * Ce garde-fou existe pour le cas ou cette invariante serait rompue en amont.
+ * Il echoue bruyamment plutot que d'afficher un devis silencieusement non
+ * conforme — l'article L243-2 expose l'artisan a 3 000 EUR d'amende, 15 000 EUR
+ * pour une societe, par infraction constatee. Un incident visible coute moins
+ * cher qu'une amende invisible.
+ */
+function mention(value: string | null | undefined, field: string): string {
+  if (!value) {
+    throw new Error(`Mention légale absente sur un devis émis : ${field}`)
+  }
+  return value
+}
 
 /**
  * Vue publique d'un devis, accessible sans compte.
  *
  * Le jeton fait office d'autorisation : le demandeur n'a pas de compte en M1.
  */
-const formatRate = (rate: number) => `${(rate / 100).toFixed(1).replace('.', ',')} %`
-
 export default async function PublicQuotePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
   const found = await loadQuoteByToken(token)
 
   if (!found) notFound()
 
+  const legal = found.company.legal
+
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-12">
+    <PublicShell>
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Devis {found.number}</h1>
-          <p className="mt-1 text-sm opacity-70">Émis le {found.issuedOn}</p>
+        <div className="flex flex-col gap-1">
+          <Heading level={1}>Devis {found.number}</Heading>
+          <Text size="sm" tone="muted">
+            Émis le {found.issuedOn}
+          </Text>
         </div>
-        <a
-          href={`/d/${token}/pdf`}
-          className="rounded-lg border border-black/15 px-4 py-2 text-sm dark:border-white/20"
-        >
+        <ButtonLink href={`/d/${token}/pdf`} tone="secondary">
           Télécharger le PDF
-        </a>
+        </ButtonLink>
       </header>
 
-      <section className="grid gap-6 text-sm sm:grid-cols-2">
-        <div>
-          <h2 className="font-medium">{found.company.legalName}</h2>
-          <p className="opacity-70">SIRET {found.company.siret}</p>
-          <p className="opacity-70">{found.company.address}</p>
+      <section className="grid gap-6 sm:grid-cols-2">
+        <div className="flex flex-col gap-0.5">
+          <Heading level={3} as="h2">
+            {found.company.legalName}
+          </Heading>
+          <Text size="sm" tone="soft">
+            SIRET {found.company.siret}
+          </Text>
+          <Text size="sm" tone="soft">
+            {found.company.address}
+          </Text>
         </div>
-        <div>
-          <h2 className="font-medium">{found.customer.name}</h2>
-          <p className="opacity-70">Chantier : {found.customer.propertyAddress}</p>
+        <div className="flex flex-col gap-0.5">
+          <Heading level={3} as="h2">
+            {found.customer.name}
+          </Heading>
+          <Text size="sm" tone="soft">
+            Chantier : {found.customer.propertyAddress}
+          </Text>
         </div>
       </section>
 
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-black/15 text-left dark:border-white/20">
-            <th className="py-2 font-medium">Désignation</th>
-            <th className="py-2 text-right font-medium">Qté</th>
-            <th className="py-2 text-right font-medium">P.U. HT</th>
-            <th className="py-2 text-right font-medium">TVA</th>
-          </tr>
-        </thead>
-        <tbody>
-          {found.lines.map((line, i) => (
-            <tr key={i} className="border-b border-black/5 dark:border-white/10">
-              <td className="py-2">{line.label}</td>
-              <td className="py-2 text-right">
-                {line.quantity} {line.unit}
-              </td>
-              <td className="py-2 text-right">{format(line.unitPriceExclTax)}</td>
-              <td className="py-2 text-right">{formatRate(line.taxRate)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <div className="rounded-xl border border-black/10 p-5 text-sm dark:border-white/15">
-        <div className="flex justify-between">
-          <span>Total HT</span>
-          <span>{format(found.totals.totalExclTax)}</span>
+      <Card elevation="e1">
+        <QuoteLinesTable lines={found.lines} />
+        <div className="mt-6">
+          <TotalsPanel totals={found.totals} />
         </div>
-        {found.totals.byRate.map((b) => (
-          <div key={b.rate} className="flex justify-between opacity-70">
-            <span>
-              TVA {formatRate(b.rate)} sur {format(b.baseExclTax)}
-            </span>
-            <span>{format(b.taxAmount)}</span>
-          </div>
-        ))}
-        <div className="mt-2 flex justify-between border-t border-black/10 pt-2 font-semibold dark:border-white/15">
-          <span>Total TTC</span>
-          <span data-testid="total-ttc">{format(found.totals.totalInclTax)}</span>
-        </div>
-      </div>
+      </Card>
 
       {found.committedLeadTimeDays !== null && (
-        <p className="text-sm opacity-70">
+        <Text size="sm" tone="soft">
           Délai d’exécution engagé : {found.committedLeadTimeDays} jours ouvrés à compter de
           l’acceptation.
-        </p>
+        </Text>
       )}
 
-      <section className="flex flex-col gap-1 text-sm opacity-80">
-        <p>Validité de cette offre : {found.validityDays} jours à compter de son émission.</p>
-        <p>Modalités de paiement : {found.company.legal.paymentTerms}</p>
+      <section className="flex flex-col gap-1">
+        <Text size="sm" tone="soft">
+          Validité de cette offre : {found.validityDays} jours à compter de son émission.
+        </Text>
+        <Text size="sm" tone="soft">
+          Modalités de paiement : {legal.paymentTerms}
+        </Text>
       </section>
 
       {/*
@@ -106,47 +109,53 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
         quatorze jours a douze mois.
       */}
       {found.customer.isIndividual && (
-        <section className="rounded-lg border border-black/15 p-4 text-sm dark:border-white/20">
-          <p className="font-medium">Droit de rétractation</p>
-          <p className="mt-1 opacity-80">
-            Pour un contrat conclu hors établissement, vous disposez d’un délai de quatorze jours à
-            compter de votre acceptation pour vous rétracter, sans avoir à motiver votre décision.
-            Si vous demandez expressément que les travaux commencent avant la fin de ce délai, vous
-            restez redevable des prestations déjà réalisées.
-          </p>
-        </section>
+        <Card elevation="flat">
+          <div className="flex flex-col gap-1">
+            <Text size="label" tone="muted">
+              Droit de rétractation
+            </Text>
+            <Text size="sm" tone="soft">
+              Pour un contrat conclu hors établissement, vous disposez d’un délai de quatorze jours
+              à compter de votre acceptation pour vous rétracter, sans avoir à motiver votre
+              décision. Si vous demandez expressément que les travaux commencent avant la fin de ce
+              délai, vous restez redevable des prestations déjà réalisées.
+            </Text>
+          </div>
+        </Card>
       )}
 
-      <section className="border-t border-black/10 pt-4 text-xs opacity-70 dark:border-white/15">
-        <p>
-          {found.company.legalName} — {found.company.legal.legalFormLabel} ·{' '}
-          {found.company.legal.registrationNumber}
-        </p>
-        <p>
-          SIRET {found.company.siret} ·{' '}
-          {found.company.legal.vatExempt
+      <LegalMentionsPanel
+        legalName={found.company.legalName}
+        legalFormLabel={mention(legal.legalFormLabel, 'forme juridique')}
+        registrationNumber={mention(legal.registrationNumber, 'immatriculation')}
+        siret={found.company.siret}
+        vatLine={
+          legal.vatExempt
             ? 'TVA non applicable, art. 293 B du CGI'
-            : `TVA ${found.company.legal.vatNumber}`}
-        </p>
-        <p>
-          {found.company.legal.phone} · {found.company.legal.email}
-        </p>
-        <p className="mt-2 font-medium">Assurance professionnelle</p>
-        <p>
-          {found.company.legal.insurerName} — {found.company.legal.insurerAddress}
-        </p>
-        <p>Contrat n° {found.company.legal.policyNumber}</p>
-        <p>Activités garanties : {found.company.legal.coveredActivities}</p>
-        <p>Couverture géographique : {found.company.legal.coverageArea}</p>
-      </section>
+            : `TVA ${mention(legal.vatNumber, 'numéro de TVA')}`
+        }
+        phone={mention(legal.phone, 'téléphone')}
+        email={mention(legal.email, 'e-mail')}
+        insurerName={mention(legal.insurerName, 'nom de l’assureur')}
+        insurerAddress={mention(legal.insurerAddress, 'adresse de l’assureur')}
+        policyNumber={mention(legal.policyNumber, 'référence du contrat')}
+        coveredActivities={mention(legal.coveredActivities, 'activités garanties')}
+        coverageArea={mention(legal.coverageArea, 'zone géographique')}
+      />
 
       {found.status === 'signed' ? (
-        <p role="status" className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-4">
-          Devis signé.
-        </p>
+        <div
+          role="status"
+          className="flex items-center gap-3 rounded-card border border-verified bg-verified-bg px-5 py-4 text-verified"
+        >
+          <IconCheck />
+          <Text as="span">
+            <strong>Devis signé.</strong>
+          </Text>
+        </div>
       ) : found.status === 'sent' && found.customer.phone ? (
         <SignatureBlock token={token} phoneHint={maskPhone(found.customer.phone)} />
       ) : null}
-    </main>
+    </PublicShell>
   )
 }
