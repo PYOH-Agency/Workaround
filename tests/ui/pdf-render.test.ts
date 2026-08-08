@@ -36,7 +36,10 @@ const QUOTE: PublicQuote = {
       coveredActivities: 'Plomberie, chauffage',
       coverageArea: 'France métropolitaine',
     },
-    passportUrl: 'https://dequerre.test/p/garance-plomberie-507698207',
+    passport: {
+      url: 'https://dequerre.test/p/garance-plomberie-507698207',
+      activities: ['Plomberie'],
+    },
   },
   customer: {
     id: 'cu1',

@@ -226,8 +226,8 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
             avec les echeances. C'est le seul endroit du document ou le lecteur
             se demande deja si l'assurance est reelle.
           */}
-          {quote.company.passportUrl && (
-            <Text>Vérifier ces garanties : {quote.company.passportUrl}</Text>
+          {quote.company.passport && (
+            <Text>Vérifier ces garanties : {quote.company.passport.url}</Text>
           )}
         </View>
 

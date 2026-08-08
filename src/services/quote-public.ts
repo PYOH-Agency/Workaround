@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { quote } from '@/db/schema'
 import { computeTotals, type Totals } from '@/domain/quote-totals'
-import { passportUrl } from '@/services/passport'
+import { passportLink, type PassportLink } from '@/services/passport'
 import type { CompanyLegalDetails } from '@/domain/legal-mentions'
 
 export interface SendableState {
@@ -52,8 +52,8 @@ export interface PublicQuote {
     siret: string
     address: string
     legal: CompanyLegalDetails
-    /** Adresse du passeport, ou `null` : toute entreprise n'a pas de page publique. */
-    passportUrl: string | null
+    /** Le passeport, ou `null` : toute entreprise n'a pas de page publique. */
+    passport: PassportLink | null
   }
   customer: {
     id: string
@@ -111,7 +111,7 @@ export async function loadQuoteByToken(token: string): Promise<PublicQuote | nul
         coveredActivities: company.coveredActivities,
         coverageArea: company.coverageArea,
       },
-      passportUrl: await passportUrl(company, new Date()),
+      passport: await passportLink(company, new Date()),
     },
     customer: {
       id: customer.id,

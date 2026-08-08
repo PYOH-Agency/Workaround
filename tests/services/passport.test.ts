@@ -9,7 +9,7 @@ import {
   event,
   insuranceCertificate,
 } from '@/db/schema'
-import { passportUrl, recordPassportView } from '@/services/passport'
+import { passportLink, recordPassportView, trackedPassport } from '@/services/passport'
 
 // SIREN genere : le pre-push ne reinitialise pas la base, et un SIRET code en
 // dur entre en collision des le deuxieme lancement.
@@ -73,26 +73,38 @@ describe('adresse du passeport', () => {
   it("n'existe pas tant qu'aucune activite n'est couverte", async () => {
     // Poser sur un devis un lien qui repond 404 serait pire que pas de lien,
     // et precisement au moment ou le client juge le serieux de l'entreprise.
-    expect(await passportUrl(SUBJECT, NOW)).toBeNull()
+    expect(await passportLink(SUBJECT, NOW)).toBeNull()
   }, 30_000)
 
-  it('est nue par defaut, tracee quand le canal est connu', async () => {
+  it('porte l’adresse nue et les activites reellement couvertes', async () => {
     await certify()
 
-    // Le PDF porte l'adresse nue : personne ne recopie une chaine de requete
-    // depuis un document imprime.
-    expect(await passportUrl(SUBJECT, NOW)).toBe(`https://dequerre.test/p/${SLUG}`)
-
-    expect(await passportUrl(SUBJECT, NOW, 'courriel')).toBe(
-      `https://dequerre.test/p/${SLUG}?via=courriel`,
-    )
+    // L'entreprise a declare l'electricite ; elle n'est couverte par aucune
+    // attestation, donc le sceau ne la nomme pas. C'est la meme regle que sur
+    // le passeport : ce qui s'affiche est ce qui est couvert, jamais ce qui est
+    // declare.
+    expect(await passportLink(SUBJECT, NOW)).toEqual({
+      url: `https://dequerre.test/p/${SLUG}`,
+      activities: ['Plomberie'],
+    })
   }, 30_000)
+
+  it('ne porte le canal que la ou on le lui demande', () => {
+    const url = `https://dequerre.test/p/${SLUG}`
+    expect(trackedPassport(url, 'devis')).toBe(`${url}?via=devis`)
+  })
 })
 
 describe('consultation du passeport', () => {
-  it('mene a l’adresse canonique et compte le passage', async () => {
+  it('mene a l’adresse canonique et distingue les canaux', async () => {
     expect(await recordPassportView(SLUG, 'courriel')).toBe(`/artisan/${SLUG}`)
-    expect(await views()).toEqual([{ payload: { via: 'courriel' } }])
+    await recordPassportView(SLUG, 'devis')
+    // Sans adresse nue, le PDF serait indistinguable d'une saisie directe.
+    await recordPassportView(SLUG, null)
+
+    expect((await views()).map((v) => v.payload)).toEqual(
+      expect.arrayContaining([{ via: 'courriel' }, { via: 'devis' }, { via: 'direct' }]),
+    )
   }, 30_000)
 
   it('ne recopie jamais dans le journal ce qui vient de la requete', async () => {
@@ -102,13 +114,12 @@ describe('consultation du passeport', () => {
     await recordPassportView(SLUG, 'paul.martin@exemple.fr')
 
     const stored = await views()
-    expect(stored).toHaveLength(2)
-    expect(stored.map((v) => v.payload)).toContainEqual({ via: 'direct' })
+    expect(stored).toHaveLength(4)
     expect(JSON.stringify(stored)).not.toContain('paul.martin')
   }, 30_000)
 
   it("ne compte rien pour une entreprise qui n'existe pas", async () => {
     expect(await recordPassportView('entreprise-inconnue-999999999', null)).toBeNull()
-    expect(await views()).toHaveLength(2)
+    expect(await views()).toHaveLength(4)
   }, 30_000)
 })

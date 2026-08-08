@@ -16,35 +16,67 @@ import { companyCoverage } from '@/services/visibility'
  * C'est la lecon de M1, ou une adresse en clair dans le journal avait rendu le
  * droit a l'effacement structurellement impossible.
  */
-const SOURCES = ['courriel'] as const
+const SOURCES = ['courriel', 'devis'] as const
 
 export type PassportSource = (typeof SOURCES)[number]
 
+export interface PassportLink {
+  /** Adresse nue : celle qu'on imprime, et qu'un humain peut recopier. */
+  url: string
+  /**
+   * Les activites **reellement couvertes**, jamais celles declarees.
+   *
+   * La distinction n'est pas cosmetique. `company.coveredActivities` est la
+   * chaine que l'artisan a saisie pour ses mentions L243-2 : elle est
+   * declarative, et l'apposer sur un sceau qui dit « attestations controlees »
+   * serait exactement le mensonge que le produit existe pour supprimer.
+   */
+  activities: string[]
+}
+
 /**
- * L'adresse du passeport d'une entreprise, ou `null` si elle n'en a pas.
+ * Le passeport d'une entreprise, ou `null` si elle n'en a pas.
  *
  * Le `null` n'est pas une precaution de style. Une entreprise dont aucune
  * activite n'est couverte n'a pas de page publique : poser sur son devis un
  * lien qui repond 404 serait pire que ne rien poser du tout, et exactement au
- * moment ou le client evalue sa serieux.
+ * moment ou le client evalue son serieux.
  *
  * L'adresse passe par `/p/` et non par `/artisan/` : c'est ce detour qui rend
  * la consultation mesurable. Sans mesure, on ne saura jamais si le passeport
  * interesse quelqu'un — et c'est la question qui decide de la suite.
  */
-export async function passportUrl(
+export async function passportLink(
   subject: { id: string; legalName: string; siret: string },
   now: Date,
-  via?: PassportSource,
-): Promise<string | null> {
+): Promise<PassportLink | null> {
   const coverage = await companyCoverage(subject.id, now)
   if (!coverage.isPublic) return null
 
-  const url = `${process.env.APP_URL}/p/${companySlug(subject.legalName, subject.siret)}`
+  return {
+    url: `${process.env.APP_URL}/p/${companySlug(subject.legalName, subject.siret)}`,
+    // Meme raccourci que sur le passeport : le libelle du referentiel porte une
+    // precision d'assureur — « Plomberie — installations sanitaires » — dont le
+    // demandeur n'a que faire quand il lit un sceau.
+    activities: coverage.activities
+      .filter((a) => a.visible)
+      .map((a) => a.label.split(' —')[0]),
+  }
+}
 
-  // Sur un document imprime, personne ne recopie une chaine de requete : le PDF
-  // porte l'adresse nue, et sa consultation se compte en « direct ».
-  return via ? `${url}?via=${via}` : url
+/**
+ * La meme adresse, mais qui dit d'ou l'on vient.
+ *
+ * Separee du calcul parce qu'une adresse sert souvent deux surfaces a la fois :
+ * le devis en ligne et son PDF partent du meme chargement, et n'ont pourtant
+ * rien a nous apprendre l'un sur l'autre. Sur un document imprime, personne ne
+ * recopie une chaine de requete — le PDF garde l'adresse nue et se compte en
+ * « direct ».
+ *
+ * C'est aussi le seul endroit ou `?via=` est ecrit.
+ */
+export function trackedPassport(url: string, via: PassportSource): string {
+  return `${url}?via=${via}`
 }
 
 /**

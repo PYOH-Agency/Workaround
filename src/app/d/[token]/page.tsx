@@ -1,10 +1,13 @@
 import { notFound } from 'next/navigation'
+import { trackedPassport } from '@/services/passport'
 import { loadQuoteByToken } from '@/services/quote-public'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
 import { Text } from '@/ui/atoms/text'
+import { Link } from '@/ui/atoms/link'
 import { Card } from '@/ui/molecules/card'
+import { SealBadge } from '@/ui/molecules/seal-badge'
 import { LegalMentionsPanel, mention } from '@/ui/organisms/legal-mentions-panel'
 import { QuoteLinesTable } from '@/ui/organisms/quote-lines-table'
 import { TotalsPanel } from '@/ui/organisms/totals-panel'
@@ -62,6 +65,25 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
           </Text>
         </div>
       </section>
+
+      {/*
+        Le sceau se pose ici, entre l'identite de l'entreprise et son offre :
+        c'est l'ordre dans lequel le client se pose les questions — qui est-ce,
+        qu'a-t-on verifie chez eux, que me proposent-ils.
+
+        L'adresse affichee reste nue : c'est celle qu'on recopie depuis un ecran
+        photographie. Le lien, lui, dit d'ou l'on vient — meme page au bout,
+        `?via=` n'existe que pour la mesure. Il s'ouvre dans un onglet : quitter
+        cette page couterait un nouveau code SMS, donc une signature.
+      */}
+      {found.company.passport && (
+        <Link href={trackedPassport(found.company.passport.url, 'devis')} tone="bare">
+          <SealBadge
+            activities={found.company.passport.activities.join(', ')}
+            passportUrl={found.company.passport.url}
+          />
+        </Link>
+      )}
 
       <Card elevation="e1">
         <QuoteLinesTable lines={found.lines} />

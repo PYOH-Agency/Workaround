@@ -8,7 +8,7 @@ import { assertSendable } from '@/services/quote-public'
 import { hasLegalMentions } from '@/domain/legal-mentions'
 import { sendQuoteLink } from '@/services/email'
 import { recordEvent } from '@/services/events'
-import { passportUrl } from '@/services/passport'
+import { passportLink, trackedPassport } from '@/services/passport'
 import { currentCompany } from '@/lib/session'
 import { format } from '@/domain/money'
 
@@ -90,7 +90,8 @@ async function safePassportUrl(company: {
   siret: string
 }): Promise<string | null> {
   try {
-    return await passportUrl(company, new Date(), 'courriel')
+    const passport = await passportLink(company, new Date())
+    return passport && trackedPassport(passport.url, 'courriel')
   } catch {
     return null
   }
