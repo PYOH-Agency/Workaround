@@ -1,8 +1,10 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { currentCompany } from '@/lib/session'
 import { createAmendment } from '@/services/amendments'
+import { declareCompleted } from '@/services/completion'
 
 export interface AmendState {
   error?: string
@@ -27,4 +29,34 @@ export async function amendQuote(quoteId: string, _state: AmendState): Promise<A
   // Hors du bloc try : `redirect` signale la navigation en levant une
   // exception, qu'un catch afficherait comme une erreur.
   redirect(`/devis/${created.id}/modifier`)
+}
+
+export interface CompleteState {
+  error?: string
+}
+
+/**
+ * L'artisan declare son chantier termine.
+ *
+ * La date est celle qu'il saisit, pas celle du clic : un chantier fini vendredi
+ * et declare lundi ne doit pas lui couter deux jours ouvres.
+ */
+export async function completeChantier(
+  quoteId: string,
+  _state: CompleteState,
+  form: FormData,
+): Promise<CompleteState> {
+  const { companyId } = await currentCompany()
+
+  try {
+    const at = new Date(String(form.get('date')))
+    if (Number.isNaN(at.getTime())) return { error: 'Date invalide.' }
+
+    await declareCompleted(companyId, quoteId, at)
+  } catch (e) {
+    return { error: (e as Error).message }
+  }
+
+  revalidatePath(`/devis/${quoteId}`)
+  return {}
 }

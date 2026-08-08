@@ -23,6 +23,7 @@ import { quoteVersions } from '@/services/amendments'
 import { SendButton } from './SendButton'
 import { InvoiceActions } from './InvoiceActions'
 import { AmendButton } from './AmendButton'
+import { CompleteButton } from './CompleteButton'
 import { QuoteVersions } from './QuoteVersions'
 
 export default async function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -118,6 +119,17 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
           quoteId={found.id}
           remaining={format(remainingToInvoice(engagedTotal(versions), issued))}
         />
+      )}
+
+      {reference !== null && found.completedAt === null && (
+        <CompleteButton quoteId={found.id} today={new Date().toISOString().slice(0, 10)} />
+      )}
+
+      {found.completedAt !== null && (
+        <Text size="sm" tone="soft">
+          Chantier terminé le {found.completedAt.toLocaleDateString('fr-FR')}
+          {found.completionSource === 'invoiced' ? ' (facture de solde émise)' : ' (déclaré)'}.
+        </Text>
       )}
 
       {amendable && <AmendButton quoteId={found.id} />}
