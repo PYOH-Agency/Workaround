@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { frenchVatNumber, sirenFromSiret } from '@/domain/vat-number'
-import { missingLegalMentions, hasLegalMentions } from '@/domain/legal-mentions'
+import {
+  missingLegalMentions,
+  hasLegalMentions,
+  missingInvoiceMentions,
+  LEGAL_RECOVERY_INDEMNITY_CENTS,
+} from '@/domain/legal-mentions'
 
 describe('numero de TVA intracommunautaire', () => {
   it('extrait le SIREN des neuf premiers chiffres du SIRET', () => {
@@ -69,5 +74,33 @@ describe('mentions obligatoires du devis', () => {
 
   it('liste toutes les mentions manquantes d un dossier vide', () => {
     expect(missingLegalMentions({}).length).toBeGreaterThan(8)
+  })
+})
+
+describe('mentions propres a la facture', () => {
+  const base = { ...complete, latePaymentRate: 'trois fois le taux d’intérêt légal' }
+
+  it('accepte un dossier complet', () => {
+    expect(missingInvoiceMentions(base)).toEqual([])
+  })
+
+  it('exige le taux des penalites de retard', () => {
+    // Articles L441-9 et D441-5 du Code de commerce.
+    expect(missingInvoiceMentions({ ...base, latePaymentRate: null })).toEqual(['latePaymentRate'])
+  })
+
+  it('exige toutes les mentions deja requises pour le devis', () => {
+    expect(missingInvoiceMentions({ ...base, policyNumber: null })).toContain('policyNumber')
+  })
+
+  it("n'exige pas la duree de validite, qui n'a de sens que sur un devis", () => {
+    // Une facture ne se perime pas : exiger ce reglage bloquerait l'emission
+    // pour une raison qui ne concerne pas la facture.
+    expect(missingInvoiceMentions({ ...base, quoteValidityDays: null })).toEqual([])
+  })
+
+  it("fixe l'indemnite de recouvrement a 40 EUR", () => {
+    // Montant fixe par la loi : il n'est pas parametrable.
+    expect(LEGAL_RECOVERY_INDEMNITY_CENTS).toBe(4000)
   })
 })

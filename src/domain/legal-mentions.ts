@@ -54,3 +54,29 @@ export function missingLegalMentions(details: CompanyLegalDetails): string[] {
 export function hasLegalMentions(details: CompanyLegalDetails): boolean {
   return missingLegalMentions(details).length === 0
 }
+
+/**
+ * Indemnite forfaitaire pour frais de recouvrement, due entre professionnels.
+ * Montant fixe par l'article D441-5 du Code de commerce : non parametrable.
+ */
+export const LEGAL_RECOVERY_INDEMNITY_CENTS = 4000
+
+export interface InvoiceLegalDetails extends CompanyLegalDetails {
+  /** Taux des penalites de retard. Minimum legal : trois fois le taux d'interet legal. */
+  latePaymentRate?: string | null
+}
+
+/**
+ * Mentions obligatoires d'une facture.
+ *
+ * Chaque mention manquante coute 15 EUR, plafonnees a 25 % du montant de la
+ * facture : sur un chantier a 8 000 EUR, l'addition atteint 2 000 EUR.
+ */
+export function missingInvoiceMentions(details: InvoiceLegalDetails): string[] {
+  // La duree de validite est propre au devis : une facture ne se perime pas.
+  const missing = missingLegalMentions(details).filter((key) => key !== 'quoteValidityDays')
+
+  if (!details.latePaymentRate?.trim()) missing.push('latePaymentRate')
+
+  return missing
+}
