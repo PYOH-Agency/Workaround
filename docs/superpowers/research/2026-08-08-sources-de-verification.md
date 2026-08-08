@@ -119,9 +119,13 @@ Deux bénéfices supplémentaires, qui ne se voient qu'après coup :
 
 **Cinquante entrées, c'est un « référentiel minimal » réel.** Le jalon demandait un référentiel minimal ; cinquante activités classées en cinq familles se saisissent comme une donnée, pas comme un projet.
 
-**La frontière décennale / RC Pro se lit dans la nomenclature elle-même.** Ces cinquante activités *sont* celles soumises à la garantie décennale. Le champ `assurance_requise` de la spec devient une conséquence de l'appartenance à la liste, et non un jugement à porter activité par activité.
+**La frontière décennale / RC Pro se lit *presque* dans la nomenclature.** J'avais d'abord écrit qu'elle s'en déduisait entièrement — que le champ `assurance_requise` de la spec découlerait de l'appartenance à la liste, et non d'un jugement activité par activité. **La récupération de la vraie nomenclature dément cette simplification.**
 
-Restent, hors de cette liste : le paysagisme, le ramonage, le nettoyage, la dératisation, le diagnostic — RC Pro. Ils devront être ajoutés à côté, avec leur propre origine.
+Elle comporte des entrées qui ne constituent pas un ouvrage au sens de l'article 1792 : *4.1 Paysagiste*, *18.1 Agencement de cuisines, magasins, salles de bain*. Elles y figurent parce que les assureurs les nomment sur les mêmes contrats, pas parce qu'elles engagent la décennale.
+
+> **`requires_decennale` est donc une colonne renseignée activité par activité, jamais un calcul.** Le déduire aurait exigé une décennale d'un paysagiste — une exigence fausse, et bloquante pour l'artisan concerné.
+
+Restent en dehors de la liste, et à ajouter à côté avec leur propre origine : le ramonage, le nettoyage, la dératisation, le diagnostic.
 
 ---
 
