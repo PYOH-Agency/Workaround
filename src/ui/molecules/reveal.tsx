@@ -24,14 +24,3 @@ export function Reveal({
     </Tag>
   )
 }
-
-/** Le carre de l'angle verifie. A placer dans un `Reveal`, une seule fois. */
-export function RevealTick() {
-  return (
-    <span
-      data-reveal-tick=""
-      aria-hidden="true"
-      className="ml-2.5 inline-block size-3 bg-brand align-middle"
-    />
-  )
-}
