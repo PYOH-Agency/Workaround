@@ -16,9 +16,14 @@ export interface PublicActivity {
 }
 
 export interface PublicProfile {
+  /** Necessaire au formulaire de contact : il s'adresse a UNE entreprise. */
+  companyId: string
   slug: string
   legalName: string
   siret: string
+  /** Deja mention obligatoire sur chaque devis : rien de confidentiel. */
+  phone: string | null
+  email: string | null
   city: string | null
   foundedOn: Date | null
   insurer: { name: string | null; policyNumber: string | null; validUntil: Date | null }
@@ -63,9 +68,12 @@ export async function publicProfile(siren: string, now: Date): Promise<PublicPro
   const current = certificates.find((c) => c.validUntil && c.validUntil >= now)
 
   return {
+    companyId: found.id,
     slug: companySlug(found.legalName, found.siret),
     legalName: found.legalName,
     siret: found.siret,
+    phone: found.phone,
+    email: found.email,
     city: found.city,
     foundedOn: found.foundedOn,
     insurer: {

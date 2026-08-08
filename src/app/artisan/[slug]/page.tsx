@@ -7,6 +7,7 @@ import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
 import { SealBadge } from '@/ui/molecules/seal-badge'
 import { PublicShell } from '@/ui/shells/public-shell'
+import { ContactForm } from './ContactForm'
 import { CoveredActivities } from './CoveredActivities'
 import { Qualifications } from './Qualifications'
 
@@ -96,6 +97,13 @@ export default async function ArtisanPage({ params }: { params: Promise<{ slug: 
           <Qualifications qualifications={profile.qualifications} />
         </section>
       )}
+
+      <section className="flex flex-col gap-4">
+        <Heading level={3} as="h2">
+          Contacter cette entreprise
+        </Heading>
+        <ContactForm companyId={profile.companyId} legalName={profile.legalName} />
+      </section>
 
       {/* Mentions imposees par l'article L243-2 du Code des assurances. */}
       <section className="flex flex-col gap-0.5 border-t border-rule pt-5">
