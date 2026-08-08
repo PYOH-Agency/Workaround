@@ -2,7 +2,7 @@
 
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, lt, sql } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { quote, signature, signatureCode } from '@/db/schema'
 import { loadQuoteByToken } from '@/services/quote-public'
@@ -32,6 +32,12 @@ export async function requestCode(token: string, _state: SignState): Promise<Sig
   if (!found) return { error: 'Devis introuvable.' }
   if (found.status !== 'sent') return { error: 'Ce devis ne peut plus être signé.' }
   if (!found.customer.phone) return { error: 'Aucun numéro de téléphone associé à ce devis.' }
+
+  // Purge des codes perimes de ce devis avant d'en emettre un nouveau : ils
+  // portent un numero de telephone et n'ont plus de raison d'exister.
+  await db
+    .delete(signatureCode)
+    .where(and(eq(signatureCode.quoteId, found.id), lt(signatureCode.expiresAt, new Date())))
 
   const code = generateCode()
 
@@ -121,6 +127,10 @@ export async function signQuote(token: string, _state: SignState, form: FormData
   const timestampToken = await requestTimestamp(hash)
 
   await db.insert(signature).values({ quoteId: found.id, ...proof, timestampToken })
+
+  // Le code a rempli son office et la preuve de sa validation vit desormais
+  // dans `signature`. Conserver le numero ici n'aurait plus de finalite.
+  await db.delete(signatureCode).where(eq(signatureCode.quoteId, found.id))
   await db.update(quote).set({ status: 'signed', signedAt: new Date() }).where(eq(quote.id, found.id))
 
   await recordEvent({
@@ -129,7 +139,10 @@ export async function signQuote(token: string, _state: SignState, form: FormData
     subjectId: found.id,
     companyId: found.companyId,
     actorType: 'customer',
-    actorId: proof.signerEmail,
+    // Un identifiant, jamais l'e-mail : ce journal est volontairement
+    // ineffacable, et y ecrire une donnee personnelle en clair rendrait le
+    // droit a l'effacement structurellement impossible a honorer.
+    actorId: found.customer.id,
     payload: { documentHash: hash, timestamped: timestampToken !== null },
   })
 

@@ -53,6 +53,7 @@ export interface PublicQuote {
     legal: CompanyLegalDetails
   }
   customer: {
+    id: string
     name: string
     phone: string | null
     isIndividual: boolean
@@ -109,6 +110,7 @@ export async function loadQuoteByToken(token: string): Promise<PublicQuote | nul
       },
     },
     customer: {
+      id: customer.id,
       name: customer.name,
       phone: customer.phone,
       isIndividual: customer.type === 'individual',

@@ -33,6 +33,13 @@ export default function SignUpPage() {
             className={`${field} font-mono`}
           />
           <p className="text-xs opacity-60">14 chiffres, espaces acceptés.</p>
+          <p className="text-xs opacity-60">
+            En continuant, vous acceptez notre{' '}
+            <a href="/confidentialite" target="_blank" className="underline">
+              politique de protection des données
+            </a>
+            .
+          </p>
         </div>
 
         {state.error && (

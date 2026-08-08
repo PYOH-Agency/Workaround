@@ -87,8 +87,13 @@ export function SignatureBlock({ token, phoneHint }: { token: string; phoneHint:
           </label>
 
           <p className="text-xs opacity-60">
-            En signant, vous acceptez ce devis et son délai d’exécution. Un horodatage et la trace
-            de votre validation sont conservés comme preuve.
+            En signant, vous acceptez ce devis et son délai d’exécution. Votre nom, votre e-mail, le
+            code reçu par SMS, votre adresse IP et l’empreinte du document sont conservés comme
+            preuve.{' '}
+            <a href="/confidentialite" target="_blank" className="underline">
+              En savoir plus
+            </a>
+            .
           </p>
 
           <button
