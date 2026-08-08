@@ -5,40 +5,16 @@ import { redirect } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { quote, quoteLine } from '@/db/schema'
-import { computeTotals, type LineInput, type Totals } from '@/domain/quote-totals'
+import { computeTotals, type Totals } from '@/domain/quote-totals'
 import { toCents } from '@/domain/money'
 import { nextQuoteNumber } from '@/services/quotes'
 import { createProject } from '@/services/projects'
 import { recordEvent } from '@/services/events'
 import { currentCompany } from '@/lib/session'
+import { readLines, type LineFormInput } from './form-lines'
 
 export interface QuoteFormState {
   error?: string
-}
-
-interface LineFormInput extends LineInput {
-  label: string
-  unit: string
-}
-
-/** Lit les lignes du formulaire, indexees ligne[0][libelle], ligne[0][prix]… */
-function readLines(form: FormData): LineFormInput[] {
-  const lines: LineFormInput[] = []
-
-  for (let i = 0; form.has(`ligne[${i}][libelle]`); i++) {
-    const label = String(form.get(`ligne[${i}][libelle]`) ?? '').trim()
-    if (!label) continue
-
-    lines.push({
-      label,
-      unit: String(form.get(`ligne[${i}][unite]`) || 'u'),
-      quantity: String(form.get(`ligne[${i}][quantite]`) || '1'),
-      unitPriceExclTax: toCents(String(form.get(`ligne[${i}][prix]`) || '0')),
-      taxRate: Number(form.get(`ligne[${i}][tva]`) || 1000),
-    })
-  }
-
-  return lines
 }
 
 export async function saveQuote(

@@ -18,8 +18,12 @@ import { StatusBadge } from '@/ui/molecules/status-badge'
 import { QuoteLinesTable } from '@/ui/organisms/quote-lines-table'
 import { TotalsPanel } from '@/ui/organisms/totals-panel'
 import { AppShell } from '@/ui/shells/app-shell'
+import { engagedTotal, referenceVersion } from '@/domain/quote-versions'
+import { quoteVersions } from '@/services/amendments'
 import { SendButton } from './SendButton'
 import { InvoiceActions } from './InvoiceActions'
+import { AmendButton } from './AmendButton'
+import { QuoteVersions } from './QuoteVersions'
 
 export default async function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -43,6 +47,10 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
 
   const totals = computeTotals(found.lines)
   const lines = [...found.lines].sort((a, b) => a.position - b.position)
+
+  const versions = await quoteVersions(found.id)
+  const reference = referenceVersion(versions)
+  const amendable = versions.length > 0 && reference !== null && !versions.some((v) => v.status === 'draft' || v.status === 'sent')
 
   const issued = await issuedAgainstQuote(found.id)
   const invoices = await db
@@ -90,7 +98,12 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
       )}
 
       {found.status === 'draft' ? (
-        <SendButton quoteId={found.id} />
+        <div className="flex flex-wrap items-center gap-4">
+          <SendButton quoteId={found.id} />
+          <Link href={`/devis/${found.id}/modifier`} tone="bare">
+            <span className="text-sm">Modifier</span>
+          </Link>
+        </div>
       ) : (
         <Text size="sm" tone="soft">
           Lien du client :{' '}
@@ -103,8 +116,19 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
       {found.status === 'signed' && (
         <InvoiceActions
           quoteId={found.id}
-          remaining={format(remainingToInvoice(found.totalInclTax, issued))}
+          remaining={format(remainingToInvoice(engagedTotal(versions), issued))}
         />
+      )}
+
+      {amendable && <AmendButton quoteId={found.id} />}
+
+      {versions.length > 1 && (
+        <section className="flex flex-col gap-3">
+          <Heading level={3} as="h2">
+            Versions de ce devis
+          </Heading>
+          <QuoteVersions versions={versions} currentId={found.id} />
+        </section>
       )}
 
       {invoices.length > 0 && (
