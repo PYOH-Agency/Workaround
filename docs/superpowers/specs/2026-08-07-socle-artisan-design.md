@@ -221,6 +221,8 @@ Cela donne une phrase que personne d'autre en France ne peut prononcer : *« tou
 
 La jauge de vérification devient un moteur d'engagement : l'artisan voit son passeport se débloquer. Une assurance absente ou mal dimensionnée est **signalée à l'artisan** plutôt que de le rejeter silencieusement — orientation vers un courtier partenaire à terme.
 
+> **Décision, issue de l'[AIPD](../rgpd/2026-08-08-aipd-passeport.md).** Retirer une activité de la vitrine est une décision automatisée qui prive l'artisan d'accès aux demandeurs. L'article 22.3 impose donc, en plus du signalement : un **préavis** (J-60, J-30, J-7), une **explication** — quelle activité, pourquoi —, une **voie de rétablissement**, et un **recours humain**. Aucune suspension muette.
+
 ## 9. Le passeport
 
 ### Ce qu'il n'est pas
@@ -258,6 +260,22 @@ Les chantiers non signés existent dans l'outil mais ne comptent pas dans le pas
 ### Portabilité
 
 Le passeport est exportable : widget pour le site de l'entreprise, bloc sur ses devis, QR code. Le label devient son argument commercial, donc il le défend et le diffuse gratuitement.
+
+### Contestabilité
+
+> Issu de l'[AIPD du passeport](../rgpd/2026-08-08-aipd-passeport.md) — ces règles sont les conditions de licéité du traitement, pas des options.
+
+> **Décision.** Il n'existe pas de fiche publique sans passeport. Un artisan qui s'oppose à la publication est retiré intégralement de la vitrine, sans condition et sans délai — **et conserve son outil** : devis, factures, historique.
+
+Maintenir une fiche visible sans métriques créerait la catégorie où se réfugierait tout artisan aux chiffres médiocres. Elle deviendrait en deux mouvements le signal qu'elle prétendait éviter.
+
+> **Décision.** Le passeport reste dérivé et non éditable. La rectification porte sur **l'événement sous-jacent**, jamais sur la métrique.
+
+Un événement rectificatif neutralise le précédent sans modifier le journal — la même règle que l'avoir qui corrige une facture. S'y ajoute un **droit de déclaration complémentaire** (article 16) : l'artisan ne change pas le chiffre, mais attache un contexte au chantier — *« retard imputable à l'indisponibilité du client »*.
+
+Et une règle qui n'est pas juridique mais sans laquelle les deux précédentes sont vides : **la définition de chaque métrique est publique.** Un chiffre dont on ignore la règle de calcul est incontestable, donc arbitraire.
+
+**Le risque dominant du passeport n'est pas l'intrusion, c'est la justesse** : un système parfaitement sûr publiant un chiffre faux — un chantier interrompu par le client compté comme un retard de l'artisan. D'où la notification individuelle **avant** la première publication, avec délai de contestation.
 
 ## 10. L'espace demandeur
 

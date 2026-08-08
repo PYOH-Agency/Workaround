@@ -21,24 +21,17 @@ La troisième ligne est celle qui compte.
 
 **La majorité des entreprises du bâtiment sont des entreprises individuelles.** Pour elles, l'entreprise *est* une personne physique. Publier « 94 % de devis honorés dans le délai annoncé » à propos de Fabrice Cassou, entrepreneur individuel, c'est publier une donnée personnelle à portée réputationnelle sur un individu identifié.
 
-Une analyse d'impact est obligatoire dès que le traitement remplit **au moins deux des neuf critères** des lignes directrices du G29. Le passeport en remplit au moins six :
+Une analyse d'impact est obligatoire dès que le traitement remplit **au moins deux des neuf critères** des lignes directrices du G29. Le passeport en remplit largement assez.
 
-| Critère | Pourquoi |
-|---|---|
-| Évaluation ou notation | C'est la définition même du passeport |
-| Décision automatisée à effet significatif | Une assurance expirée suspend la visibilité, donc l'accès aux demandes |
-| Surveillance systématique | On mesure en continu le comportement professionnel |
-| Croisement de données | Déclaratif, comportement mesuré et sources publiques |
-| Grande échelle | À terme, l'ensemble d'un secteur |
-| Usage innovant | Un label mesuré sur transaction n'existe pas |
+> ~~**L'AIPD doit être menée avant M4.**~~ **Elle est menée** : [AIPD du passeport](../rgpd/2026-08-08-aipd-passeport.md), 2026-08-08.
 
-**Ce n'est pas une question ouverte.** L'AIPD doit être menée **avant M4**, c'est-à-dire avant que la première métrique ne soit publiée — pas après.
+Le décompte annoncé ici — six critères — était **trop généreux**. L'examen rigoureux mené dans l'AIPD en retient **cinq certains** (évaluation, décision automatisée, croisement, usage innovant, blocage d'un service) et **deux partiels** (surveillance systématique, donnée hautement personnelle). La grande échelle n'est pas atteinte au lancement, et les artisans ne sont pas des personnes vulnérables au sens du G29. Cinq suffisent très largement ; un décompte gonflé se retourne contre celui qui l'invoque.
 
-Trois points qu'elle devra trancher, et qui touchent le cœur du produit :
+Les trois points que l'AIPD devait trancher le sont :
 
-- **La base légale.** L'intérêt légitime paraît le bon fondement, mais il exige une mise en balance écrite : notre intérêt et celui du demandeur contre l'impact sur l'artisan. Elle doit être faite, pas supposée.
-- **Le droit d'opposition (article 21).** Un artisan peut s'opposer à la publication. Que faire alors ? Le retirer de l'annuaire est cohérent ; le laisser sans métriques créerait une catégorie opaque qui viderait le label de son sens. À trancher explicitement.
-- **Le droit à la rectification.** Nous avons décidé que le passeport serait *dérivé et non éditable*. C'est ce qui le rend crédible — et c'est en tension directe avec le droit de faire corriger une donnée inexacte. La réponse ne peut pas être « on ne peut rien changer ».
+- **La base légale : intérêt légitime**, avec mise en balance écrite. La nécessité contractuelle, pourtant plaidable, a été écartée **délibérément** : elle aurait supprimé le droit d'opposition, l'article 21 ne s'appliquant qu'aux traitements fondés sur 6.1.e et 6.1.f.
+- **Le droit d'opposition : retrait intégral de la vitrine, sans condition.** L'hésitation formulée ici est tranchée, et dans l'autre sens que suggéré : la CNIL écrit qu'une demande de retrait global d'un annuaire de notation « doit, en principe, être facilement acceptée ». L'artisan garde son outil — devis, factures, historique — et perd sa visibilité. **Il n'existe pas de fiche publique sans passeport.**
+- **Le droit à la rectification : il porte sur l'événement, jamais sur la métrique.** Un événement rectificatif neutralise le précédent sans modifier le journal — exactement comme un avoir corrige une facture. Plus un droit de déclaration complémentaire, fondé sur l'article 16, qui permet d'attacher un contexte à un chantier sans toucher au chiffre.
 
 ## 3. Ce que le cadrage a révélé dans le code — corrigé
 
@@ -83,7 +76,7 @@ Deux façons de trancher, et c'est une décision produit : soit on assume Vercel
 3. **Contrat de sous-traitance** (article 28) dans les conditions générales : nous sommes sous-traitant de l'artisan sur les données de ses clients.
 4. **Registre des traitements** — obligatoire, ce document en est l'ébauche.
 5. **Trancher l'hébergeur** avant le premier déploiement.
-6. **AIPD du passeport — avant M4**, impérativement avant la première métrique publiée.
+6. ~~**AIPD du passeport — avant M4.**~~ **Menée le 2026-08-08.** Elle ajoute douze chantiers datés, listés dans sa conclusion — dont l'information du client sur son rôle de témoin, à corriger avant M4.
 7. **Photos de chantier** : non implémentées en M1, mais une photo d'intérieur est une donnée personnelle du demandeur. À cadrer avant M5.
 
 ## 7. Sources
