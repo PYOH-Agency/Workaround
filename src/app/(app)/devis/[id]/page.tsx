@@ -2,11 +2,15 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { quote } from '@/db/schema'
+import { invoice, quote } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
 import { computeTotals } from '@/domain/quote-totals'
 import { format } from '@/domain/money'
+import { remainingToInvoice } from '@/domain/invoice-balance'
+import { issuedAgainstQuote } from '@/services/invoices'
+import { TYPE_LABELS } from '@/pdf/invoice-pdf'
 import { SendButton } from './SendButton'
+import { InvoiceActions } from './InvoiceActions'
 
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Brouillon',
@@ -40,6 +44,18 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
 
   const totals = computeTotals(found.lines)
   const lines = [...found.lines].sort((a, b) => a.position - b.position)
+
+  const issued = await issuedAgainstQuote(found.id)
+  const invoices = await db
+    .select({
+      id: invoice.id,
+      number: invoice.number,
+      type: invoice.type,
+      totalInclTax: invoice.totalInclTax,
+    })
+    .from(invoice)
+    .where(eq(invoice.quoteId, found.id))
+    .orderBy(invoice.number)
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-12">
@@ -119,6 +135,30 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
             /d/{found.publicToken}
           </a>
         </p>
+      )}
+
+      {found.status === 'signed' && (
+        <InvoiceActions
+          quoteId={found.id}
+          remaining={format(remainingToInvoice(found.totalInclTax, issued))}
+        />
+      )}
+
+      {invoices.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="font-medium">Factures émises</h2>
+          <ul className="flex flex-col divide-y divide-black/10 text-sm dark:divide-white/10">
+            {invoices.map((row) => (
+              <li key={row.id}>
+                <Link href={`/factures/${row.id}`} className="flex justify-between gap-4 py-2">
+                  <span className="font-mono">{row.number}</span>
+                  <span className="flex-1 truncate opacity-70">{TYPE_LABELS[row.type]}</span>
+                  <span>{format(row.totalInclTax)} €</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <Link href="/devis" className="text-sm underline opacity-70">
