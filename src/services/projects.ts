@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { customer, project, property } from '@/db/schema'
 import { addressFingerprint, type Address } from '@/domain/address'
+import { toInternational } from '@/domain/phone'
 
 export interface NewProject {
   companyId: string
@@ -29,6 +30,10 @@ export async function createProject(input: NewProject) {
   if (input.customer.type === 'business' && !input.customer.siret) {
     throw new Error('Le SIRET est obligatoire pour un client professionnel')
   }
+
+  // Verifie des la creation, pas a la signature : un fixe rendrait la signature
+  // impossible, et le client le decouvrirait au pire moment.
+  toInternational(input.customer.phone)
 
   const fingerprint = addressFingerprint(input.address)
 
