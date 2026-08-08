@@ -94,9 +94,9 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
       ) : (
         <Text size="sm" tone="soft">
           Lien du client :{' '}
-          <span data-testid="lien-public">
-            <Link href={`/d/${found.publicToken}`}>/d/{found.publicToken}</Link>
-          </span>
+          <Link href={`/d/${found.publicToken}`} testId="lien-public">
+            /d/{found.publicToken}
+          </Link>
         </Text>
       )}
 

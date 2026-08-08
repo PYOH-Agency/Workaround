@@ -2,8 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import { issueBalance, issueDeposit, issueProgress, type InvoiceFormState } from '@/actions/invoices'
-
-const field = 'rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20'
+import { Button } from '@/ui/atoms/button'
+import { Heading } from '@/ui/atoms/heading'
+import { Input } from '@/ui/atoms/input'
+import { Text } from '@/ui/atoms/text'
+import { Field } from '@/ui/molecules/field'
 
 /**
  * Emission depuis un devis signe.
@@ -24,57 +27,62 @@ export function InvoiceActions({ quoteId, remaining }: { quoteId: string; remain
   const invalidShare = !Number.isFinite(share) || share <= 0 || share > 100
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-black/10 p-5 dark:border-white/15">
-      <div className="flex items-baseline justify-between">
-        <h2 className="font-medium">Facturer</h2>
-        <p className="text-sm opacity-70">
+    <section className="flex flex-col gap-4 rounded-card border border-rule bg-card p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <Heading level={3} as="h2">
+          Facturer
+        </Heading>
+        {/*
+          `remaining` arrive deja formate par la page : le `data-testid` ne porte
+          donc que le nombre, et le symbole reste a l'exterieur — un test l'affirme
+          en correspondance exacte.
+        */}
+        <Text size="sm" tone="soft" as="span">
           Reste à facturer : <span data-testid="reste-a-facturer">{remaining}</span> €
-        </p>
+        </Text>
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          Pourcentage
-          <input
-            inputMode="numeric"
-            value={percent}
-            onChange={(e) => setPercent(e.target.value)}
-            className={`${field} w-24`}
-          />
-        </label>
+        <div className="w-28">
+          <Field label="Pourcentage">
+            {(p) => (
+              <Input
+                {...p}
+                inputMode="numeric"
+                value={percent}
+                onChange={(e) => setPercent(e.target.value)}
+              />
+            )}
+          </Field>
+        </div>
 
-        <button
-          type="button"
+        <Button
           disabled={pending || invalidShare}
           onClick={() => run(() => issueDeposit(quoteId, share, {}))}
-          className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-50"
         >
           Facture d’acompte
-        </button>
+        </Button>
 
-        <button
-          type="button"
+        <Button
+          tone="secondary"
           disabled={pending || invalidShare}
           onClick={() => run(() => issueProgress(quoteId, share, {}))}
-          className="rounded-lg border border-black/15 px-4 py-2 text-sm dark:border-white/20"
         >
           Situation de travaux
-        </button>
+        </Button>
 
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => run(() => issueBalance(quoteId, {}))}
-          className="rounded-lg border border-black/15 px-4 py-2 text-sm dark:border-white/20"
-        >
+        <Button tone="secondary" disabled={pending} onClick={() => run(() => issueBalance(quoteId, {}))}>
           Facture de solde
-        </button>
+        </Button>
       </div>
 
       {state.error && (
-        <p role="alert" className="text-sm text-red-600">
+        <div
+          role="alert"
+          className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+        >
           {state.error}
-        </p>
+        </div>
       )}
     </section>
   )

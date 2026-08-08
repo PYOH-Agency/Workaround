@@ -44,9 +44,9 @@ export function SendButton({ quoteId }: { quoteId: string }) {
           className="rounded-card border border-verified bg-verified-bg px-4 py-3 text-sm text-verified"
         >
           Envoyé. Lien du client :{' '}
-          <span data-testid="lien-public">
-            <UiLink href={state.link}>{state.link}</UiLink>
-          </span>
+          <UiLink href={state.link} testId="lien-public">
+            {state.link}
+          </UiLink>
         </div>
       )}
     </div>

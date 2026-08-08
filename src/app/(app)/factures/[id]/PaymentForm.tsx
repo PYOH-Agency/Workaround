@@ -1,12 +1,14 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { addPayment } from '../actions'
 import type { InvoiceFormState } from '@/actions/invoices'
+import { Button } from '@/ui/atoms/button'
+import { Input } from '@/ui/atoms/input'
+import { Select } from '@/ui/atoms/select'
+import { Field } from '@/ui/molecules/field'
+import { addPayment } from '../actions'
 
 const initialState: InvoiceFormState = {}
-
-const field = 'rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20'
 
 /**
  * Champs controles, pas laisses au DOM.
@@ -27,7 +29,7 @@ export function PaymentForm({ invoiceId }: { invoiceId: string }) {
     <form
       key={state.saved ?? 0}
       action={action}
-      className="flex flex-col gap-3 rounded-xl border border-black/10 p-4 dark:border-white/15"
+      className="flex flex-col gap-4 rounded-card border border-rule bg-card p-5"
     >
       <PaymentFields error={state.error} pending={pending} />
     </form>
@@ -41,66 +43,69 @@ function PaymentFields({ error, pending }: { error?: string; pending: boolean })
 
   return (
     <>
-      <div className="flex flex-wrap gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          Montant
-          <input
-            name="montant"
-            required
-            inputMode="decimal"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className={`${field} w-32`}
-          />
-        </label>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Field label="Montant" required>
+          {(p) => (
+            <Input
+              {...p}
+              name="montant"
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          )}
+        </Field>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Date
-          <input
-            name="date"
-            type="date"
-            required
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={field}
-          />
-        </label>
+        <Field label="Date" required>
+          {(p) => (
+            <Input
+              {...p}
+              name="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          )}
+        </Field>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Moyen
-          <select name="moyen" defaultValue="transfer" className={field}>
-            <option value="transfer">Virement</option>
-            <option value="check">Chèque</option>
-            <option value="cash">Espèces</option>
-            <option value="card">Carte</option>
-            <option value="other">Autre</option>
-          </select>
-        </label>
+        <Field label="Moyen">
+          {(p) => (
+            <Select {...p} name="moyen" defaultValue="transfer">
+              <option value="transfer">Virement</option>
+              <option value="check">Chèque</option>
+              <option value="cash">Espèces</option>
+              <option value="card">Carte</option>
+              <option value="other">Autre</option>
+            </Select>
+          )}
+        </Field>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Référence
-          <input
-            name="reference"
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
-            className={field}
-          />
-        </label>
+        <Field label="Référence">
+          {(p) => (
+            <Input
+              {...p}
+              name="reference"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+            />
+          )}
+        </Field>
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <div
+          role="alert"
+          className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+        >
           {error}
-        </p>
+        </div>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="self-start rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-50"
-      >
-        {pending ? 'Enregistrement…' : 'Enregistrer le paiement'}
-      </button>
+      <div className="self-start">
+        <Button type="submit" pending={pending}>
+          {pending ? 'Enregistrement…' : 'Enregistrer le paiement'}
+        </Button>
+      </div>
     </>
   )
 }

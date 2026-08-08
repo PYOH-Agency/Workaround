@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PaymentStatus } from '@/domain/payment-status'
-import { paymentStatus, quoteStatus } from '@/ui/molecules/status-badge'
+import { paymentBadges, quoteBadges } from '@/ui/molecules/status-badge'
 
 /**
  * Le rendu n'est pas testable en environnement `node`, mais la table de
@@ -9,24 +9,24 @@ import { paymentStatus, quoteStatus } from '@/ui/molecules/status-badge'
  */
 describe('correspondance des statuts', () => {
   it('couvre tous les statuts de devis du schema', () => {
-    expect(Object.keys(quoteStatus).sort()).toEqual(
+    expect(Object.keys(quoteBadges).sort()).toEqual(
       ['draft', 'expired', 'refused', 'sent', 'signed'],
     )
   })
 
   it('couvre tous les statuts de paiement du domaine', () => {
     const all: PaymentStatus[] = ['unpaid', 'partially_paid', 'paid', 'overdue']
-    expect(Object.keys(paymentStatus).sort()).toEqual([...all].sort())
+    expect(Object.keys(paymentBadges).sort()).toEqual([...all].sort())
   })
 
   it("n'utilise jamais le ton neutre pour un etat problematique", () => {
-    expect(quoteStatus.refused.tone).toBe('danger')
-    expect(quoteStatus.expired.tone).toBe('danger')
-    expect(paymentStatus.overdue.tone).toBe('danger')
+    expect(quoteBadges.refused.tone).toBe('danger')
+    expect(quoteBadges.expired.tone).toBe('danger')
+    expect(paymentBadges.overdue.tone).toBe('danger')
   })
 
   it('chaque entree porte un pictogramme', () => {
-    for (const entry of [...Object.values(quoteStatus), ...Object.values(paymentStatus)]) {
+    for (const entry of [...Object.values(quoteBadges), ...Object.values(paymentBadges)]) {
       expect(entry.icon).toBeTruthy()
     }
   })

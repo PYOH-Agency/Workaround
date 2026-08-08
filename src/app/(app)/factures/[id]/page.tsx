@@ -1,22 +1,24 @@
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { invoice } from '@/db/schema'
-import { currentCompany, SessionError } from '@/lib/session'
-import { format } from '@/domain/money'
+import { outstanding, paymentStatus } from '@/domain/payment-status'
 import { computeTotals } from '@/domain/quote-totals'
-import { outstanding, paymentStatus, type PaymentStatus } from '@/domain/payment-status'
+import { currentCompany, SessionError } from '@/lib/session'
 import { TYPE_LABELS } from '@/pdf/invoice-pdf'
-import { PaymentForm } from './PaymentForm'
+import { DateText } from '@/ui/atoms/date-text'
+import { Heading } from '@/ui/atoms/heading'
+import { Link } from '@/ui/atoms/link'
+import { Money } from '@/ui/atoms/money'
+import { Text } from '@/ui/atoms/text'
+import { Card } from '@/ui/molecules/card'
+import { StatusBadge } from '@/ui/molecules/status-badge'
+import { SummaryLine } from '@/ui/molecules/summary-line'
+import { QuoteLinesTable } from '@/ui/organisms/quote-lines-table'
+import { TotalsPanel } from '@/ui/organisms/totals-panel'
+import { AppShell } from '@/ui/shells/app-shell'
 import { CreditNoteButton } from './CreditNoteButton'
-
-const STATUS_LABELS: Record<PaymentStatus, string> = {
-  unpaid: 'En attente de règlement',
-  partially_paid: 'Partiellement réglée',
-  paid: 'Réglée',
-  overdue: 'En retard',
-}
+import { PaymentForm } from './PaymentForm'
 
 const METHOD_LABELS = {
   transfer: 'Virement',
@@ -25,8 +27,6 @@ const METHOD_LABELS = {
   card: 'Carte',
   other: 'Autre',
 } as const
-
-const formatRate = (rate: number) => `${(rate / 100).toFixed(1).replace('.', ',')} %`
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -60,86 +60,70 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   const status = paymentStatus(found.totalInclTax, received, found.dueAt, new Date())
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-12">
+    <AppShell>
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">
+        <div className="flex flex-col gap-1">
+          <Heading level={1}>
             {TYPE_LABELS[found.type]} <span data-testid="numero-facture">{found.number}</span>
-          </h1>
-          <p className="mt-1 text-sm opacity-70">
-            Émise le {found.issuedAt.toLocaleDateString('fr-FR')} · Échéance le{' '}
-            {found.dueAt.toLocaleDateString('fr-FR')}
-          </p>
-          <p className="text-sm opacity-70">{found.project.customer.name}</p>
+          </Heading>
+          <Text size="sm" tone="soft">
+            Émise le <DateText value={found.issuedAt} format="short" /> · Échéance le{' '}
+            <DateText value={found.dueAt} format="short" />
+          </Text>
+          <Text size="sm" tone="muted">
+            {found.project.customer.name}
+          </Text>
         </div>
-        <span
-          data-testid="statut-reglement"
-          className="rounded-full border border-black/15 px-3 py-1 text-sm dark:border-white/20"
-        >
-          {STATUS_LABELS[status]}
-        </span>
+        {/* Le libelle et la couleur viennent de StatusBadge : les deux tables locales ont disparu. */}
+        <StatusBadge kind="payment" status={status} testId="statut-reglement" />
       </div>
 
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-black/15 text-left dark:border-white/20">
-            <th className="py-2 font-medium">Désignation</th>
-            <th className="py-2 text-right font-medium">Qté</th>
-            <th className="py-2 text-right font-medium">P.U. HT</th>
-            <th className="py-2 text-right font-medium">TVA</th>
-          </tr>
-        </thead>
-        <tbody>
-          {lines.map((line) => (
-            <tr key={line.id} className="border-b border-black/5 dark:border-white/10">
-              <td className="py-2">{line.label}</td>
-              <td className="py-2 text-right">
-                {line.quantity} {line.unit}
-              </td>
-              <td className="py-2 text-right">{format(line.unitPriceExclTax)}</td>
-              <td className="py-2 text-right">{formatRate(line.taxRate)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <div className="rounded-xl border border-black/10 p-5 text-sm dark:border-white/15">
-        <div className="flex justify-between">
-          <span>Total HT</span>
-          <span>{format(found.totalExclTax)}</span>
-        </div>
-        {byRate.map((b) => (
-          <div key={b.rate} className="flex justify-between opacity-70">
-            <span>
-              TVA {formatRate(b.rate)} sur {format(b.baseExclTax)}
-            </span>
-            <span>{format(b.taxAmount)}</span>
+      <Card elevation="e1">
+        <QuoteLinesTable lines={lines} />
+        <div className="mt-6 flex flex-col">
+          <TotalsPanel
+            totals={{
+              totalExclTax: found.totalExclTax,
+              totalInclTax: found.totalInclTax,
+              byRate,
+            }}
+          />
+          <div className="ml-auto w-full max-w-xs">
+            <SummaryLine label="Reste dû" cents={due} emphasis="total" testId="reste-du" />
           </div>
-        ))}
-        <div className="mt-2 flex justify-between border-t border-black/10 pt-2 font-semibold dark:border-white/15">
-          <span>Total TTC</span>
-          <span data-testid="total-ttc">{format(found.totalInclTax)}</span>
         </div>
-        <div className="mt-1 flex justify-between font-semibold">
-          <span>Reste dû</span>
-          <span data-testid="reste-du">{format(due)}</span>
-        </div>
-      </div>
+      </Card>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-medium">Encaissements</h2>
+        <Heading level={3} as="h2">
+          Encaissements
+        </Heading>
         {found.payments.length === 0 ? (
-          <p className="text-sm opacity-70">Aucun encaissement enregistré.</p>
+          <Text size="sm" tone="muted">
+            Aucun encaissement enregistré.
+          </Text>
         ) : (
-          <ul className="flex flex-col divide-y divide-black/10 text-sm dark:divide-white/10">
+          <ul className="flex flex-col gap-2">
             {[...found.payments]
               .sort((a, b) => a.receivedAt.getTime() - b.receivedAt.getTime())
               .map((p) => (
-                <li key={p.id} className="flex justify-between gap-4 py-2">
-                  <span>{p.receivedAt.toLocaleDateString('fr-FR')}</span>
-                  <span className="opacity-70">{METHOD_LABELS[p.method]}</span>
-                  <span className="flex-1 truncate opacity-70">{p.reference}</span>
-                  <span>{format(p.amount)} €</span>
+                <li key={p.id}>
+                  <Card elevation="flat">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                      <Text size="sm" as="span">
+                        <DateText value={p.receivedAt} format="short" />
+                      </Text>
+                      <Text size="sm" tone="muted" as="span">
+                        {METHOD_LABELS[p.method]}
+                      </Text>
+                      <Text size="sm" tone="muted" as="span">
+                        {p.reference}
+                      </Text>
+                      <span className="ml-auto">
+                        <Money cents={p.amount} />
+                      </span>
+                    </div>
+                  </Card>
                 </li>
               ))}
           </ul>
@@ -148,20 +132,26 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         {due > 0 && <PaymentForm invoiceId={found.id} />}
       </section>
 
-      <p className="text-sm">
+      <Text size="sm" tone="soft">
         Lien du client :{' '}
-        <a href={`/f/${found.publicToken}`} data-testid="lien-public" className="underline">
+        <Link href={`/f/${found.publicToken}`} testId="lien-public">
           /f/{found.publicToken}
-        </a>
-      </p>
+        </Link>
+      </Text>
 
       {/* Une facture emise ne se modifie jamais : l'avoir est le seul recours. */}
       {found.type !== 'credit_note' && <CreditNoteButton invoiceId={found.id} />}
 
-      <div className="flex gap-4 text-sm underline opacity-70">
-        <Link href="/factures">Retour aux factures</Link>
-        {found.quoteId && <Link href={`/devis/${found.quoteId}`}>Retour au devis</Link>}
+      <div className="mt-2 flex flex-wrap gap-4 text-sm">
+        <Link href="/factures" tone="bare">
+          Retour aux factures
+        </Link>
+        {found.quoteId && (
+          <Link href={`/devis/${found.quoteId}`} tone="bare">
+            Retour au devis
+          </Link>
+        )}
       </div>
-    </main>
+    </AppShell>
   )
 }

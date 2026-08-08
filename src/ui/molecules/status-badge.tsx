@@ -19,7 +19,7 @@ type Entry = {
 /** Valeurs de `src/db/schema/quote.ts`. */
 export type QuoteStatus = 'draft' | 'sent' | 'signed' | 'refused' | 'expired'
 
-export const quoteStatus: Record<QuoteStatus, Entry> = {
+export const quoteBadges: Record<QuoteStatus, Entry> = {
   draft: { tone: 'neutral', label: 'Brouillon', icon: <Icon name="document" size="sm" /> },
   sent: { tone: 'warning', label: 'Envoyé', icon: <Icon name="clock" size="sm" /> },
   signed: { tone: 'verified', label: 'Signé', icon: <Icon name="check" size="sm" /> },
@@ -30,15 +30,20 @@ export const quoteStatus: Record<QuoteStatus, Entry> = {
 /**
  * Le type vient du domaine, il n'est pas recopie : ajouter un statut a
  * `PaymentStatus` casse la compilation ici plutot que de passer inapercu.
+ *
+ * Le vocabulaire, lui, est celui du produit deja livre — pas le mien. Il
+ * existait en trois exemplaires divergents : deux tables `STATUS_LABELS` dans
+ * les ecrans de facturation, plus la mienne. « Reglee » est par ailleurs
+ * epingle par un test de parcours.
  */
-export const paymentStatus: Record<PaymentStatus, Entry> = {
-  unpaid: { tone: 'warning', label: 'À encaisser', icon: <Icon name="clock" size="sm" /> },
+export const paymentBadges: Record<PaymentStatus, Entry> = {
+  unpaid: { tone: 'warning', label: 'En attente', icon: <Icon name="clock" size="sm" /> },
   partially_paid: {
     tone: 'warning',
-    label: 'Partiellement payée',
+    label: 'Partiellement réglée',
     icon: <Icon name="clock" size="sm" />,
   },
-  paid: { tone: 'verified', label: 'Payée', icon: <Icon name="check" size="sm" /> },
+  paid: { tone: 'verified', label: 'Réglée', icon: <Icon name="check" size="sm" /> },
   overdue: { tone: 'danger', label: 'En retard', icon: <Icon name="alert" size="sm" /> },
 }
 
@@ -51,7 +56,7 @@ export function StatusBadge({
   status: string
   testId?: string
 }) {
-  const table: Record<string, Entry> = kind === 'quote' ? quoteStatus : paymentStatus
+  const table: Record<string, Entry> = kind === 'quote' ? quoteBadges : paymentBadges
   const entry = table[status]
 
   // Un statut inconnu n'affiche rien plutot qu'une pastille muette : c'est le

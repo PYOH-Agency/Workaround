@@ -15,6 +15,7 @@ export function Link({
   href,
   tone = 'default',
   newTab = false,
+  testId,
   children,
 }: {
   href: string
@@ -27,6 +28,15 @@ export function Link({
    * un code SMS, et une friction sur cet ecran coute une signature.
    */
   newTab?: boolean
+  /**
+   * Crochet de test, pose sur l'ancre elle-meme.
+   *
+   * L'envelopper dans un `<span>` porteur du `data-testid` paraissait plus
+   * propre, mais un parcours lit `getAttribute('href')` dessus : le span n'en a
+   * pas, et le test partait vers `null`. Le crochet doit etre sur l'element qui
+   * porte l'information.
+   */
+  testId?: string
   children: React.ReactNode
 }) {
   const className = cn('rounded-badge', TONES[tone])
@@ -35,14 +45,20 @@ export function Link({
   // ne sert a rien hors de l'application.
   if (href.startsWith('http') || newTab) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+        data-testid={testId}
+      >
         {children}
       </a>
     )
   }
 
   return (
-    <NextLink href={href} className={className}>
+    <NextLink href={href} className={className} data-testid={testId}>
       {children}
     </NextLink>
   )
