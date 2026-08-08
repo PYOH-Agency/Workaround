@@ -220,6 +220,15 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
           <Text>Contrat n° {quote.company.legal.policyNumber}</Text>
           <Text>Activités garanties : {quote.company.legal.coveredActivities}</Text>
           <Text>Couverture géographique : {quote.company.legal.coverageArea}</Text>
+          {/*
+            Ces quatre lignes sont declaratives : l'artisan les a saisies. La
+            cinquieme mene a ce que nous avons controle, activite par activite,
+            avec les echeances. C'est le seul endroit du document ou le lecteur
+            se demande deja si l'assurance est reelle.
+          */}
+          {quote.company.passportUrl && (
+            <Text>Vérifier ces garanties : {quote.company.passportUrl}</Text>
+          )}
         </View>
 
         <Text style={styles.footer} fixed>

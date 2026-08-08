@@ -26,6 +26,15 @@ export async function sendRawMail(input: {
   await transport.sendMail({ from: FROM, ...input })
 }
 
+/**
+ * Le devis a signer.
+ *
+ * `passportUrl` est l'unique endroit du produit ou le passeport rencontre un
+ * vrai particulier : il vient de recevoir un devis a plusieurs milliers
+ * d'euros, il est attentif, et c'est l'artisan lui-meme qui nous l'amene. Il
+ * est absent quand l'entreprise n'a pas de page publique — on ne promet pas
+ * une verification qui n'existe pas.
+ */
 export async function sendQuoteLink(input: {
   to: string
   customerName: string
@@ -33,6 +42,7 @@ export async function sendQuoteLink(input: {
   quoteNumber: string
   totalInclTax: string
   link: string
+  passportUrl?: string | null
 }): Promise<void> {
   await transport.sendMail({
     from: FROM,
@@ -44,6 +54,9 @@ export async function sendQuoteLink(input: {
       `${input.companyName} vous a adressé le devis ${input.quoteNumber}, d'un montant de ${input.totalInclTax} € TTC.`,
       '',
       `Consultez-le et signez-le ici : ${input.link}`,
+      ...(input.passportUrl
+        ? ['', `Vérifier les assurances de ${input.companyName} : ${input.passportUrl}`]
+        : []),
       '',
       "Ce lien vous est personnel. Si vous n'attendiez pas ce devis, ignorez ce message.",
     ].join('\n'),
@@ -52,6 +65,11 @@ export async function sendQuoteLink(input: {
       <p><strong>${input.companyName}</strong> vous a adressé le devis <strong>${input.quoteNumber}</strong>,
          d'un montant de <strong>${input.totalInclTax} € TTC</strong>.</p>
       <p><a href="${input.link}">Consulter et signer le devis</a></p>
+      ${
+        input.passportUrl
+          ? `<p><a href="${input.passportUrl}">Vérifier les assurances de ${input.companyName}</a></p>`
+          : ''
+      }
       <p style="color:#666;font-size:12px">Ce lien vous est personnel. Si vous n'attendiez pas ce devis, ignorez ce message.</p>
     `,
   })
