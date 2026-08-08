@@ -1,34 +1,30 @@
-import { ButtonLink } from '@/ui/atoms/button-link'
-import { Heading } from '@/ui/atoms/heading'
-import { Text } from '@/ui/atoms/text'
-import { PublicShell } from '@/ui/shells/public-shell'
+import type { Metadata } from 'next'
+import { LandingShell } from '@/ui/shells/landing-shell'
+import { Hero } from './_landing/pro/hero'
+import { Mentions } from './_landing/pro/mentions'
+import { Next } from './_landing/pro/next'
+import { Passport } from './_landing/pro/passport'
+import { Pricing } from './_landing/pro/pricing'
+import { Principles } from './_landing/pro/principles'
+import { Steps } from './_landing/pro/steps'
 
-/**
- * Accueil.
- *
- * Ce n'est pas une page marketing : c'est la suppression du gabarit de
- * demonstration de create-next-app, qui occupait encore cette route. La vraie
- * page d'acquisition viendra avec le passeport public, en M3.
- */
+export const metadata: Metadata = {
+  title: "D'équerre — devis, factures et assurance vérifiée pour le bâtiment",
+  description:
+    'Vos devis et vos factures, gratuits à vie, conformes aux mentions obligatoires du bâtiment. Et une page publique qui prouve que votre assurance est à jour.',
+  alternates: { canonical: '/' },
+}
+
 export default function Home() {
   return (
-    <PublicShell variant="plain">
-      <div className="flex flex-col gap-4">
-        <Heading level="display">Tout est d’équerre.</Heading>
-        <Text tone="soft">
-          Faites vos devis et vos factures, faites-les signer, et montrez que votre assurance est à
-          jour. Gratuit, et conforme aux mentions obligatoires du bâtiment.
-        </Text>
-      </div>
-
-      <div className="flex flex-wrap gap-3">
-        <ButtonLink href="/connexion" size="lg">
-          Se connecter
-        </ButtonLink>
-        <ButtonLink href="/inscription" tone="secondary" size="lg">
-          Créer un compte
-        </ButtonLink>
-      </div>
-    </PublicShell>
+    <LandingShell audience="pro">
+      <Hero />
+      <Mentions />
+      <Steps />
+      <Passport />
+      <Principles />
+      <Next />
+      <Pricing />
+    </LandingShell>
   )
 }
