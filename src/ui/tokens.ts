@@ -129,8 +129,10 @@ export const roles = {
     'ink-soft': ramp.chalk[400],
     'ink-muted': ramp.chalk[450],
 
+    // Un lien est du texte pose sur une surface : il doit s'eclaircir.
     link: ramp.terracotta[300],
-    brand: ramp.terracotta[300],
+    // La marque, elle, ne change pas de couleur selon le theme (voir ci-dessous).
+    brand: ramp.terracotta[500],
 
     rule: night.rule,
     field: ramp.chalk[500],
@@ -139,8 +141,8 @@ export const roles = {
     primary: ramp.chalk[100],
     'on-primary': night.base,
 
-    conversion: ramp.terracotta[300],
-    'on-conversion': night.base,
+    conversion: ramp.terracotta[600],
+    'on-conversion': white,
 
     verified: ramp.bronze[300],
     'verified-bg': ramp.bronze[900],
@@ -148,10 +150,34 @@ export const roles = {
     'warning-bg': ramp.brass[900],
     danger: ramp.brick[300],
     'danger-bg': ramp.brick[900],
-    'danger-solid': ramp.brick[300],
-    'on-danger': night.base,
+    'danger-solid': ramp.brick[600],
+    'on-danger': white,
   },
 } as const
+
+/**
+ * Les roles identiques dans les deux themes, et la raison pour laquelle ils le sont.
+ *
+ * Un jeton qui porte a la fois son fond et son texte est auto-suffisant : il ne
+ * repose sur aucune surface, donc il n'a aucune raison de s'inverser. Un bouton
+ * destructif est rouge sombre a texte clair, en clair comme en sombre.
+ *
+ * Cette liste existe parce que l'inverse a produit un vrai defaut : en inversant
+ * mecaniquement tous les roles, le bouton de conversion (#F0A87E) et le bouton
+ * destructif (#EC8B80) devenaient deux peches indistinguables — precisement la
+ * confusion que la regle du bouton primaire cherchait a empecher.
+ *
+ * `brand` en fait partie : une couleur de marque qui change avec le theme est
+ * une marque plus faible.
+ */
+export const THEME_INDEPENDENT = [
+  'brand',
+  'field',
+  'conversion',
+  'on-conversion',
+  'danger-solid',
+  'on-danger',
+] as const satisfies readonly RoleName[]
 
 export type RoleName = keyof typeof roles.light
 export type Theme = keyof typeof roles

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { roles, type RoleName, type Theme } from '@/ui/tokens'
+import { roles, THEME_INDEPENDENT, type RoleName, type Theme } from '@/ui/tokens'
 
 /** Luminance relative WCAG 2.1. */
 function luminance(hex: string): number {
@@ -83,4 +83,59 @@ describe('contraste des roles semantiques', () => {
   it('couvre les deux themes avec les memes couples', () => {
     expect(Object.keys(roles.light).sort()).toEqual(Object.keys(roles.dark).sort())
   })
+})
+
+/** Distance euclidienne dans l'espace RVB. */
+function distance(a: string, b: string): number {
+  const parse = (hex: string) => {
+    const h = hex.replace('#', '')
+    return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16))
+  }
+  const [r1, g1, b1] = parse(a)
+  const [r2, g2, b2] = parse(b)
+  return Math.hypot(r1 - r2, g1 - g2, b1 - b2)
+}
+
+/**
+ * Deux boutons pleins ne doivent jamais se ressembler.
+ *
+ * Ce test existe a cause d'un defaut reel : en inversant mecaniquement tous les
+ * roles pour le mode sombre, le bouton de conversion valait #F0A87E et le
+ * bouton destructif #EC8B80 — deux peches a 29 de distance, visuellement
+ * identiques. Le rapport de contraste ne l'avait pas vu, et pour cause : il
+ * mesure la luminance, pas la teinte. Les deux etaient a 1,24 l'un de l'autre,
+ * ce qui ressemble a un echec mais n'en est pas un au sens WCAG.
+ *
+ * Seuil a 60 : les deux peches etaient a 29, la paire corrigee est a 103.
+ */
+describe('les actions pleines restent distinguables', () => {
+  const MIN = 60
+  const PAIRS: Array<[RoleName, RoleName]> = [
+    ['conversion', 'danger-solid'],
+    ['primary', 'danger-solid'],
+    ['primary', 'conversion'],
+  ]
+
+  for (const theme of THEMES) {
+    for (const [a, b] of PAIRS) {
+      it(`${theme} : ${a} et ${b} sont a plus de ${MIN} de distance`, () => {
+        const palette = roles[theme]
+        const d = distance(palette[a], palette[b])
+        expect(d, `${palette[a]} vs ${palette[b]} = ${d.toFixed(0)}`).toBeGreaterThan(MIN)
+      })
+    }
+  }
+})
+
+/**
+ * Un jeton qui porte a la fois son fond et son texte est auto-suffisant : il ne
+ * repose sur aucune surface, donc il ne doit pas s'inverser. Inverser
+ * mecaniquement, c'est fabriquer le defaut decrit ci-dessus.
+ */
+describe('les roles auto-suffisants ne dependent pas du theme', () => {
+  for (const name of THEME_INDEPENDENT) {
+    it(`${name} est identique en clair et en sombre`, () => {
+      expect(roles.light[name]).toBe(roles.dark[name])
+    })
+  }
 })

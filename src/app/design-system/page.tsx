@@ -130,10 +130,23 @@ export default function DesignSystemPage() {
       </Section>
 
       <Section title="Typographie">
-        <Heading level="display">Tout est d’équerre</Heading>
-        <Heading level={1}>Devis n° 2026-014</Heading>
-        <Heading level={2}>Détail des prestations</Heading>
-        <Heading level={3}>Ventilation de la TVA</Heading>
+        {/*
+          `as="p"` sur les specimens : sans ca, la planche fabrique de faux
+          titres et troue la hierarchie de la page — exactement le defaut que
+          cette page est censee apprendre a eviter.
+        */}
+        <Heading level="display" as="p">
+          Tout est d’équerre
+        </Heading>
+        <Heading level={1} as="p">
+          Devis n° 2026-014
+        </Heading>
+        <Heading level={2} as="p">
+          Détail des prestations
+        </Heading>
+        <Heading level={3} as="p">
+          Ventilation de la TVA
+        </Heading>
         <Text>Le solde est exigible à réception de la facture.</Text>
         <Text size="sm" tone="soft">
           Assurance décennale AXA n° 8842-117-C

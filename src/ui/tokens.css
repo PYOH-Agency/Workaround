@@ -7,9 +7,11 @@
  * fait emettre aux utilitaires un `var()` plutot qu'une valeur resolue : c'est
  * ce qui rend la bascule de theme instantanee sans dupliquer les utilitaires.
  *
- * La duplication entre `[data-theme='dark']` et `prefers-color-scheme` est
- * assumee : `tests/ui/tokens.test.ts` verifie que les deux blocs restent
- * identiques a `roles.dark`.
+ * Six roles sont volontairement identiques dans les deux blocs — voir
+ * `THEME_INDEPENDENT` dans `tokens.ts`. La duplication entre
+ * `[data-theme='dark']` et `prefers-color-scheme` est assumee :
+ * `tests/ui/tokens.test.ts` verifie que les deux blocs restent identiques a
+ * `roles.dark`.
  */
 
 :root {
@@ -46,22 +48,22 @@
   --dq-ink-soft: #C4BBA8;
   --dq-ink-muted: #968C7D;
   --dq-link: #F0A87E;
-  --dq-brand: #F0A87E;
+  --dq-brand: #E2652B;
   --dq-rule: #3A322C;
   --dq-field: #8C8375;
   --dq-ring: #F0A87E;
   --dq-primary: #F5F1E8;
   --dq-on-primary: #14110E;
-  --dq-conversion: #F0A87E;
-  --dq-on-conversion: #14110E;
+  --dq-conversion: #C4501C;
+  --dq-on-conversion: #FFFFFF;
   --dq-verified: #9CBB7E;
   --dq-verified-bg: #232B1C;
   --dq-warning: #DDB661;
   --dq-warning-bg: #2E2611;
   --dq-danger: #EC8B80;
   --dq-danger-bg: #2E1614;
-  --dq-danger-solid: #EC8B80;
-  --dq-on-danger: #14110E;
+  --dq-danger-solid: #9B1C1C;
+  --dq-on-danger: #FFFFFF;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -73,22 +75,22 @@
     --dq-ink-soft: #C4BBA8;
     --dq-ink-muted: #968C7D;
     --dq-link: #F0A87E;
-    --dq-brand: #F0A87E;
+    --dq-brand: #E2652B;
     --dq-rule: #3A322C;
     --dq-field: #8C8375;
     --dq-ring: #F0A87E;
     --dq-primary: #F5F1E8;
     --dq-on-primary: #14110E;
-    --dq-conversion: #F0A87E;
-    --dq-on-conversion: #14110E;
+    --dq-conversion: #C4501C;
+    --dq-on-conversion: #FFFFFF;
     --dq-verified: #9CBB7E;
     --dq-verified-bg: #232B1C;
     --dq-warning: #DDB661;
     --dq-warning-bg: #2E2611;
     --dq-danger: #EC8B80;
     --dq-danger-bg: #2E1614;
-    --dq-danger-solid: #EC8B80;
-    --dq-on-danger: #14110E;
+    --dq-danger-solid: #9B1C1C;
+    --dq-on-danger: #FFFFFF;
   }
 }
 

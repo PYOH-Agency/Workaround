@@ -20,7 +20,14 @@ export function Heading({
   children,
 }: {
   level: keyof typeof LEVELS
-  as?: 'h1' | 'h2' | 'h3' | 'h4'
+  /**
+   * `'p'` rend l'apparence d'un titre sans en etre un.
+   *
+   * A reserver aux deux seuls cas legitimes : un chapeau introductif, et la
+   * planche typographique de la vitrine. Partout ailleurs, un titre visuel qui
+   * n'est pas un titre reel prive un lecteur d'ecran de la structure de la page.
+   */
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p'
   children: React.ReactNode
 }) {
   const Tag = as ?? (level === 'display' ? 'h1' : (`h${level}` as 'h1' | 'h2' | 'h3'))
