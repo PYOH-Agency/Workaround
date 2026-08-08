@@ -29,6 +29,13 @@
       "when": 1786184515623,
       "tag": "0003_cheerful_falcon",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786188140976,
+      "tag": "0004_whole_scarecrow",
+      "breakpoints": true
     }
   ]
 }
