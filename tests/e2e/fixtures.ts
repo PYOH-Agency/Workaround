@@ -142,3 +142,69 @@ export async function signedQuoteFor(email: string) {
 
   return quoteRow
 }
+
+/** L'identifiant Supabase d'un compte deja connecte. */
+async function userIdFor(email: string): Promise<string> {
+  const { db } = await load()
+  const [user] = await db.execute<{ id: string }>(
+    sql`SELECT id FROM auth.users WHERE email = ${email} LIMIT 1`,
+  )
+  if (!user) throw new Error(`Aucun compte Supabase pour ${email} — la connexion a-t-elle abouti ?`)
+  return user.id
+}
+
+/**
+ * Cree l'entreprise de l'artisan connecte et lui declare des activites.
+ *
+ * Les mentions legales sont completes : sans elles, l'entreprise serait bloquee
+ * pour une raison qui n'est pas celle que le parcours verifie.
+ */
+export async function companyWithActivities(email: string, codes: string[]) {
+  const { db, schema } = await load()
+  const userId = await userIdFor(email)
+
+  const siren = String(500000000 + Math.floor(Number(userId.replace(/\D/g, '').slice(0, 6)) % 99999))
+  const siret = `${siren}00019`
+
+  const [row] = await db
+    .insert(schema.company)
+    .values({
+      siret,
+      legalName: 'PLOMBERIE DU PARCOURS',
+      addressLine1: '5 cours de l’Intendance',
+      postalCode: '33000',
+      city: 'Bordeaux',
+      legalFormLabel: 'SAS',
+      registrationNumber: 'RCS Bordeaux 000 000 000',
+      phone: '0556000000',
+      email: 'contact@parcours.local',
+      vatNumber: 'FR00000000000',
+      paymentTerms: 'Solde à réception des travaux.',
+      insurerName: 'SMABTP',
+      insurerAddress: '114 avenue Émile Zola, 75015 Paris',
+      policyNumber: 'D-2026-000999',
+      coveredActivities: 'Plomberie, chauffage',
+      coverageArea: 'France métropolitaine',
+    })
+    .returning()
+
+  await db.insert(schema.member).values({ companyId: row.id, userId, email, role: 'owner' })
+
+  await db
+    .insert(schema.companyActivity)
+    .values(codes.map((activityCode) => ({ companyId: row.id, activityCode })))
+
+  const slug = `${row.legalName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${siren}`
+  return { id: row.id, siret, slug }
+}
+
+/**
+ * Fait du compte connecte un relecteur interne.
+ *
+ * `staff` est volontairement distinct de `member` : confondre les deux
+ * donnerait a un artisan le pouvoir de valider sa propre attestation.
+ */
+export async function makeStaff(email: string) {
+  const { db, schema } = await load()
+  await db.insert(schema.staff).values({ userId: await userIdFor(email), email })
+}
