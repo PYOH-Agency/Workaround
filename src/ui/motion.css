@@ -1,0 +1,61 @@
+/**
+ * Les deux gestes de marque.
+ *
+ * Regime distinct de la charte §5.6, qui regit l'outil : sur une page publique
+ * de marque, les durees vont jusqu'a 600 ms et le geste narratif est autorise.
+ * Trois regles ne bougent pas : prefers-reduced-motion respecte, transform et
+ * opacity uniquement, aucune animation qui bloque une interaction.
+ *
+ * L'etat initial est porte par `.dq-motion`, classe posee par le script du
+ * layout. Sans JavaScript, la classe n'existe pas et **tout est visible** :
+ * une animation ratee ne doit jamais effacer le contenu.
+ */
+
+.dq-motion [data-reveal] {
+  opacity: 0;
+  transform: rotate(-1.6deg) translateY(16px);
+}
+
+.dq-motion [data-reveal][data-in] {
+  animation: dq-square-up 560ms cubic-bezier(0.22, 1.15, 0.36, 1) both;
+}
+
+@keyframes dq-square-up {
+  from { opacity: 0; transform: rotate(-1.6deg) translateY(16px); }
+  70%  { opacity: 1; transform: rotate(0.3deg) translateY(0); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Le carre de l'angle verifie se pose quand l'alignement est atteint. */
+.dq-motion [data-reveal-tick] { opacity: 0; }
+.dq-motion [data-reveal][data-in] [data-reveal-tick] {
+  animation: dq-tick 260ms ease-out 400ms both;
+}
+
+@keyframes dq-tick {
+  from { opacity: 0; transform: scale(0.4); }
+  70%  { opacity: 1; transform: scale(1.2); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Le calepinage : une cadence, pas un geste. 70 ms entre deux elements. */
+.dq-motion [data-stagger] > * { opacity: 0; }
+.dq-motion [data-stagger][data-in] > * {
+  animation: dq-lay 460ms cubic-bezier(0.2, 1.25, 0.4, 1) both;
+  animation-delay: calc(var(--dq-i, 0) * 70ms);
+}
+
+@keyframes dq-lay {
+  from { opacity: 0; transform: translateY(-16px) scale(0.95); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dq-motion [data-reveal],
+  .dq-motion [data-reveal-tick],
+  .dq-motion [data-stagger] > * {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
