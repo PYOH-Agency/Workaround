@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, integer, boolean, index } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 export const company = pgTable('company', {
@@ -10,6 +10,20 @@ export const company = pgTable('company', {
   postalCode: text('postal_code'),
   city: text('city'),
   foundedOn: timestamp('founded_on', { withTimezone: true }),
+
+  // Mentions obligatoires sur un devis de travaux adresse a un particulier
+  // (arrete du 24 janvier 2017, Code de la consommation). Nullables en base —
+  // l'inscription reste a un seul champ —, mais exigees avant tout devis.
+  legalFormLabel: text('legal_form_label'),
+  registrationNumber: text('registration_number'),
+  phone: text('phone'),
+  email: text('email'),
+  vatNumber: text('vat_number'),
+  // En franchise en base, le devis porte « TVA non applicable, art. 293 B du
+  // CGI » au lieu d'un numero.
+  vatExempt: boolean('vat_exempt').notNull().default(false),
+  quoteValidityDays: integer('quote_validity_days').default(90),
+  paymentTerms: text('payment_terms'),
 
   // Mentions d'assurance obligatoires sur tout devis et toute facture du
   // batiment (art. L243-2 du Code des assurances). Nullables en base — on

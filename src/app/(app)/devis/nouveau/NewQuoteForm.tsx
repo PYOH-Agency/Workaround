@@ -31,7 +31,7 @@ const initialState: QuoteFormState = {}
 
 const formatRate = (rate: number) => `${(rate / 100).toFixed(1).replace('.', ',')} %`
 
-export function NewQuoteForm() {
+export function NewQuoteForm({ validityDays }: { validityDays: number }) {
   const [state, action, pending] = useActionState(saveQuote, initialState)
   const [lines, setLines] = useState<LineDraft[]>([emptyLine()])
   const [customerType, setCustomerType] = useState<'particulier' | 'professionnel'>('particulier')
@@ -63,6 +63,7 @@ export function NewQuoteForm() {
       <h1 className="text-2xl font-semibold">Nouveau devis</h1>
 
       <form action={action} className="flex flex-col gap-8">
+        <input type="hidden" name="validity_days" value={validityDays} />
         <section className="flex flex-col gap-4">
           <h2 className="font-medium">Le client</h2>
 
@@ -212,6 +213,12 @@ export function NewQuoteForm() {
             <input name="delai" type="number" min="1" required className={field} />
             <span className="text-xs opacity-60">
               Obligatoire : c’est l’engagement que votre passeport mesurera.
+            </span>
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm sm:max-w-xs">
+            <span className="opacity-70">
+              Validité du devis : {validityDays} jours (modifiable dans vos mentions)
             </span>
           </label>
 

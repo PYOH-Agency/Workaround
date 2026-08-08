@@ -81,8 +81,9 @@ export async function saveQuote(
 
     const totals = computeTotals(lines)
     const leadTime = form.get('delai') ? Number(form.get('delai')) : null
+    const validityDays = Number(form.get('validity_days')) || 90
 
-    created = await insertWithNumber(companyId, project.id, totals, leadTime, lines)
+    created = await insertWithNumber(companyId, project.id, totals, leadTime, validityDays, lines)
   } catch (e) {
     return { error: (e as Error).message }
   }
@@ -110,6 +111,7 @@ async function insertWithNumber(
   projectId: string,
   totals: Totals,
   committedLeadTimeDays: number | null,
+  validityDays: number,
   lines: LineFormInput[],
 ) {
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -131,6 +133,7 @@ async function insertWithNumber(
           companyId,
           number,
           committedLeadTimeDays,
+          validityDays,
           publicToken: randomBytes(24).toString('base64url'),
           totalExclTax: totals.totalExclTax,
           totalTax: totals.totalTax,

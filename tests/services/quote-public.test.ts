@@ -33,10 +33,10 @@ describe('assertSendable', () => {
     expect(() => assertSendable({ ...complete, customerPhone: '  ' })).toThrow('telephone')
   })
 
-  it("refuse un devis sans les mentions d'assurance obligatoires", () => {
-    // Art. L243-2 : un devis sans elles expose l'artisan a une amende.
+  it('refuse un devis auquel il manque une mention obligatoire', () => {
+    // Un devis incomplet expose l'artisan a une amende administrative.
     expect(() => assertSendable({ ...complete, hasInsuranceMentions: false })).toThrow(
-      "mentions d'assurance",
+      'mentions obligatoires',
     )
   })
 

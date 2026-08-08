@@ -33,6 +33,9 @@ export const quote = pgTable(
     // Engagement de delai en jours ouvres. Obligatoire a l'envoi : sans lui, la
     // metrique « respect du delai annonce » du passeport n'a rien a comparer.
     committedLeadTimeDays: integer('committed_lead_time_days'),
+    // Duree de validite figee a la creation : elle doit figurer sur le devis et
+    // ne peut pas bouger si l'entreprise change son reglage par la suite.
+    validityDays: integer('validity_days').notNull().default(90),
     totalExclTax: integer('total_excl_tax').notNull().default(0),
     totalTax: integer('total_tax').notNull().default(0),
     totalInclTax: integer('total_incl_tax').notNull().default(0),

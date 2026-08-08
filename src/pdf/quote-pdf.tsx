@@ -44,8 +44,16 @@ const styles = StyleSheet.create({
     padding: 14,
     width: 260,
   },
+  withdrawal: {
+    marginTop: 22,
+    borderWidth: 0.5,
+    borderColor: '#999',
+    padding: 10,
+    fontSize: 7.5,
+    lineHeight: 1.5,
+  },
   insurance: {
-    marginTop: 26,
+    marginTop: 14,
     borderTopWidth: 0.5,
     borderTopColor: '#ccc',
     paddingTop: 8,
@@ -73,9 +81,20 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
 
         <View style={styles.parties}>
           <View style={styles.party}>
-            <Text style={styles.partyTitle}>{quote.company.legalName}</Text>
-            <Text style={styles.muted}>SIRET {quote.company.siret}</Text>
+            <Text style={styles.partyTitle}>
+              {quote.company.legalName} — {quote.company.legal.legalFormLabel}
+            </Text>
             <Text style={styles.muted}>{quote.company.address}</Text>
+            <Text style={styles.muted}>
+              {quote.company.legal.phone} · {quote.company.legal.email}
+            </Text>
+            <Text style={styles.muted}>SIRET {quote.company.siret}</Text>
+            <Text style={styles.muted}>{quote.company.legal.registrationNumber}</Text>
+            <Text style={styles.muted}>
+              {quote.company.legal.vatExempt
+                ? 'TVA non applicable, art. 293 B du CGI'
+                : `TVA ${quote.company.legal.vatNumber}`}
+            </Text>
           </View>
           <View style={styles.party}>
             <Text style={styles.partyTitle}>{quote.customer.name}</Text>
@@ -125,12 +144,20 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
           </View>
         </View>
 
-        {quote.committedLeadTimeDays !== null && (
-          <Text style={{ marginTop: 24 }}>
-            Délai d’exécution engagé : {quote.committedLeadTimeDays} jours ouvrés à compter de
-            l’acceptation.
+        <View style={{ marginTop: 24, lineHeight: 1.6 }}>
+          <Text>Validité de la présente offre : {quote.validityDays} jours à compter de son émission.</Text>
+          {quote.committedLeadTimeDays !== null && (
+            <Text>
+              Délai d’exécution engagé : {quote.committedLeadTimeDays} jours ouvrés à compter de
+              l’acceptation.
+            </Text>
+          )}
+          <Text>Modalités de paiement : {quote.company.legal.paymentTerms}</Text>
+          <Text>
+            Travaux couverts par les garanties légales de parfait achèvement, de bon fonctionnement
+            et décennale.
           </Text>
-        )}
+        </View>
 
         <View style={styles.signature}>
           <Text style={{ fontFamily: 'Helvetica-Bold' }}>Bon pour accord</Text>
@@ -141,6 +168,23 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
         </View>
 
         {/*
+          Droit de retractation. Un artisan qui fait signer chez son client
+          conclut un contrat hors etablissement : omettre cette mention porte le
+          delai de retractation de quatorze jours a douze mois.
+        */}
+        {quote.customer.isIndividual && (
+          <View style={styles.withdrawal}>
+            <Text style={{ fontFamily: 'Helvetica-Bold' }}>Droit de rétractation</Text>
+            <Text>
+              Pour un contrat conclu hors établissement, vous disposez d’un délai de quatorze jours
+              à compter de son acceptation pour vous rétracter, sans avoir à motiver votre décision.
+              Si vous demandez expressément que les travaux commencent avant la fin de ce délai,
+              vous restez redevable des prestations déjà réalisées.
+            </Text>
+          </View>
+        )}
+
+        {/*
           Mentions imposees par l'article L243-2 du Code des assurances sur tout
           devis et toute facture du batiment. Leur absence expose l'artisan a
           une amende administrative de 3 000 EUR, 15 000 EUR pour une societe.
@@ -148,11 +192,11 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
         <View style={styles.insurance}>
           <Text style={{ fontFamily: 'Helvetica-Bold' }}>Assurance professionnelle</Text>
           <Text>
-            {quote.company.insurance.insurerName} — {quote.company.insurance.insurerAddress}
+            {quote.company.legal.insurerName} — {quote.company.legal.insurerAddress}
           </Text>
-          <Text>Contrat n° {quote.company.insurance.policyNumber}</Text>
-          <Text>Activités garanties : {quote.company.insurance.coveredActivities}</Text>
-          <Text>Couverture géographique : {quote.company.insurance.coverageArea}</Text>
+          <Text>Contrat n° {quote.company.legal.policyNumber}</Text>
+          <Text>Activités garanties : {quote.company.legal.coveredActivities}</Text>
+          <Text>Couverture géographique : {quote.company.legal.coverageArea}</Text>
         </View>
 
         <Text style={styles.footer} fixed>

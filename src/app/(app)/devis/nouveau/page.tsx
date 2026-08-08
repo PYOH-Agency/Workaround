@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { company } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
-import { hasLegalInsuranceMentions } from '@/domain/insurance'
+import { hasLegalMentions } from '@/domain/legal-mentions'
 import { NewQuoteForm } from './NewQuoteForm'
 
 export default async function NewQuotePage() {
@@ -19,9 +19,9 @@ export default async function NewQuotePage() {
 
   const [current] = await db.select().from(company).where(eq(company.id, session.companyId))
 
-  // Un devis sans les mentions d'assurance expose l'artisan a une amende
-  // (art. L243-2). On ne le laisse donc pas en rediger un avant de les avoir.
-  if (!hasLegalInsuranceMentions(current)) redirect('/assurance')
+  // Un devis auquel il manque une mention obligatoire expose l'artisan a une
+  // amende. On ne le laisse donc pas en rediger un avant de les avoir toutes.
+  if (!hasLegalMentions(current)) redirect('/mentions')
 
-  return <NewQuoteForm />
+  return <NewQuoteForm validityDays={current.quoteValidityDays ?? 90} />
 }

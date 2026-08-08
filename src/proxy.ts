@@ -4,11 +4,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 /**
  * Rafraichit la session Supabase a chaque requete.
  *
- * Indispensable : un Server Component ne peut pas ecrire de cookie. Sans ce
- * middleware, le jeton d'acces n'est jamais renouvele et la session expire en
+ * Indispensable : un Server Component ne peut pas ecrire de cookie. Sans cette
+ * couche, le jeton d'acces n'est jamais renouvele et la session expire en
  * silence au bout d'une heure — l'artisan se retrouve deconnecte en plein devis.
+ *
+ * Nommee `proxy` : Next.js 16 a remplace la convention `middleware`.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(

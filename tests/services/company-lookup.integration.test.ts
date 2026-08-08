@@ -21,6 +21,10 @@ describe('API Recherche d Entreprises (reseau)', () => {
     expect(found.addressLine1).not.toContain('33530')
     expect(found.active).toBe(true)
     expect(typeof found.rge).toBe('boolean')
+    // Champs elagues par `minimal=true` s'ils ne sont pas demandes : le mock
+    // les contenait, la vraie reponse non. Seul cet appel le revele.
+    expect(found.vatNumber).toBe('FR51507698207')
+    expect(found.legalFormLabel).toBe('SAS')
   })
 
   it('recupere un entrepreneur individuel, dont la raison sociale est nulle en base', async () => {
@@ -29,6 +33,9 @@ describe('API Recherche d Entreprises (reseau)', () => {
     expect(found.siret).toBe('10007588600018')
     expect(found.legalName.length).toBeGreaterThan(0)
     expect(found.legalForm).toBe('1000')
+    expect(found.legalFormLabel).toBe('Entreprise individuelle')
+    // Non publie pour un entrepreneur individuel : calcule depuis le SIREN.
+    expect(found.vatNumber).toBe('FR60100075886')
   })
 
   it('rejette un SIRET inexistant', async () => {

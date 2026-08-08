@@ -37,12 +37,19 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
     await expect(page.getByRole('heading', { name: /GARANCE PLOMBERIE/i })).toBeVisible()
   })
 
-  await test.step("les mentions d'assurance sont exigees avant tout devis", async () => {
+  await test.step('les mentions obligatoires sont exigees avant tout devis', async () => {
     await page.getByRole('link', { name: 'Créer un devis' }).click()
 
     // Redirection : sans elles, un devis exposerait l'artisan a une amende.
-    await expect(page.getByRole('heading', { name: /assurance professionnelle/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Mentions de vos devis/i })).toBeVisible()
 
+    // Forme juridique et numero de TVA sont deja preremplis depuis l'annuaire.
+    await expect(page.getByLabel('Forme juridique')).not.toHaveValue('')
+    await expect(page.getByLabel('Numéro de TVA intracommunautaire')).toHaveValue('FR37751353731')
+
+    await page.getByLabel('Numéro d’immatriculation').fill('RCS Bordeaux 751 353 731')
+    await page.getByLabel('Téléphone').fill('0556123456')
+    await page.getByLabel('E-mail').fill('contact@garance-plomberie.fr')
     await page.getByLabel('Nom de l’assureur').fill('SMABTP')
     await page.getByLabel('Adresse de l’assureur').fill('114 avenue Émile Zola, 75015 Paris')
     await page.getByLabel('Référence du contrat').fill('D-2026-000123')
@@ -99,7 +106,10 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
     await expect(customerPage.getByTestId('total-ttc')).toHaveText('1 007,00')
     // Mentions imposees par l'article L243-2 du Code des assurances.
     await expect(customerPage.getByText('Assurance professionnelle')).toBeVisible()
-    await expect(customerPage.getByText('D-2026-000123')).toBeVisible()
+    await expect(customerPage.getByText(/D-2026-000123/)).toBeVisible()
+    // Omettre cette mention porterait le delai de retractation a douze mois.
+    await expect(customerPage.getByText('Droit de rétractation')).toBeVisible()
+    await expect(customerPage.getByText(/Validité de cette offre : 90 jours/)).toBeVisible()
   })
 
   await test.step('un mauvais code ne signe rien', async () => {

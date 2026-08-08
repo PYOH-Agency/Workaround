@@ -15,6 +15,13 @@
       "when": 1786145340498,
       "tag": "0001_certain_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786149382368,
+      "tag": "0002_romantic_blackheart",
+      "breakpoints": true
     }
   ]
 }

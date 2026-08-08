@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { quote } from '@/db/schema'
 import { computeTotals, type Totals } from '@/domain/quote-totals'
-import type { InsuranceMentions } from '@/domain/insurance'
+import type { CompanyLegalDetails } from '@/domain/legal-mentions'
 
 export interface SendableState {
   status: string
@@ -28,7 +28,7 @@ export function assertSendable(state: SendableState): void {
   // Garde de derniere ligne : la redaction est deja bloquee sans ces mentions,
   // mais un devis anterieur a leur mise en place ne doit pas passer non plus.
   if (!state.hasInsuranceMentions) {
-    throw new Error("Renseignez les mentions d'assurance avant d'envoyer un devis")
+    throw new Error("Renseignez les mentions obligatoires avant d'envoyer un devis")
   }
 }
 
@@ -50,10 +50,16 @@ export interface PublicQuote {
     legalName: string
     siret: string
     address: string
-    insurance: InsuranceMentions
+    legal: CompanyLegalDetails
   }
-  customer: { name: string; phone: string | null; propertyAddress: string }
+  customer: {
+    name: string
+    phone: string | null
+    isIndividual: boolean
+    propertyAddress: string
+  }
   committedLeadTimeDays: number | null
+  validityDays: number
   lines: QuoteLineView[]
   totals: Totals
 }
@@ -87,7 +93,14 @@ export async function loadQuoteByToken(token: string): Promise<PublicQuote | nul
       legalName: company.legalName,
       siret: company.siret,
       address: [company.addressLine1, company.postalCode, company.city].filter(Boolean).join(' '),
-      insurance: {
+      legal: {
+        legalFormLabel: company.legalFormLabel,
+        registrationNumber: company.registrationNumber,
+        phone: company.phone,
+        email: company.email,
+        vatNumber: company.vatNumber,
+        vatExempt: company.vatExempt,
+        paymentTerms: company.paymentTerms,
         insurerName: company.insurerName,
         insurerAddress: company.insurerAddress,
         policyNumber: company.policyNumber,
@@ -98,9 +111,11 @@ export async function loadQuoteByToken(token: string): Promise<PublicQuote | nul
     customer: {
       name: customer.name,
       phone: customer.phone,
+      isIndividual: customer.type === 'individual',
       propertyAddress: [property.addressLine1, property.postalCode, property.city].join(' '),
     },
     committedLeadTimeDays: found.committedLeadTimeDays,
+    validityDays: found.validityDays,
     lines: [...found.lines]
       .sort((a, b) => a.position - b.position)
       .map((line) => ({

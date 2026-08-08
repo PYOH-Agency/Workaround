@@ -51,6 +51,10 @@ export async function signUp(_state: SignUpState, form: FormData): Promise<SignU
       postalCode: establishment.postalCode,
       city: establishment.city,
       foundedOn: establishment.foundedOn,
+      // Prerempli depuis l'annuaire : autant de mentions obligatoires que
+      // l'artisan n'aura pas a saisir, donc pas a saisir de travers.
+      legalFormLabel: establishment.legalFormLabel,
+      vatNumber: establishment.vatNumber,
     })
     .returning()
 

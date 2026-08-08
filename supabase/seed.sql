@@ -11,6 +11,8 @@
 
 INSERT INTO company (
   id, siret, legal_name, legal_form, address_line1, postal_code, city, founded_on,
+  legal_form_label, registration_number, phone, email, vat_number, quote_validity_days,
+  payment_terms,
   insurer_name, insurer_address, policy_number, covered_activities, coverage_area
 )
 VALUES (
@@ -22,7 +24,15 @@ VALUES (
   '33530',
   'BASSENS',
   '2008-09-01',
-  -- Mentions obligatoires sur tout devis (art. L243-2 du Code des assurances).
+  -- Mentions obligatoires sur tout devis adresse a un particulier.
+  'SAS',
+  'RCS Bordeaux 507 698 207',
+  '0556000000',
+  'contact@bd-plomberie.fr',
+  'FR51507698207',
+  90,
+  'Acompte de 30 % à la commande, solde à la réception des travaux.',
+  -- Mentions d'assurance (art. L243-2 du Code des assurances).
   'SMABTP',
   '114 avenue Émile Zola, 75015 Paris',
   'D-2024-889321',
@@ -62,7 +72,7 @@ VALUES (
 
 INSERT INTO quote (
   id, project_id, company_id, number, status,
-  committed_lead_time_days, total_excl_tax, total_tax, total_incl_tax,
+  committed_lead_time_days, validity_days, total_excl_tax, total_tax, total_incl_tax,
   public_token, sent_at
 )
 VALUES (
@@ -71,7 +81,7 @@ VALUES (
   '00000000-0000-4000-8000-000000000001',
   'D2026-0001',
   'sent',
-  5, 91000, 9700, 100700,
+  5, 90, 91000, 9700, 100700,
   'demo0000token0000pour0000verification',
   now()
 );

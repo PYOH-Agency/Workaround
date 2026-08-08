@@ -12,6 +12,7 @@ const COMPANY = {
       nom_complet: 'BD PLOMBERIE (BD PLOMBERIE)',
       nom_raison_sociale: 'BD PLOMBERIE',
       nature_juridique: '5710',
+      tva: ['FR51507698207'],
       date_creation: '2008-09-01',
       complements: { est_rge: true, est_entrepreneur_individuel: false },
       matching_etablissements: [
@@ -36,6 +37,8 @@ const SOLE_TRADER = {
       nom_complet: 'FABRICE CASSOU (FCMI PLOMBERIE)',
       nom_raison_sociale: null,
       nature_juridique: '1000',
+      // L'API ne publie pas de TVA pour un entrepreneur individuel.
+      tva: null,
       date_creation: '2021-03-15',
       complements: { est_rge: false, est_entrepreneur_individuel: true },
       matching_etablissements: [
@@ -68,6 +71,8 @@ describe('findEstablishment', () => {
       siret: '50769820700036',
       legalName: 'BD PLOMBERIE (BD PLOMBERIE)',
       legalForm: '5710',
+      legalFormLabel: 'SAS',
+      vatNumber: 'FR51507698207',
       foundedOn: new Date('2008-09-01'),
       active: true,
       addressLine1: '43 RUE SIMONE SIGNORET',
@@ -86,6 +91,9 @@ describe('findEstablishment', () => {
     // lire nom_raison_sociale produirait une raison sociale vide.
     expect(found.legalName).toBe('FABRICE CASSOU (FCMI PLOMBERIE)')
     expect(found.legalForm).toBe('1000')
+    expect(found.legalFormLabel).toBe('Entreprise individuelle')
+    // Calcule depuis le SIREN, faute d'etre publie.
+    expect(found.vatNumber).toBe('FR60100075886')
     expect(found.addressLine1).toBe('627 AVENUE DU MARECHAL DE LATTRE DE TASSIGNY')
     expect(found.rge).toBe(false)
   })
@@ -99,6 +107,8 @@ describe('findEstablishment', () => {
     expect(url).toContain('q=50769820700036')
     expect(url).toContain('minimal=true')
     expect(url).toContain('matching_etablissements')
+    // `minimal=true` elague `tva` : il faut le demander explicitement.
+    expect(url).toContain('tva')
   })
 
   it('rejette une reponse dont le SIRET ne correspond pas a la demande', async () => {

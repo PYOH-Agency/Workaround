@@ -95,14 +95,49 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
         </p>
       )}
 
+      <section className="flex flex-col gap-1 text-sm opacity-80">
+        <p>Validité de cette offre : {found.validityDays} jours à compter de son émission.</p>
+        <p>Modalités de paiement : {found.company.legal.paymentTerms}</p>
+      </section>
+
+      {/*
+        Un artisan qui fait signer chez son client conclut un contrat hors
+        etablissement : omettre cette mention porte le delai de retractation de
+        quatorze jours a douze mois.
+      */}
+      {found.customer.isIndividual && (
+        <section className="rounded-lg border border-black/15 p-4 text-sm dark:border-white/20">
+          <p className="font-medium">Droit de rétractation</p>
+          <p className="mt-1 opacity-80">
+            Pour un contrat conclu hors établissement, vous disposez d’un délai de quatorze jours à
+            compter de votre acceptation pour vous rétracter, sans avoir à motiver votre décision.
+            Si vous demandez expressément que les travaux commencent avant la fin de ce délai, vous
+            restez redevable des prestations déjà réalisées.
+          </p>
+        </section>
+      )}
+
       <section className="border-t border-black/10 pt-4 text-xs opacity-70 dark:border-white/15">
-        <p className="font-medium">Assurance professionnelle</p>
         <p>
-          {found.company.insurance.insurerName} — {found.company.insurance.insurerAddress}
+          {found.company.legalName} — {found.company.legal.legalFormLabel} ·{' '}
+          {found.company.legal.registrationNumber}
         </p>
-        <p>Contrat n° {found.company.insurance.policyNumber}</p>
-        <p>Activités garanties : {found.company.insurance.coveredActivities}</p>
-        <p>Couverture géographique : {found.company.insurance.coverageArea}</p>
+        <p>
+          SIRET {found.company.siret} ·{' '}
+          {found.company.legal.vatExempt
+            ? 'TVA non applicable, art. 293 B du CGI'
+            : `TVA ${found.company.legal.vatNumber}`}
+        </p>
+        <p>
+          {found.company.legal.phone} · {found.company.legal.email}
+        </p>
+        <p className="mt-2 font-medium">Assurance professionnelle</p>
+        <p>
+          {found.company.legal.insurerName} — {found.company.legal.insurerAddress}
+        </p>
+        <p>Contrat n° {found.company.legal.policyNumber}</p>
+        <p>Activités garanties : {found.company.legal.coveredActivities}</p>
+        <p>Couverture géographique : {found.company.legal.coverageArea}</p>
       </section>
 
       {found.status === 'signed' ? (

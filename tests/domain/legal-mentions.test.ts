@@ -1,0 +1,73 @@
+import { describe, it, expect } from 'vitest'
+import { frenchVatNumber, sirenFromSiret } from '@/domain/vat-number'
+import { missingLegalMentions, hasLegalMentions } from '@/domain/legal-mentions'
+
+describe('numero de TVA intracommunautaire', () => {
+  it('extrait le SIREN des neuf premiers chiffres du SIRET', () => {
+    expect(sirenFromSiret('50769820700036')).toBe('507698207')
+  })
+
+  it('calcule la cle a partir du SIREN', () => {
+    // Cle = (12 + 3 x (SIREN mod 97)) mod 97.
+    // Valeurs confrontees aux numeros reels publies par l'annuaire des
+    // entreprises, et non ecrites de memoire.
+    expect(frenchVatNumber('507698207')).toBe('FR51507698207')
+    expect(frenchVatNumber('751353731')).toBe('FR37751353731')
+    expect(frenchVatNumber('991747114')).toBe('FR27991747114')
+  })
+
+  it('refuse un SIREN malforme', () => {
+    expect(() => frenchVatNumber('123')).toThrow('SIREN')
+  })
+})
+
+const complete = {
+  legalFormLabel: 'SASU',
+  registrationNumber: 'RCS Bordeaux 507 698 207',
+  phone: '0556000000',
+  email: 'contact@bd-plomberie.fr',
+  vatNumber: 'FR51507698207',
+  vatExempt: false,
+  quoteValidityDays: 90,
+  paymentTerms: 'Acompte de 30 % à la commande, solde à la réception.',
+  insurerName: 'SMABTP',
+  insurerAddress: '114 avenue Émile Zola, 75015 Paris',
+  policyNumber: 'D-2024-889321',
+  coveredActivities: 'Plomberie',
+  coverageArea: 'France métropolitaine',
+}
+
+describe('mentions obligatoires du devis', () => {
+  it('accepte un dossier complet', () => {
+    expect(missingLegalMentions(complete)).toEqual([])
+    expect(hasLegalMentions(complete)).toBe(true)
+  })
+
+  it('exige aussi les mentions d assurance', () => {
+    expect(missingLegalMentions({ ...complete, policyNumber: null })).toEqual(['policyNumber'])
+  })
+
+  it('accepte l absence de numero de TVA en franchise en base', () => {
+    // L'artisan en franchise porte « TVA non applicable, art. 293 B du CGI ».
+    expect(missingLegalMentions({ ...complete, vatNumber: null, vatExempt: true })).toEqual([])
+  })
+
+  it('exige le numero de TVA si l entreprise y est assujettie', () => {
+    expect(missingLegalMentions({ ...complete, vatNumber: null, vatExempt: false })).toEqual([
+      'vatNumber',
+    ])
+  })
+
+  it('refuse une duree de validite absente ou nulle', () => {
+    expect(missingLegalMentions({ ...complete, quoteValidityDays: null })).toEqual([
+      'quoteValidityDays',
+    ])
+    expect(missingLegalMentions({ ...complete, quoteValidityDays: 0 })).toEqual([
+      'quoteValidityDays',
+    ])
+  })
+
+  it('liste toutes les mentions manquantes d un dossier vide', () => {
+    expect(missingLegalMentions({}).length).toBeGreaterThan(8)
+  })
+})
