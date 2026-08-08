@@ -18,7 +18,10 @@ async function load() {
   // Playwright transpile ses fichiers en CommonJS. Un module qui ne fait que
   // reexporter (`export *`) ne laisse alors rien deviner statiquement, et ses
   // exports se retrouvent sous `default` au lieu d'etre a plat.
-  const schema = (imported.default ?? imported) as unknown as typeof import('@/db/schema')
+  // Le `default` n'existe qu'a l'execution sous CommonJS : le type du module,
+  // lui, ne le connait pas.
+  const wrapped = imported as { default?: unknown }
+  const schema = (wrapped.default ?? imported) as typeof import('@/db/schema')
 
   return { db, schema }
 }
