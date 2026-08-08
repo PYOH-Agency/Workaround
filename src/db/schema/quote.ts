@@ -7,6 +7,7 @@ import {
   numeric,
   unique,
   index,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { project } from './project'
@@ -27,6 +28,13 @@ export const quote = pgTable(
       .references(() => company.id),
     number: text('number').notNull(),
     version: integer('version').notNull().default(1),
+    /**
+     * La version que celle-ci remplace. `null` sur le devis d'origine.
+     *
+     * Le chainage permet de remonter a la racine — a laquelle les factures
+     * restent attachees — sans avoir a deviner par le numero.
+     */
+    supersedesQuoteId: uuid('supersedes_quote_id').references((): AnyPgColumn => quote.id),
     status: text('status', { enum: ['draft', 'sent', 'signed', 'refused', 'expired'] })
       .notNull()
       .default('draft'),
