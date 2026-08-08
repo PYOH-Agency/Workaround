@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prepare": "node scripts/install-hooks.mjs",
-    "validate": "pnpm check:env && pnpm check:size && pnpm check:ds && pnpm check:isolation && pnpm build && pnpm test",
+    "validate": "pnpm check:env && pnpm check:size && pnpm check:ds && pnpm check:isolation && pnpm build && vitest run",
     "check:env": "node scripts/check-environment.mjs",
     "check:size": "node scripts/check-file-size.mjs",
     "check:ds": "node scripts/check-design-system.mjs",
