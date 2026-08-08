@@ -9,7 +9,7 @@ import { Spinner } from './spinner'
  * client toutes les pages qui l'utilisent — c'est-a-dire toutes.
  */
 
-const TONES = {
+export const TONES = {
   /**
    * L'encre, pas la terre cuite.
    *
@@ -29,11 +29,27 @@ const TONES = {
   'danger-solid': 'bg-danger-solid text-on-danger hover:opacity-90',
 } as const
 
-const SIZES = {
+export const SIZES = {
   /** min-h-11 = 44 px : la cible tactile minimale, quelle que soit la taille du texte. */
   md: 'min-h-11 px-4 text-sm',
   lg: 'min-h-12 px-5 text-base',
 } as const
+
+/**
+ * L'ossature partagee par `Button` et `ButtonLink`.
+ *
+ * Les deux existent parce que le HTML distingue agir et naviguer : imbriquer un
+ * `<button>` dans un `<a>` est invalide et brouille le role annonce.
+ */
+export function buttonStyle(tone: keyof typeof TONES, size: keyof typeof SIZES): string {
+  return cn(
+    'inline-flex items-center justify-center gap-2 rounded-control',
+    'font-medium transition-opacity',
+    'disabled:opacity-45 disabled:pointer-events-none',
+    TONES[tone],
+    SIZES[size],
+  )
+}
 
 export function Button({
   tone = 'primary',
@@ -74,13 +90,7 @@ export function Button({
       // plus couteux sur une emission de facture. `aria-busy` l'annonce.
       disabled={disabled || pending}
       aria-busy={pending || undefined}
-      className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-control',
-        'font-medium transition-opacity',
-        'disabled:opacity-45 disabled:pointer-events-none',
-        TONES[tone],
-        SIZES[size],
-      )}
+      className={buttonStyle(tone, size)}
     >
       {pending ? <Spinner /> : null}
       {children}
