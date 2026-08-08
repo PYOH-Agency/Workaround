@@ -1,7 +1,7 @@
 # Modèle économique — Design
 
 > Révision du §11 du socle, sous contrainte de rentabilité courte.
-> Date : 2026-08-08 · Statut : à valider
+> Date : 2026-08-08 · Statut : **validé** — le passage du payant de M8 à M2 est acté et reporté dans le socle
 > Dépend de : [Socle Artisan — Design P1](2026-08-07-socle-artisan-design.md)
 > Simulation interactive : `dequerre-simulation.html` (artefact publié)
 
@@ -102,13 +102,18 @@ Hypothèses : démarrage commercial au mois 2, 45 h/semaine dont 25 h de dévelo
 2. **La saturation arrive au mois 3, avant l'objectif.** Dès décembre 2026 on ne sert plus que 68 % de la demande générée, et 51 % en février. **Le facteur limitant n'est jamais le prix ni le marché — c'est le nombre d'heures.**
 3. **Le plan du socle produit 588 €.** Trois fois moins que la cible, avec l'objectif repoussé de onze mois. C'est la mesure du coût de la gratuité sans plafond.
 
-## 6. Conséquences sur le socle
+## 6. Conséquences sur le socle — appliquées le 2026-08-08
 
-| § du socle | Modification |
+| § du socle | Modification portée |
 |---|---|
-| §11 — Business model | Abonnement unique à 79 € + mise en service. Palier gratuit plafonné. Cible d'ARPU alignée sur 948 €/an, dans la fourchette annoncée. |
-| §14 — Jalons | **Le payant remonte de M8 à M2.** Ce qui se vend en février 2027, c'est le devis signé, la facture et la conformité — pas la gestion d'équipe. M8 devient un palier supérieur, pas la première monétisation. |
-| §13 — Risques | Le risque n° 7 (« zéro revenu si l'abonnement Pro n'est pas adopté ») est requalifié : le revenu ne dépend plus de l'adoption d'une offre Pro tardive. Nouveau risque : **la saturation en heures d'une structure à une personne**, mesurée en §5. |
+| §7 — Vérification | Précision : le plafond du palier gratuit borne le volume, jamais l'accès. **Un devis déjà émis reste signable et facturable sans limite.** |
+| §11 — Business model | Abonnement unique à 79 € + mise en service. Palier gratuit plafonné. Cible d'ARPU à 948 €/an. **L'interdiction « ne pas facturer l'outil au prix du marché » tombe** — elle protégeait une différenciation inexistante. |
+| §13 — Risques | Risque n° 7 requalifié : le revenu ne dépend plus d'une offre Pro tardive ; le risque résiduel est le consentement à payer 79 €. **Nouveau risque n° 14 : la saturation en heures d'une structure à une personne.** |
+| §14 — Jalons | **Le payant remonte de M8 à M2.** M8 devient un palier supérieur. Le raccordement à une plateforme agréée devient un préalable de M2. |
+
+### Ce que la décision engage
+
+Le raccordement à une plateforme agréée passe du statut de chantier de fin de parcours à celui de **préalable de M2**. C'est la dépendance la plus lourde introduite par cette décision, et elle n'est pas chiffrée (§7). Si elle se révèle plus longue que M1 + M2, l'argument de conformité ne sera pas disponible pour la première vente — et c'est lui qui justifie l'écart de prix avec Tolteck.
 
 ## 7. Ce qui reste ouvert
 

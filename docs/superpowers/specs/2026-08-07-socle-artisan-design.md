@@ -217,7 +217,9 @@ Sans elles, l'activité est illégale. Aucune tolérance, aucun affichage.
 
 ### Le seuil de visibilité
 
-> **Décision.** L'outil est ouvert à tous — on entre avec un SIRET en trente secondes, et le capteur ne doit jamais être bloqué. La **vitrine publique** exige une **assurance valide et adaptée à chaque activité affichée** : décennale pour les activités qui l'engagent, RC Pro pour les autres.
+> **Décision.** L'outil est ouvert à tous — on entre avec un SIRET en trente secondes, et l'entrée dans le capteur n'est jamais conditionnée à un paiement. La **vitrine publique** exige une **assurance valide et adaptée à chaque activité affichée** : décennale pour les activités qui l'engagent, RC Pro pour les autres.
+>
+> **Précision du 2026-08-08.** Le palier gratuit est **plafonné à trois devis par mois** (§11). Ce plafond ne contredit pas l'ouverture : il borne le volume, jamais l'accès, et il ne s'applique qu'en amont — **un devis déjà émis reste vivant, signable et facturable sans limite de temps.** Un artisan n'est jamais coupé d'un chantier en cours parce qu'il n'a pas payé.
 
 Cela donne une phrase que personne d'autre en France ne peut prononcer : *« tout professionnel visible ici est assuré pour ce qu'il fait. »*
 
@@ -366,17 +368,23 @@ Deux réponses, toutes deux déjà dans la conception :
 
 ## 11. Business model
 
-Trois sources de revenus classiques du secteur nous sont **volontairement interdites** : vendre des leads, vendre le classement, facturer l'outil au prix du marché. C'est le prix de la confiance.
+> **Révisé le 2026-08-08** sous contrainte de rentabilité courte. Benchmark, simulation et justification : [Modèle économique — Design](2026-08-08-modele-economique-design.md).
 
-**Modèle hybride, retenu :**
+Deux sources de revenus classiques du secteur nous restent **volontairement interdites** : vendre des leads, vendre le classement. C'est le prix de la confiance.
 
-- **Le capteur est gratuit à vie** — devis, facture, passeport, agenda. Non négociable : c'est ce qui fait vivre le label.
-- **Abonnement Pro payant dès le premier jour** sur ce qui scale — gestion d'équipe, planning, suivi de chantier, situations de travaux, relances d'impayés. Le consentement à payer est déjà prouvé par les acteurs établis à 30–80 €/mois.
+La troisième interdiction — *facturer l'outil au prix du marché* — **tombe**. Elle reposait sur l'idée que la gratuité serait une position différenciante ; le relevé du 2026-08-08 montre qu'elle est le **prix plancher du marché** (Henrri : devis et factures illimités, conformes e-facture, à 0 €). Se donner l'obligation de rester sous un plancher déjà occupé revenait à financer une différenciation qui n'existe pas.
+
+**Modèle retenu :**
+
+- **Offre unique à 79 €/mois HT**, plus **390 à 490 € de mise en service** facturés une fois — reprise de la bibliothèque de prix, paramétrage des mentions d'assurance (art. L243-2), raccordement e-facture, création du passeport. La mise en service transforme les heures d'accompagnement en trésorerie au lieu de les brûler en gratuité : c'est elle qui finance les premiers mois.
+- **Palier gratuit à vie, plafonné à trois devis par mois, sans support.** L'intention du capteur est intacte — l'artisan occasionnel n'est jamais bloqué et la donnée continue d'entrer — mais le palier n'est plus un moteur de croissance : c'est un alimentateur de capteur et de référencement.
 - **Commission au succès** (P2, à l'ouverture de la marketplace) : 5–8 % sur le petit chantier, 2–4 % au-delà, ou un forfait plafonné par affaire signée.
 
 Les solos apportent la donnée et le référencement, les entreprises structurées apportent le revenu. Chaque côté donne ce qu'il peut.
 
-**Cible :** 600 à 1 200 € de marge par entreprise active et par an, toutes sources confondues.
+**Cible :** 948 € de revenu récurrent par entreprise abonnée et par an, mise en service exclue — dans la fourchette de 600 à 1 200 € initialement annoncée.
+
+> **Ce que la gratuité sans plafond coûte, chiffré.** Le plan initial — capteur gratuit, offre payante en M8 — produit 588 € de MRR à l'échéance de février 2027 et n'atteint 2 000 € qu'en janvier 2028. Le modèle ci-dessus les atteint en mars 2027. Onze mois d'écart.
 
 ## 12. Principes non négociables
 
@@ -420,7 +428,8 @@ Le mécanisme existe déjà : l'**événement rectificatif** conçu par l'AIPD p
 | 4 | **Marché des outils de devis/facture mature et concurrentiel** | Notre différenciateur n'est pas l'outil mais le passeport. L'outil doit être bon, pas révolutionnaire |
 | 5 | ~~**Facturation électronique**~~ — **levé**, voir [la recherche](../research/2026-08-07-facturation-electronique.md) | Nous serons **Solution Compatible** raccordée à une **Plateforme Agréée**, jamais agréés nous-mêmes. Échéance TPE : 1ᵉʳ septembre 2027. L'obligation dominante de nos artisans est le **e-reporting** (clients particuliers), pas le e-invoicing. Le suivi des paiements devient une exigence réglementaire |
 | 6 | ~~**RGPD**~~ — **cadré**, voir [le document](../research/2026-08-08-cadrage-rgpd.md) | Rôles répartis, durées arrêtées, information des personnes écrite. Deux défauts corrigés : un e-mail en clair dans le journal ineffaçable, et des numéros de téléphone conservés sans fin. ~~Reste bloquant : l'AIPD du passeport~~ — **menée le 2026-08-08**, voir [l'AIPD](../rgpd/2026-08-08-aipd-passeport.md). Cinq critères du G29 sont certains, deux partiels : le décompte de six annoncé ici était trop généreux |
-| 7 | **Zéro revenu si l'abonnement Pro n'est pas adopté** | Mesurer tôt le taux de conversion vers l'offre payante sur les entreprises de 3 salariés et plus |
+| 7 | ~~**Zéro revenu si l'abonnement Pro n'est pas adopté**~~ — **requalifié le 2026-08-08.** Le revenu ne dépend plus d'une offre Pro tardive : l'abonnement unique est vendu dès M2. Le risque résiduel est le **consentement à payer 79 €** face à Tolteck à 19 € et Henrri à 0 € | Le prix se défend par la conformité (mentions L243-2, facture électronique) et le passeport vérifié, pas par les fonctions de devis. À valider sur les dix premières ventes : si l'argument de conformité ne porte pas, c'est le prix qui est faux, pas le canal |
+| 14 | **Saturation en heures d'une structure à une personne.** La simulation montre que l'acquisition se bride au mois 3, avant même l'objectif : à partir de décembre 2026, seule une fraction de la demande générée peut être servie. Le facteur limitant du modèle n'est ni le prix ni le marché, c'est le nombre d'heures — et le **support croît avec le parc sans qu'aucune décision ne soit prise** | Mesurer les heures réelles par mise en service et par client et par mois dès les premiers clients ; ce sont les deux entrées qui pilotent tout le modèle. Deux leviers connus : réduire la mise en service par l'outillage (reprise automatique de la bibliothèque de prix), et déplacer le support vers l'autonomie plutôt que vers l'embauche. Voir [Modèle économique — Design](2026-08-08-modele-economique-design.md) §5 |
 | 8 | ~~**Accès aux sources de vérification**~~ — **levé**, voir [la recherche](../research/2026-08-08-sources-de-verification.md) | Quatre sources ouvertes et gratuites testées en direct : Sirene, BODACC, ADEME RGE — qui porte aussi Qualibat, avec les dates de validité. **API Entreprise nous est fermée** (réservée aux missions de service public) : l'URSSAF sort du périmètre de M3, et ce qu'on ne peut pas récupérer, l'artisan le fournit. Le RNE direct est redondant |
 | 9 | **Volume du référentiel d'activités** — couvrir tous les métiers demande une nomenclature large, et la correspondance avec les libellés d'assurance est le point dur | Partir d'une nomenclature existante plutôt que d'en créer une. Le référentiel est une donnée, pas du code : il peut s'enrichir en continu sans refonte |
 | 11 | **La ligne de partage n'était tracée que pour le demandeur.** P1 crée délibérément chez lui une frustration qui deviendra la demande de P2. Rien d'équivalent n'existait côté artisan : entre la vérification et la marketplace, il gagne un outil sur un marché encombré et un passeport que personne ne cherche. **Un artisan qui ne reçoit aucun chantier part — et emporte la donnée**, donc le label, donc le produit | **L'annuaire consultable est avancé, avant les métriques** (§14). Ce n'est pas la marketplace : ni agrégation de demande, ni matching, ni lead vendu — donc aucun des trois interdits n'est franchi. Sans métriques, il dit déjà « tous ces artisans sont assurés pour ce qu'ils font », ce que personne d'autre ne peut dire |
@@ -440,15 +449,27 @@ P1 ne se construit pas d'un bloc. Chaque jalon doit produire un logiciel utilisa
 | Jalon | Contenu | Ce qu'un artisan peut en faire |
 |---|---|---|
 | **M1 — Le devis qui se signe** | Compte entreprise (SIRET pré-rempli via Sirene), client, logement, devis à lignes libres, TVA multi-taux, PDF, envoi par lien, **signature électronique** | Faire ses devis et les faire signer. C'est déjà mieux que Word. |
-| **M2 — La facture** | Acompte, solde, avoir, PDF, suivi payé / impayé | Abandonner son outil actuel. Le capteur est complet. |
+| **M2 — La facture, et la vente** | Acompte, solde, avoir, PDF, suivi payé / impayé. **Plafond du palier gratuit, abonnement, encaissement, mise en service** | Abandonner son outil actuel. Le capteur est complet — **et le produit se vend.** |
 | **M3 — Vérification et passeport** | Sirene + BODACC automatiques, dépôt d'attestation, extraction, revue humaine, référentiel d'activités minimal, page publique | Être trouvé sur Google avec ses vérifications à jour. **La différenciation apparaît ici.** |
 | **M4 — L'annuaire** | Recherche par activité et par zone sur les pages publiques de M3, point de contact direct, backoffice d'observation | **Être trouvé et recevoir des appels.** C'est ici que le passeport commence à rapporter. |
 | **M5 — Les métriques** | Journal d'événements, calcul des métriques, seuils de volume, contestation | Son passeport se remplit tout seul. |
 | **M6 — L'espace demandeur** | Compte à la signature, carnet, suivi de chantier, répertoire, reprise de contact | Ses clients ont un espace. |
 | **M7 — Agenda et RDV** | Créneaux, synchronisation externe, rendez-vous de visite et d'intervention | Arrêter de gérer ses rendez-vous au téléphone. |
-| **M8 — L'offre payante** | Équipe et rôles, situations de travaux, relances d'impayés | Ce qui justifie l'abonnement Pro. |
+| **M8 — Le palier supérieur** | Équipe et rôles, situations de travaux, relances d'impayés | Ce qui justifie un second palier de prix, au-dessus de l'offre unique. |
 
 > **Première mise en marché : M1 → M4.** C'est le plus petit ensemble qui soit à la fois utilisable au quotidien, porteur de la différenciation, **et qui rende quelque chose à l'artisan**. Les métriques suivent naturellement puisque la donnée existe déjà. Tout ce qui vient après enrichit un produit déjà en service.
+>
+> **Première vente : M2.** Décidé le 2026-08-08. L'offre payante n'attend plus M8. Ce qui se vend en février 2027, c'est le devis signé, la facture et la conformité à la réforme — pas la gestion d'équipe. M8 devient un palier supérieur, et non plus la première monétisation. Le raccordement à une plateforme agréée devient de ce fait un préalable de M2, pas un chantier de fin de parcours.
+
+### Pourquoi le payant remonte de M8 à M2
+
+Trois raisons, et aucune n'est une préférence commerciale.
+
+**M8 arrive après l'échéance.** L'objectif de rentabilité est fixé à février 2027, six mois après le mois 0. M8 vient après l'agenda, l'espace demandeur et les métriques : il n'existera pas à cette date. Un modèle dont la seule source de revenu est hors de portée de son propre horizon n'est pas un modèle.
+
+**Ce qui se paie n'est pas ce qu'on croyait.** M8 monétise ce qui *scale* — équipe, situations de travaux, relances. C'est le raisonnement d'un éditeur qui vise la PME. Or l'entreprise visée est majoritairement solo, et ce qu'elle achète en 2026-2027, c'est **de ne pas être en infraction** : mentions d'assurance obligatoires dès M1, e-reporting et facture électronique à partir du 1ᵉʳ septembre 2027. Cette valeur est intégralement livrée en M2.
+
+**Le capteur ne se vide pas.** L'objection au payant précoce était qu'un outil payant réduit l'adoption, donc la donnée, donc le label. Le palier gratuit plafonné y répond : l'artisan occasionnel entre sans payer et alimente le capteur, l'artisan actif paie. La donnée qui fait vivre le label vient de toute façon des entreprises actives — celles qui paient.
 
 ### Pourquoi l'annuaire passe devant les métriques
 
