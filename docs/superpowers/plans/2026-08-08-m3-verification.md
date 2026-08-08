@@ -1142,7 +1142,7 @@ export async function runLegalChecks(companyId: string, siret: string) {
     await db.insert(legalCheck).values({ companyId, ...result })
 
     // Seules les TRANSITIONS entrent au journal : un constat identique chaque
-    // jour le noierait, et le passeport de M4 y lit des changements d'etat.
+    // jour le noierait, et le passeport des métriques y lit des changements d'etat.
     if (previous?.status !== result.status) {
       await recordEvent({
         type: result.status === 'blocked' ? 'company.blocked' : 'company.unblocked',
@@ -1973,7 +1973,7 @@ Elle charge l'entreprise par le SIREN extrait de l'identifiant, appelle `company
 - affiche **uniquement les activités visibles**, avec le type d'assurance qui les couvre ;
 - affiche les qualifications RGE actives, **avec leur objet et leur date de fin** — jamais un « RGE » nu ;
 - porte les métadonnées de référencement (`generateMetadata`), puisque l'objet du jalon est d'être trouvé sur Google ;
-- **n'affiche aucune métrique** : elles arrivent en M4.
+- **n'affiche aucune métrique** : elles arrivent avec le jalon des métriques (M5).
 
 > **Le filtrage est porté par la requête, pas par l'affichage.** L'AIPD l'exige nommément : *« les exclusions sont portées par la requête de publication elle-même, jamais par un filtre d'affichage »*. Un filtre en surface s'oublie au premier refactor ; une condition dans la source de données ne s'oublie pas.
 
@@ -2098,7 +2098,7 @@ test('de l’attestation déposée à la page publique', async ({ page, context 
     await expect(anonymous.getByText('Plomberie — installations sanitaires')).toBeVisible()
     await expect(anonymous.getByText('Électricité')).toHaveCount(0)
     await expect(anonymous.getByText('SMABTP')).toBeVisible()
-    // Les metriques arrivent en M4 : rien ici.
+    // Les metriques arrivent plus tard : rien ici.
     await expect(anonymous.getByTestId('passeport-metriques')).toHaveCount(0)
     await anonymous.close()
   })
@@ -2122,7 +2122,7 @@ Expected: PASS — les trois parcours, M1, M2 et M3
 Run: `docker exec supabase_db_Workaround psql -U postgres -d postgres -t -A -c "SELECT type FROM event WHERE type LIKE 'certificate%' ORDER BY occurred_at;"`
 Expected: `certificate.uploaded`, `certificate.validated`
 
-Ces événements sont la matière première du passeport de M4 : sans eux, l'historique de vérification n'existe pas.
+Ces événements sont la matière première du passeport : sans eux, l'historique de vérification n'existe pas.
 
 - [ ] **Step 5 : Commit**
 
@@ -2139,7 +2139,7 @@ Ces absences sont volontaires. À vérifier avant de déclarer le jalon terminé
 
 - **Aucune extraction automatique des attestations.** Décidée, mais reportée : si un humain valide chaque attestation au démarrage, l'extraction n'est pas un mécanisme de justesse, c'est un accélérateur de saisie. Elle s'écrira quand vingt attestations réelles auront été vues — pas contre une variété imaginée.
 - **Aucune attestation de vigilance URSSAF.** API Entreprise nous est fermée ; la voie par code de sécurité existe mais ses conditions d'accès restent à confirmer. Hors chemin critique : le différenciateur est la couverture assurantielle.
-- **Aucune métrique.** M4. Le journal les alimente déjà.
+- **Aucune métrique.** M5. Le journal les alimente déjà.
 - **Aucune habilitation de niveau 3** — fluides frigorigènes, PGN/PGP, amiante SS3/SS4. Elles n'ont pas de source ouverte et supposent le même circuit de dépôt et de revue que l'assurance. Le circuit construit ici les accueillera sans refonte.
 - **Aucun annuaire, aucune recherche.** M3 produit des pages publiques individuelles, trouvables par un moteur de recherche. La recherche interne suppose une marketplace : c'est P2.
-- **Aucune procédure de contestation d'une métrique.** M4, où les métriques existent — voir l'AIPD.
+- **Aucune procédure de contestation d'une métrique.** M5, où les métriques existent — voir l'AIPD.

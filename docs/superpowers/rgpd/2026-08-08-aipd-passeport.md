@@ -4,7 +4,8 @@
 > Date : 2026-08-08 · Statut : **menée, décisions prises, mesures à construire**
 > Responsable de traitement : Workaround · Traitement concerné : publication du passeport
 >
-> Elle devait être menée **avant M4**, c'est-à-dire avant la première métrique publiée. Elle l'est.
+> Elle devait être menée **avant la première métrique publiée** — le jalon des métriques, aujourd'hui M5. Elle l'est.
+> L'échéance est **sémantique, pas numérique** : elle tient quel que soit le rang du jalon dans la séquence.
 > Elle ouvre `docs/superpowers/rgpd/`, où vivront le registre des traitements et le contrat de sous-traitance.
 
 **Références :** [spec P1 §8–9](../specs/2026-08-07-socle-artisan-design.md) · [cadrage RGPD](../research/2026-08-08-cadrage-rgpd.md)
@@ -18,8 +19,8 @@ Cinq décisions en sortent. Elles ne sont pas des ajouts de conformité posés �
 | # | Décision | Où elle se construit |
 |---|---|---|
 | 1 | **Base légale : intérêt légitime.** La nécessité contractuelle est écartée délibérément — elle aurait supprimé le droit d'opposition | CGU, politique de confidentialité |
-| 2 | **Pas de vitrine sans passeport.** Un artisan qui s'oppose sort de l'annuaire et garde l'outil. Aucune fiche publique sans métriques | M4 |
-| 3 | **La rectification porte sur l'événement, jamais sur la métrique.** Plus un droit de déclaration complémentaire | M4 |
+| 2 | **Pas de vitrine sans passeport.** Un artisan qui s'oppose sort de l'annuaire et garde l'outil. Aucune fiche publique sans métriques | M5 |
+| 3 | **La rectification porte sur l'événement, jamais sur la métrique.** Plus un droit de déclaration complémentaire | M5 |
 | 4 | **Toute suspension automatique de visibilité ouvre un recours humain**, avec préavis | M3 |
 | 5 | **Le régime le plus strict s'applique à toutes les entreprises**, y compris les sociétés dont le passeport n'est pas une donnée personnelle | Partout |
 
@@ -201,13 +202,13 @@ Ils ne le sont pas, à condition de distinguer la donnée de son calcul.
 
 > **Décision 3.** La rectification porte sur **l'événement sous-jacent**, jamais sur la métrique. Corriger l'événement recalcule la métrique.
 
-Concrètement, trois mécanismes à construire en M4 :
+Concrètement, trois mécanismes à construire en M5 :
 
 **Contester un événement.** L'artisan peut signaler qu'un chantier est marqué en retard à tort, qu'une date de fin est erronée, qu'une facture rattachée au mauvais devis fausse l'écart. Le journal étant immuable, une correction s'inscrit comme un **événement rectificatif** qui neutralise le précédent — la piste d'audit reste entière, exactement comme un avoir corrige une facture sans la modifier. La cohérence avec le modèle comptable de M2 n'est pas un hasard : c'est la même règle.
 
 **La déclaration complémentaire.** L'article 16 donne le droit de compléter des données incomplètes par une déclaration additionnelle. C'est le fondement exact du droit de réponse : l'artisan ne peut pas changer le chiffre, mais il peut attacher un commentaire contextuel à un chantier — *« retard imputable à l'indisponibilité du client »*. Le chiffre reste intact, le contexte est publié à côté.
 
-**L'arbitrage.** Le client a co-signé le devis : il est le témoin naturel d'un désaccord sur les faits. La procédure exacte — arbitrage par le client, revue interne, ou neutralisation provisoire du chantier contesté pendant l'instruction — reste à trancher au moment de construire M4. Ce que l'AIPD exige, c'est **qu'une procédure existe, qu'elle soit accessible et qu'elle aboutisse dans un délai d'un mois**.
+**L'arbitrage.** Le client a co-signé le devis : il est le témoin naturel d'un désaccord sur les faits. La procédure exacte — arbitrage par le client, revue interne, ou neutralisation provisoire du chantier contesté pendant l'instruction — reste à trancher au moment de construire M5. Ce que l'AIPD exige, c'est **qu'une procédure existe, qu'elle soit accessible et qu'elle aboutisse dans un délai d'un mois**.
 
 ### 3.6 La décision automatisée
 
@@ -241,7 +242,7 @@ La CNIL considère que sur ce type de service, « une information individuelle e
 | Personne | Support | État |
 |---|---|---|
 | Artisan | Politique de confidentialité + information à l'inscription | **À compléter** — la publication du passeport n'y figure pas |
-| Artisan | Notification individuelle avant la première publication de son passeport | **À construire en M4** |
+| Artisan | Notification individuelle avant la première publication de son passeport | **À construire en M5** |
 | Client signataire | `/confidentialite`, liée depuis les deux points de collecte | Existe, **à compléter** (§5.1) |
 
 ### 4.2 Exercice des droits
@@ -297,11 +298,11 @@ Le critère de la grande échelle n'est pas atteint au lancement. Il le sera. La
 
 La page `/confidentialite` explique au client ce que nous faisons de son nom, de son adresse électronique, de son téléphone et de son adresse IP. Elle ne lui dit pas que **sa signature fait de lui le témoin d'une mesure publiée sur son artisan**.
 
-C'est la fonction la plus structurante de sa signature, et elle n'est pas mentionnée. **À corriger avant M4**, dans la page comme dans l'écran de signature.
+C'est la fonction la plus structurante de sa signature, et elle n'est pas mentionnée. **À corriger avant M5**, dans la page comme dans l'écran de signature.
 
 ### 5.2 Les métriques ne sont pas encore calculées
 
-M4 n'est pas construit. Cette analyse porte donc sur un traitement **conçu et décidé**, pas encore en exécution. C'est le bon moment — l'article 35 veut l'analyse *avant* le traitement — mais cela implique une **revue à la mise en service**, pour vérifier que le construit correspond à l'analysé.
+M5 n'est pas construit. Cette analyse porte donc sur un traitement **conçu et décidé**, pas encore en exécution. C'est le bon moment — l'article 35 veut l'analyse *avant* le traitement — mais cela implique une **revue à la mise en service**, pour vérifier que le construit correspond à l'analysé.
 
 ### 5.3 L'avis des personnes concernées n'a pas été recueilli
 
@@ -339,11 +340,11 @@ Ni intrusion, ni altération, ni perte : un calcul correct sur une donnée mal q
 
 | Mesure | Où |
 |---|---|
-| Procédure de contestation accessible et effective | M4 — décision 3 |
-| Déclaration complémentaire visible à côté de la métrique | M4 — décision 3 |
+| Procédure de contestation accessible et effective | M5 — décision 3 |
+| Déclaration complémentaire visible à côté de la métrique | M5 — décision 3 |
 | Seuils d'observations : un incident isolé ne fait jamais basculer un chiffre | Déjà spécifié |
-| Notification à l'artisan **avant** la première publication, avec délai de contestation | M4 |
-| Définition documentée et publique de chaque métrique | M4 — un chiffre dont on ignore la règle de calcul est incontestable, donc arbitraire |
+| Notification à l'artisan **avant** la première publication, avec délai de contestation | M5 |
+| Définition documentée et publique de chaque métrique | M5 — un chiffre dont on ignore la règle de calcul est incontestable, donc arbitraire |
 
 La dernière ligne est celle qu'on oublie. Une métrique dont la définition n'est pas publiée ne peut pas être contestée sérieusement, et un droit de rectification qu'on ne peut pas exercer faute de comprendre le calcul n'est pas un droit.
 
@@ -359,14 +360,14 @@ La dernière ligne est celle qu'on oublie. Une métrique dont la définition n'e
 
 | # | Chantier | Échéance |
 |---|---|---|
-| 1 | Information du client sur son rôle de témoin (`/confidentialite` + écran de signature) | **Avant M4** |
+| 1 | Information du client sur son rôle de témoin (`/confidentialite` + écran de signature) | **Avant M5** |
 | 2 | Avis des premiers artisans inscrits, consigné ici | **Avant la première publication** |
 | 3 | Préavis, explication et recours humain sur toute suspension de visibilité | **M3** |
-| 4 | Contestation d'événement, événement rectificatif, déclaration complémentaire | **M4** |
-| 5 | Notification individuelle avant la première publication d'un passeport | **M4** |
-| 6 | Exclusions portées par la requête de publication, pas par un filtre d'affichage | **M4** |
-| 7 | Fenêtre glissante imposée par le code du calcul | **M4** |
-| 8 | Définition publique de chaque métrique | **M4** |
+| 4 | Contestation d'événement, événement rectificatif, déclaration complémentaire | **M5** |
+| 5 | Notification individuelle avant la première publication d'un passeport | **M5** |
+| 6 | Exclusions portées par la requête de publication, pas par un filtre d'affichage | **M5** |
+| 7 | Fenêtre glissante imposée par le code du calcul | **M5** |
+| 8 | Définition publique de chaque métrique | **M5** |
 | 9 | Trancher l'hébergeur | **Premier déploiement** |
 | 10 | Vérifier une restauration de sauvegarde | Premier déploiement |
 | 11 | Purge automatique selon le tableau des durées | Non daté — voir le cadrage |
@@ -374,7 +375,7 @@ La dernière ligne est celle qu'on oublie. Une métrique dont la définition n'e
 
 ### Revue
 
-Cette analyse est à revoir : **à la mise en service de M4**, à tout élargissement des métriques publiées, au passage à l'échelle nationale, et lors du choix définitif de l'hébergeur.
+Cette analyse est à revoir : **à la mise en service de M5**, à tout élargissement des métriques publiées, au passage à l'échelle nationale, et lors du choix définitif de l'hébergeur.
 
 ---
 

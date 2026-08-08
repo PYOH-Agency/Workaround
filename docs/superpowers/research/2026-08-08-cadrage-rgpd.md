@@ -23,7 +23,7 @@ La troisième ligne est celle qui compte.
 
 Une analyse d'impact est obligatoire dès que le traitement remplit **au moins deux des neuf critères** des lignes directrices du G29. Le passeport en remplit largement assez.
 
-> ~~**L'AIPD doit être menée avant M4.**~~ **Elle est menée** : [AIPD du passeport](../rgpd/2026-08-08-aipd-passeport.md), 2026-08-08.
+> ~~**L'AIPD doit être menée avant la première métrique publiée.**~~ **Elle est menée** : [AIPD du passeport](../rgpd/2026-08-08-aipd-passeport.md), 2026-08-08.
 
 Le décompte annoncé ici — six critères — était **trop généreux**. L'examen rigoureux mené dans l'AIPD en retient **cinq certains** (évaluation, décision automatisée, croisement, usage innovant, blocage d'un service) et **deux partiels** (surveillance systématique, donnée hautement personnelle). La grande échelle n'est pas atteinte au lancement, et les artisans ne sont pas des personnes vulnérables au sens du G29. Cinq suffisent très largement ; un décompte gonflé se retourne contre celui qui l'invoque.
 
@@ -76,8 +76,8 @@ Deux façons de trancher, et c'est une décision produit : soit on assume Vercel
 3. **Contrat de sous-traitance** (article 28) dans les conditions générales : nous sommes sous-traitant de l'artisan sur les données de ses clients.
 4. **Registre des traitements** — obligatoire, ce document en est l'ébauche.
 5. **Trancher l'hébergeur** avant le premier déploiement.
-6. ~~**AIPD du passeport — avant M4.**~~ **Menée le 2026-08-08.** Elle ajoute douze chantiers datés, listés dans sa conclusion — dont l'information du client sur son rôle de témoin, à corriger avant M4.
-7. **Photos de chantier** : non implémentées en M1, mais une photo d'intérieur est une donnée personnelle du demandeur. À cadrer avant M5.
+6. ~~**AIPD du passeport — avant la première métrique publiée.**~~ **Menée le 2026-08-08.** Elle ajoute douze chantiers datés, listés dans sa conclusion — dont l'information du client sur son rôle de témoin, à corriger avant le jalon des métriques.
+7. **Photos de chantier** : non implémentées en M1, mais une photo d'intérieur est une donnée personnelle du demandeur. À cadrer avant l'espace demandeur.
 
 ## 7. Sources
 
