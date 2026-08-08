@@ -1,7 +1,6 @@
 'use client'
 
-import { Children, isValidElement, cloneElement } from 'react'
-import { cn } from '@/ui/cn'
+import { Children } from 'react'
 import { useInView } from './use-in-view'
 
 /**
@@ -28,11 +27,12 @@ const COLS = {
  * n'est pas connu a l'avance, et generer une classe par rang obligerait a les
  * declarer toutes dans la feuille.
  *
- * Le clonage ne touche que des elements DOM natifs (`typeof child.type ===
- * 'string'`) : un `Fragment` n'accepte pas de `style` (React avertirait dans
- * la console et la variable ne serait jamais posee), et un composant qui ne
- * repercute pas `style` sur sa racine perdrait la cadence sans erreur visible.
- * Les enfants de `Stagger` doivent donc etre des balises natives.
+ * Chaque enfant est enveloppe dans un `div` natif qui porte `--dq-i` : les
+ * consommateurs prevus (`StepCard`, `Card`) sont des composants de fonction
+ * qui ne repercutent pas forcement `style` sur leur racine, et cloner leurs
+ * props aurait perdu la cadence en silence. L'enveloppe rend `Stagger`
+ * indifferent a ce que l'appelant fournit — composant, fragment, texte — et
+ * reste l'enfant direct que cible le selecteur CSS.
  */
 export function Stagger({
   cols = 3,
@@ -45,19 +45,12 @@ export function Stagger({
   const { ref, inView } = useInView<HTMLDivElement>()
 
   return (
-    <div
-      ref={ref}
-      data-stagger=""
-      data-in={inView ? '' : undefined}
-      className={cn(COLS[cols])}
-    >
-      {Children.map(children, (child, index) =>
-        isValidElement<{ style?: React.CSSProperties }>(child) && typeof child.type === 'string'
-          ? cloneElement(child, {
-              style: { ...child.props.style, ['--dq-i' as string]: index },
-            })
-          : child,
-      )}
+    <div ref={ref} data-stagger="" data-in={inView ? '' : undefined} className={COLS[cols]}>
+      {Children.map(children, (child, index) => (
+        <div key={index} style={{ ['--dq-i' as string]: index }}>
+          {child}
+        </div>
+      ))}
     </div>
   )
 }
