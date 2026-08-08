@@ -1,6 +1,4 @@
-import { Button } from '@/ui/atoms/button'
 import { Checkbox } from '@/ui/atoms/checkbox'
-import { Heading } from '@/ui/atoms/heading'
 import { Input } from '@/ui/atoms/input'
 import { Select } from '@/ui/atoms/select'
 import { Text } from '@/ui/atoms/text'

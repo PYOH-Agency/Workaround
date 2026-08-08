@@ -5,7 +5,7 @@ import { company, project, quote } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
-import { IconPlus } from '@/ui/atoms/icon'
+import { Icon } from '@/ui/atoms/icon'
 import { Text } from '@/ui/atoms/text'
 import { EmptyState } from '@/ui/molecules/empty-state'
 import { QuoteTable } from '@/ui/organisms/quote-table'
@@ -60,7 +60,7 @@ export default async function QuotesPage() {
           */}
           {quotes.length > 0 && (
             <ButtonLink href="/devis/nouveau">
-              <IconPlus size="sm" />
+              <Icon name="plus" size="sm" />
               Créer un devis
             </ButtonLink>
           )}
@@ -72,7 +72,7 @@ export default async function QuotesPage() {
             description="Rédigez votre premier devis : vos mentions obligatoires sont déjà enregistrées, il ne reste que les prestations à saisir."
             action={
               <ButtonLink href="/devis/nouveau" size="lg">
-                <IconPlus size="sm" />
+                <Icon name="plus" size="sm" />
                 Créer un devis
               </ButtonLink>
             }

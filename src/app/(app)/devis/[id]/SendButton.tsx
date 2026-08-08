@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Button } from '@/ui/atoms/button'
-import { IconSend } from '@/ui/atoms/icon'
+import { Icon } from '@/ui/atoms/icon'
 import { Link as UiLink } from '@/ui/atoms/link'
 import { sendQuote, type SendState } from './envoyer/actions'
 
@@ -22,7 +22,7 @@ export function SendButton({ quoteId }: { quoteId: string }) {
             'Envoi…'
           ) : (
             <>
-              <IconSend size="sm" />
+              <Icon name="send" size="sm" />
               Envoyer au client
             </>
           )}

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { Button } from '@/ui/atoms/button'
 import { Heading } from '@/ui/atoms/heading'
-import { IconCheck } from '@/ui/atoms/icon'
+import { Icon } from '@/ui/atoms/icon'
 import { Input } from '@/ui/atoms/input'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
@@ -54,7 +54,7 @@ export default function SignInPage() {
           role="status"
           className="flex items-start gap-3 rounded-card border border-verified bg-verified-bg px-5 py-4 text-verified"
         >
-          <IconCheck />
+          <Icon name="check" />
           <Text as="span">
             Lien envoyé à <strong>{email}</strong>. Ouvrez-le depuis votre téléphone.
           </Text>

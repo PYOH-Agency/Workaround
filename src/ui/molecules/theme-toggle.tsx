@@ -1,6 +1,6 @@
 'use client'
 
-import { IconMoon, IconSun } from '@/ui/atoms/icon'
+import { Icon } from '@/ui/atoms/icon'
 
 /**
  * Bascule clair / sombre.
@@ -42,10 +42,10 @@ export function ThemeToggle() {
       className="inline-flex size-11 items-center justify-center rounded-control text-ink-soft hover:bg-rule/40"
     >
       <span className="inline-flex dark:hidden">
-        <IconMoon />
+        <Icon name="moon" />
       </span>
       <span className="hidden dark:inline-flex">
-        <IconSun />
+        <Icon name="sun" />
       </span>
     </button>
   )

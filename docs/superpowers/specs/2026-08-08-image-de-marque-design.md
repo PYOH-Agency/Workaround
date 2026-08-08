@@ -249,14 +249,23 @@ Piloté par un attribut `data-theme` sur `<html>` avec trois valeurs — `system
 | Couche | Emplacement | Contenu |
 |---|---|---|
 | **Tokens** | `src/ui/tokens.*` | Primitives (rampes) et rôles. Aucun JSX. |
-| **Atomes** | `src/ui/atoms/` | Button, Input, Textarea, Select, Checkbox, Label, HelperText, FieldError, Badge, Icon, Spinner, Link, Heading, Text, Money, DateText, Separator, Skeleton |
+| **Atomes** | `src/ui/atoms/` | Button, **ButtonLink**, Input, Textarea, Select, Checkbox, Label, HelperText, FieldError, Badge, Icon, Spinner, Link, Heading, Text, Money, DateText, Separator, Skeleton |
 | **Molécules** | `src/ui/molecules/` | Field, Card, StatusBadge, SealBadge, LogoLockup, EmptyState, Toast, Tooltip, ButtonGroup, SummaryLine, Dialog, ThemeToggle |
-| **Organismes** | `src/ui/organisms/` | AppHeader, QuoteTable, QuoteLineEditor, TotalsPanel, VatBreakdown, LegalMentionsPanel, PaymentTimeline, SignaturePanel |
+| **Organismes** | `src/ui/organisms/` | AppHeader, QuoteTable, QuoteLineEditor, **QuoteLinesTable**, TotalsPanel, VatBreakdown, LegalMentionsPanel, PaymentTimeline, SignaturePanel |
 | **Gabarits** | `src/ui/shells/` | AppShell, PublicShell, PdfShell |
 
 Les trois gabarits correspondent aux trois publics : **AppShell** pour l'artisan connecté (dense, mode sombre disponible), **PublicShell** pour le demandeur qui signe et le passeport indexé (clair par défaut, terre cuite en conversion), **PdfShell** pour le devis et la facture (une seule encre).
 
 > **Décision.** L'inventaire est **fermé** : strictement ce que les écrans existants et le jalon M3 réclament. Pas d'`Accordion`, pas de `Tabs`, pas de `Carousel` tant qu'aucun écran n'en a besoin.
+>
+> `scripts/check-design-system.mjs` l'applique en CI et au `pre-push`.
+
+**Deux entrées ajoutées après l'implémentation.** L'inventaire ci-dessus a été arrêté avant d'écrire une ligne de code, et deux besoins réels sont apparus en le mettant en œuvre :
+
+- **`ButtonLink`** — le HTML distingue *agir* et *naviguer*. Imbriquer un `<button>` dans un `<a>` est invalide et fait annoncer un rôle incohérent par un lecteur d'écran. « Créer un devis » est une navigation.
+- **`QuoteLinesTable`** — distinct de `QuoteLineEditor` : l'un lit, l'autre saisit. Le premier est un `<table>` qui défile dans son conteneur, le second une grille de saisie à `aria-label`. Les confondre aurait dégradé les deux.
+
+Toute autre addition passe par cette spec avant d'arriver dans le script.
 
 ### 6.2 Le point dur — le PDF ne parle pas Tailwind
 

@@ -9,7 +9,7 @@ import { currentCompany, SessionError } from '@/lib/session'
 import { issuedAgainstQuote } from '@/services/invoices'
 import { TYPE_LABELS } from '@/pdf/invoice-pdf'
 import { Heading } from '@/ui/atoms/heading'
-import { IconBack } from '@/ui/atoms/icon'
+import { Icon } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
 import { Money } from '@/ui/atoms/money'
 import { Text } from '@/ui/atoms/text'
@@ -137,7 +137,7 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
       <div className="mt-2">
         <Link href="/devis" tone="bare">
           <span className="inline-flex items-center gap-1.5 text-sm">
-            <IconBack size="sm" />
+            <Icon name="back" size="sm" />
             Retour aux devis
           </span>
         </Link>

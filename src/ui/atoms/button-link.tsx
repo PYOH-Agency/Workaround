@@ -1,5 +1,5 @@
 import NextLink from 'next/link'
-import { buttonStyle, SIZES, TONES } from './button'
+import { buttonStyle, type ButtonSize, type ButtonTone } from './button'
 
 /**
  * Un lien qui a l'allure d'un bouton.
@@ -7,6 +7,9 @@ import { buttonStyle, SIZES, TONES } from './button'
  * Il existe parce que le HTML distingue **agir** et **naviguer** : imbriquer un
  * `<button>` dans un `<a>` est invalide, et un lecteur d'ecran annoncerait un
  * role incoherent. « Creer un devis » est une navigation, donc un lien.
+ *
+ * Absent de l'inventaire initial de la spec (§6.1) : le besoin est apparu a
+ * l'implementation, l'inventaire a ete corrige.
  */
 export function ButtonLink({
   href,
@@ -15,8 +18,8 @@ export function ButtonLink({
   children,
 }: {
   href: string
-  tone?: keyof typeof TONES
-  size?: keyof typeof SIZES
+  tone?: ButtonTone
+  size?: ButtonSize
   children: React.ReactNode
 }) {
   return (

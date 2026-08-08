@@ -1,4 +1,5 @@
 import { Heading } from '@/ui/atoms/heading'
+import { Text } from '@/ui/atoms/text'
 import { PublicShell } from '@/ui/shells/public-shell'
 
 export const metadata = {
@@ -20,21 +21,21 @@ export default function PrivacyPage() {
         <Heading level={1}>Protection de vos données</Heading>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-display text-lg font-bold text-ink">Qui décide de quoi</h2>
-        <p>
+        <Heading level={3} as="h2">Qui décide de quoi</Heading>
+        <Text size="sm" tone="soft">
           Si vous êtes <strong>un client</strong> ayant reçu un devis : c’est l’entreprise
           artisanale qui vous l’a adressé qui décide des données vous concernant et de leur usage.
           Nous n’intervenons que comme prestataire technique, sur ses instructions. Adressez-lui vos
           demandes en priorité ; nous les relaierons si vous nous écrivez.
-        </p>
-        <p>
+        </Text>
+        <Text size="sm" tone="soft">
           Si vous êtes <strong>une entreprise inscrite</strong> : nous décidons des traitements liés
           à votre compte et, à terme, à votre page publique.
-        </p>
+        </Text>
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-display text-lg font-bold text-ink">Ce que nous traitons, et pourquoi</h2>
+        <Heading level={3} as="h2">Ce que nous traitons, et pourquoi</Heading>
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-field text-left">
@@ -74,7 +75,7 @@ export default function PrivacyPage() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-display text-lg font-bold text-ink">Combien de temps</h2>
+        <Heading level={3} as="h2">Combien de temps</Heading>
         <ul className="list-disc pl-5">
           <li>Devis non signé : trois ans après le dernier échange.</li>
           <li>
@@ -94,26 +95,26 @@ export default function PrivacyPage() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-display text-lg font-bold text-ink">Qui d’autre y a accès</h2>
-        <p>
+        <Heading level={3} as="h2">Qui d’autre y a accès</Heading>
+        <Text size="sm" tone="soft">
           Notre hébergeur, notre prestataire d’envoi d’e-mails et de SMS, et l’autorité qui horodate
           les signatures — cette dernière ne reçoit qu’une empreinte du document, jamais son
           contenu. Aucune donnée n’est vendue ni cédée à des fins publicitaires.
-        </p>
+        </Text>
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-display text-lg font-bold text-ink">Vos droits</h2>
-        <p>
+        <Heading level={3} as="h2">Vos droits</Heading>
+        <Text size="sm" tone="soft">
           Vous pouvez demander l’accès à vos données, leur rectification, leur effacement, la
           limitation de leur traitement, ou vous opposer à celui-ci. Certaines données ne peuvent
           toutefois pas être effacées avant leur échéance : un devis signé et sa preuve de signature
           servent à établir un droit en cas de litige, et la loi nous impose de les conserver.
-        </p>
-        <p>
+        </Text>
+        <Text size="sm" tone="soft">
           Écrivez-nous pour exercer ces droits. Vous pouvez également introduire une réclamation
           auprès de la CNIL.
-        </p>
+        </Text>
         </section>
       </div>
     </PublicShell>

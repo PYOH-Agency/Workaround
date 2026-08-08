@@ -7,20 +7,30 @@ const DS_DIR = 'src/ui/'
  * (§6.1). Il est **ferme** : pas d'Accordion, pas de Tabs, tant qu'aucun ecran
  * ne les reclame. Un composant absent de cette table est soit mal place, soit
  * une extension que personne n'a decidee.
+ *
+ * Deux entrees ont ete ajoutees apres l'implementation, parce que l'inventaire
+ * avait ete arrete avant elle et que le besoin s'est revele reel :
+ *
+ * - `ButtonLink` — le HTML distingue agir et naviguer. Imbriquer un `<button>`
+ *   dans un `<a>` est invalide et brouille le role annonce.
+ * - `QuoteLinesTable` — distinct de `QuoteLineEditor` : l'un lit, l'autre
+ *   saisit, et ils n'ont ni les memes contraintes ni les memes balises.
+ *
+ * Toute autre addition doit passer par la spec avant d'arriver ici.
  */
 const INVENTORY = {
   atoms: [
-    'Button', 'Input', 'Textarea', 'Select', 'Checkbox', 'Label', 'HelperText',
-    'FieldError', 'Badge', 'Icon', 'Spinner', 'Link', 'Heading', 'Text', 'Money',
-    'DateText', 'Separator', 'Skeleton',
+    'Button', 'ButtonLink', 'Input', 'Textarea', 'Select', 'Checkbox', 'Label',
+    'HelperText', 'FieldError', 'Badge', 'Icon', 'Spinner', 'Link', 'Heading',
+    'Text', 'Money', 'DateText', 'Separator', 'Skeleton',
   ],
   molecules: [
     'Field', 'Card', 'StatusBadge', 'SealBadge', 'LogoLockup', 'EmptyState',
     'Toast', 'Tooltip', 'ButtonGroup', 'SummaryLine', 'Dialog', 'ThemeToggle',
   ],
   organisms: [
-    'AppHeader', 'QuoteTable', 'QuoteLineEditor', 'TotalsPanel', 'VatBreakdown',
-    'LegalMentionsPanel', 'PaymentTimeline', 'SignaturePanel',
+    'AppHeader', 'QuoteTable', 'QuoteLineEditor', 'QuoteLinesTable', 'TotalsPanel',
+    'VatBreakdown', 'LegalMentionsPanel', 'PaymentTimeline', 'SignaturePanel',
   ],
   shells: ['AppShell', 'PublicShell', 'PdfShell'],
   brand: ['Mark', 'Seal', 'Lockup'],
@@ -89,9 +99,21 @@ const screens = sources.filter(
     !EXEMPT.some((prefix) => file.startsWith(prefix)),
 )
 
+/**
+ * Un champ cache n'a ni apparence, ni cible tactile, ni etiquette : c'est une
+ * valeur transportee par le formulaire, pas un controle. Le faire passer par
+ * `Input` lui appliquerait une hauteur de 44 px et une bordure pour rien.
+ *
+ * La fenetre de lecture est bornee parce que les attributs d'une balise peuvent
+ * passer a la ligne.
+ */
+const isHiddenInput = (source, index) =>
+  /type="hidden"/.test(source.slice(index, index + 160))
+
 for (const { file, source } of screens) {
   for (const { component, tag, pattern } of enforced) {
     for (const match of source.matchAll(pattern)) {
+      if (tag === 'input' && isHiddenInput(source, match.index)) continue
       violations.push(`${file}:${lineAt(source, match.index)} — <${tag}> : passer par ${component}`)
     }
   }

@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { loadQuoteByToken } from '@/services/quote-public'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
-import { IconCheck } from '@/ui/atoms/icon'
+import { Icon } from '@/ui/atoms/icon'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { LegalMentionsPanel } from '@/ui/organisms/legal-mentions-panel'
@@ -148,7 +148,7 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
           role="status"
           className="flex items-center gap-3 rounded-card border border-verified bg-verified-bg px-5 py-4 text-verified"
         >
-          <IconCheck />
+          <Icon name="check" />
           <Text as="span">
             <strong>Devis signé.</strong>
           </Text>

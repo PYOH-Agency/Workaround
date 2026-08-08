@@ -5,7 +5,7 @@ import { toCents } from '@/domain/money'
 import { computeTotals } from '@/domain/quote-totals'
 import { Button } from '@/ui/atoms/button'
 import { Heading } from '@/ui/atoms/heading'
-import { IconPlus } from '@/ui/atoms/icon'
+import { Icon } from '@/ui/atoms/icon'
 import { Input } from '@/ui/atoms/input'
 import { Select } from '@/ui/atoms/select'
 import { Text } from '@/ui/atoms/text'
@@ -135,7 +135,7 @@ export function NewQuoteForm({ validityDays }: { validityDays: number }) {
               tone="secondary"
               onClick={() => setLines((all) => [...all, emptyLine()])}
             >
-              <IconPlus size="sm" />
+              <Icon name="plus" size="sm" />
               Ajouter une ligne
             </Button>
           </div>
