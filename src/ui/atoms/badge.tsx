@@ -18,14 +18,21 @@ const TONES = {
 export function Badge({
   tone,
   icon,
+  testId,
   children,
 }: {
   tone: keyof typeof TONES
   icon: React.ReactNode
+  /**
+   * Crochet de test. Les parcours Playwright interrogent la pastille de statut
+   * par `data-testid` : sans ce passage, la reprise des ecrans les casserait.
+   */
+  testId?: string
   children: React.ReactNode
 }) {
   return (
     <span
+      data-testid={testId}
       className={cn(
         'inline-flex items-center gap-1.5 rounded-badge px-2.5 py-1',
         'text-xs font-semibold',

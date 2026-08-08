@@ -34,6 +34,25 @@ La spec prévoit cette échappatoire. Elle n'est **volontairement pas implément
 
 Aucune server action, aucun accès base, aucune règle métier. Si un diff de DS2 modifie un fichier de `src/domain`, `src/services` ou `src/db`, c'est une erreur. Cette frontière est ce qui rend les tests Playwright utilisables comme filet : ils doivent rester verts **sans modification**.
 
+### 4. Le contrat des sélecteurs de test — à lire avant toute chose
+
+Les tests de parcours interrogent l'interface par **26 `getByLabel`**, 9 `getByRole('button')`, 4 `getByRole('heading')`, 3 `getByTestId` et 6 `getByText`. Ils forment un contrat que la reprise ne peut pas rompre.
+
+| Contrainte | Conséquence |
+|---|---|
+| `getByLabel('Client', { exact: true })` | Le **nom accessible** d'un champ doit rester exactement son étiquette. Tout ajout — même en `sr-only` — le casse. `Field` a été corrigé en conséquence : l'astérisque des champs obligatoires est `aria-hidden`, et c'est l'attribut `required` qui porte l'information pour les lecteurs d'écran. |
+| 26 étiquettes citées mot pour mot | Aucun libellé ne change, pas même une majuscule ou une apostrophe. La reprise est une reprise de forme, pas de vocabulaire. |
+| `getByTestId('statut-devis')` | `StatusBadge` doit pouvoir porter cet identifiant : d'où la prop `testId`, propagée jusqu'à `Badge`. |
+| `getByTestId('lien-public')`, `getByTestId('total-ttc')` | À préserver sur les éléments correspondants de `devis/[id]` et du panneau de totaux. |
+| `getByRole('status')` | Un élément porte `role="status"`. Le repérer avant de reprendre l'écran et le conserver. |
+| `getByRole('heading', { name: … })` × 4 | Les titres doivent rester des `<h*>` réels avec le même texte. `Heading` le garantit, à condition d'utiliser `as` quand le niveau visuel diffère du niveau sémantique. |
+
+Avant de commencer la Task 4, garder cette commande sous les yeux :
+
+```bash
+grep -rhoE "getBy(TestId|Role|Label|Text|Placeholder)\([^)]*\)" tests/e2e | sort -u
+```
+
 ---
 
 ## Structure des fichiers
@@ -217,19 +236,23 @@ export const PAYMENT_STATUS: Record<string, Entry> = {
 export function StatusBadge({
   kind,
   status,
+  testId,
 }: {
   kind: 'quote' | 'payment'
   status: string
+  testId?: string
 }) {
   const entry = (kind === 'quote' ? QUOTE_STATUS : PAYMENT_STATUS)[status]
   if (!entry) return null
   return (
-    <Badge tone={entry.tone} icon={entry.icon}>
+    <Badge tone={entry.tone} icon={entry.icon} testId={testId}>
       {entry.label}
     </Badge>
   )
 }
 ```
+
+`Badge` accepte déjà `testId` (ajouté en DS1 pour cette raison). Sur la fiche de devis, l'appel sera `<StatusBadge kind="quote" status={quote.status} testId="statut-devis" />`.
 
 - [ ] **Step 4 : Lancer le test**
 

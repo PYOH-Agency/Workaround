@@ -48,15 +48,20 @@ export function Field({
     'aria-invalid': error ? true : undefined,
   })
 
+  /**
+   * L'asterisque est purement visuelle : `aria-hidden`, et aucun texte de
+   * doublure en lecture d'ecran.
+   *
+   * Une precision « (obligatoire) » en `sr-only` serait redondante — l'attribut
+   * `required` pose sur le controle est deja annonce par tous les lecteurs
+   * d'ecran — et surtout elle s'ajouterait au **nom accessible** du champ. Or
+   * les tests de parcours interrogent les champs par leur etiquette, dont un en
+   * correspondance exacte : la doublure les casserait tous.
+   */
   const requiredMark = required ? (
-    <>
-      {' '}
-      {/* L'asterisque seule n'est pas annoncee de facon fiable : on double. */}
-      <span className="text-danger" aria-hidden="true">
-        *
-      </span>
-      <span className="sr-only"> (obligatoire)</span>
-    </>
+    <span className="text-danger" aria-hidden="true">
+      {' *'}
+    </span>
   ) : null
 
   const messages = (
