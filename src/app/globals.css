@@ -1,26 +1,35 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import '../ui/tokens.css';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    /* Fait suivre le theme aux controles natifs : barres de defilement, selecteurs. */
+    color-scheme: light dark;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    background-color: var(--dq-surface);
+    color: var(--dq-ink);
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+
+    /*
+     * Chiffres tabulaires sur tout le produit, et on ne les desactive jamais.
+     *
+     * Sur un logiciel de facturation, des colonnes de montants qui ne s'alignent
+     * pas font un produit qui a l'air faux. Le choix est donc l'inverse de
+     * l'usage courant : actif par defaut plutot qu'au cas par cas.
+     */
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * L'anneau de focus est global : un composant qui le retirerait localement
+   * casserait la navigation clavier, et c'est le defaut d'accessibilite le plus
+   * frequent. Il vaut mieux le poser une fois ici que l'esperer partout.
+   */
+  :focus-visible {
+    outline: 2px solid var(--dq-ring);
+    outline-offset: 2px;
+  }
 }
