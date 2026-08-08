@@ -1,12 +1,14 @@
 'use client'
 
 import { useActionState } from 'react'
+import { Button } from '@/ui/atoms/button'
+import { Input } from '@/ui/atoms/input'
+import { Select } from '@/ui/atoms/select'
+import { Field } from '@/ui/molecules/field'
 import { reviewAnomaly, type ReviewState } from './actions'
 import type { Anomaly } from '@/domain/anomaly'
 
 const initialState: ReviewState = {}
-
-const field = 'rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20'
 
 /**
  * L'examen d'un signal.
@@ -19,37 +21,40 @@ export function ReviewForm({ anomaly }: { anomaly: Anomaly }) {
   const [state, action, pending] = useActionState(reviewAnomaly, initialState)
 
   return (
-    <form key={state.saved ?? 0} action={action} className="mt-3 flex flex-wrap items-end gap-3">
+    <form key={state.saved ?? 0} action={action} className="mt-4 flex flex-col gap-4">
       <input type="hidden" name="type" value={anomaly.type} />
       <input type="hidden" name="sujet" value={anomaly.subjectId} />
       <input type="hidden" name="empreinte" value={anomaly.fingerprint} />
 
-      <label className="flex flex-col gap-1 text-sm">
-        Verdict
-        <select name="verdict" defaultValue="benign" className={field}>
-          <option value="benign">Sans suite</option>
-          <option value="confirmed">Problème réel</option>
-        </select>
-      </label>
+      <div className="grid gap-4 sm:grid-cols-[12rem_1fr]">
+        <Field label="Verdict" required>
+          {(p) => (
+            <Select {...p} name="verdict" defaultValue="benign">
+              <option value="benign">Sans suite</option>
+              <option value="confirmed">Problème réel</option>
+            </Select>
+          )}
+        </Field>
 
-      <label className="flex flex-1 flex-col gap-1 text-sm">
-        Motif
-        <input name="motif" required className={field} />
-      </label>
-
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg border border-black/15 px-4 py-2 text-sm dark:border-white/20"
-      >
-        {pending ? 'Enregistrement…' : 'Enregistrer l’examen'}
-      </button>
+        <Field label="Motif" help="Sans raison écrite, l’examen ne vaudra rien dans six mois." required>
+          {(p) => <Input {...p} name="motif" />}
+        </Field>
+      </div>
 
       {state.error && (
-        <p role="alert" className="w-full text-sm text-red-600">
+        <div
+          role="alert"
+          className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+        >
           {state.error}
-        </p>
+        </div>
       )}
+
+      <div className="self-start">
+        <Button type="submit" tone="secondary" pending={pending}>
+          {pending ? 'Enregistrement…' : 'Enregistrer l’examen'}
+        </Button>
+      </div>
     </form>
   )
 }

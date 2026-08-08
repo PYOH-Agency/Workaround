@@ -1,8 +1,12 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { currentStaff } from '@/lib/staff-session'
 import { SessionError } from '@/lib/session'
 import { currentAnomalies } from '@/services/anomalies'
+import { Heading } from '@/ui/atoms/heading'
+import { Link } from '@/ui/atoms/link'
+import { Text } from '@/ui/atoms/text'
+import { EmptyState } from '@/ui/molecules/empty-state'
+import { AppShell } from '@/ui/shells/app-shell'
 import { AnomalyList } from './AnomalyList'
 
 /**
@@ -26,26 +30,34 @@ export default async function SupervisionPage() {
   const blocking = anomalies.filter((a) => a.severity === 'blocking').length
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 px-6 py-16">
+    <AppShell>
       <div className="flex flex-wrap items-baseline justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Supervision</h1>
-          <p className="mt-1 text-sm opacity-70">
+        <div className="flex flex-col gap-1">
+          <Heading level={1}>Supervision</Heading>
+          <Text size="sm" tone="soft">
             {blocking > 0
               ? `${blocking} anomalie${blocking > 1 ? 's' : ''} bloquante${blocking > 1 ? 's' : ''}.`
               : 'Rien ne bloque.'}
-          </p>
+          </Text>
         </div>
-        <Link href="/attestations" className="text-sm underline opacity-70">
-          File des attestations
+        <Link href="/attestations" tone="bare">
+          <span className="text-sm">File des attestations</span>
         </Link>
       </div>
 
       {anomalies.length === 0 ? (
-        <p className="text-sm opacity-70">Rien ne demande votre attention.</p>
+        <EmptyState
+          title="Rien ne demande votre attention"
+          description="Les attestations sont à jour, les sources répondent, et aucun signal n’est en attente d’examen."
+          action={
+            <Link href="/attestations" tone="bare">
+              <span className="text-sm">Voir la file des attestations</span>
+            </Link>
+          }
+        />
       ) : (
         <AnomalyList anomalies={anomalies} now={now} />
       )}
-    </main>
+    </AppShell>
   )
 }

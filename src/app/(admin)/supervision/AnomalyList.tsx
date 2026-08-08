@@ -1,17 +1,29 @@
-import Link from 'next/link'
 import type { Anomaly, Severity } from '@/domain/anomaly'
+import { Badge } from '@/ui/atoms/badge'
+import { Icon, type IconName } from '@/ui/atoms/icon'
+import { Link } from '@/ui/atoms/link'
+import { Text } from '@/ui/atoms/text'
+import { Card } from '@/ui/molecules/card'
 import { ReviewForm } from './ReviewForm'
 
-const SEVERITY_LABELS: Record<Severity, string> = {
+const LABELS: Record<Severity, string> = {
   blocking: 'Bloquant',
   attention: 'À traiter',
   signal: 'À regarder',
 }
 
-const SEVERITY_STYLES: Record<Severity, string> = {
-  blocking: 'text-red-600',
-  attention: 'text-amber-600',
-  signal: 'opacity-60',
+/** Le ton du badge. La couleur ne porte jamais seule l'information : le mot et
+ * l'icone la doublent, et c'est le compilateur qui l'impose. */
+const TONES: Record<Severity, 'danger' | 'warning' | 'neutral'> = {
+  blocking: 'danger',
+  attention: 'warning',
+  signal: 'neutral',
+}
+
+const ICONS: Record<Severity, IconName> = {
+  blocking: 'alert',
+  attention: 'clock',
+  signal: 'document',
 }
 
 const days = (since: Date, now: Date) =>
@@ -19,22 +31,28 @@ const days = (since: Date, now: Date) =>
 
 export function AnomalyList({ anomalies, now }: { anomalies: Anomaly[]; now: Date }) {
   return (
-    <ul className="flex flex-col divide-y divide-black/10 dark:divide-white/10">
+    <ul className="flex flex-col gap-3">
       {anomalies.map((anomaly) => (
-        <li key={`${anomaly.type}-${anomaly.subjectId}`} className="py-4">
-          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
-            <span className={`w-24 ${SEVERITY_STYLES[anomaly.severity]}`}>
-              {SEVERITY_LABELS[anomaly.severity]}
-            </span>
-            <span className="flex-1">{anomaly.detail}</span>
-            <span className="opacity-60">depuis {days(anomaly.since, now)} j</span>
-            <Link href={anomaly.href} className="underline opacity-70">
-              Ouvrir
-            </Link>
-          </div>
+        <li key={`${anomaly.type}-${anomaly.subjectId}`}>
+          <Card elevation="e1">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Badge tone={TONES[anomaly.severity]} icon={<Icon name={ICONS[anomaly.severity]} size="sm" />}>
+                {LABELS[anomaly.severity]}
+              </Badge>
+              <Text as="span" size="sm">
+                {anomaly.detail}
+              </Text>
+              <Text as="span" size="sm" tone="muted">
+                depuis {days(anomaly.since, now)} j
+              </Text>
+              <span className="ml-auto text-sm">
+                <Link href={anomaly.href}>Ouvrir</Link>
+              </span>
+            </div>
 
-          {/* Seuls les signaux s'examinent : les autres se resolvent en etant traites. */}
-          {anomaly.severity === 'signal' && <ReviewForm anomaly={anomaly} />}
+            {/* Seuls les signaux s'examinent : les autres se resolvent en etant traites. */}
+            {anomaly.severity === 'signal' && <ReviewForm anomaly={anomaly} />}
+          </Card>
         </li>
       ))}
     </ul>
