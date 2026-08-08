@@ -1,12 +1,17 @@
 import { notFound, redirect } from 'next/navigation'
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { quote } from '@/db/schema'
+import { invoice, quote } from '@/db/schema'
 import { computeTotals } from '@/domain/quote-totals'
+import { format } from '@/domain/money'
+import { remainingToInvoice } from '@/domain/invoice-balance'
 import { currentCompany, SessionError } from '@/lib/session'
+import { issuedAgainstQuote } from '@/services/invoices'
+import { TYPE_LABELS } from '@/pdf/invoice-pdf'
 import { Heading } from '@/ui/atoms/heading'
 import { IconBack } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
+import { Money } from '@/ui/atoms/money'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { StatusBadge } from '@/ui/molecules/status-badge'
@@ -14,6 +19,7 @@ import { QuoteLinesTable } from '@/ui/organisms/quote-lines-table'
 import { TotalsPanel } from '@/ui/organisms/totals-panel'
 import { AppShell } from '@/ui/shells/app-shell'
 import { SendButton } from './SendButton'
+import { InvoiceActions } from './InvoiceActions'
 
 export default async function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -37,6 +43,18 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
 
   const totals = computeTotals(found.lines)
   const lines = [...found.lines].sort((a, b) => a.position - b.position)
+
+  const issued = await issuedAgainstQuote(found.id)
+  const invoices = await db
+    .select({
+      id: invoice.id,
+      number: invoice.number,
+      type: invoice.type,
+      totalInclTax: invoice.totalInclTax,
+    })
+    .from(invoice)
+    .where(eq(invoice.quoteId, found.id))
+    .orderBy(invoice.number)
 
   return (
     <AppShell>
@@ -80,6 +98,40 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
             <Link href={`/d/${found.publicToken}`}>/d/{found.publicToken}</Link>
           </span>
         </Text>
+      )}
+
+      {found.status === 'signed' && (
+        <InvoiceActions
+          quoteId={found.id}
+          remaining={format(remainingToInvoice(found.totalInclTax, issued))}
+        />
+      )}
+
+      {invoices.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <Heading level={3} as="h2">
+            Factures émises
+          </Heading>
+          <ul className="flex flex-col gap-3">
+            {invoices.map((row) => (
+              <li key={row.id}>
+                <Link href={`/factures/${row.id}`} tone="bare">
+                  <Card elevation="e1">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                      <Text size="sm" tone="muted" as="span">
+                        {row.number}
+                      </Text>
+                      <Text as="span">{TYPE_LABELS[row.type]}</Text>
+                      <span className="ml-auto">
+                        <Money cents={row.totalInclTax} emphasis="strong" />
+                      </span>
+                    </div>
+                  </Card>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="mt-2">

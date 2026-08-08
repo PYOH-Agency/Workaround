@@ -1,72 +1,147 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { randomUUID } from 'node:crypto'
+import { eq } from 'drizzle-orm'
 import { db, connection } from '@/db/client'
-import { company } from '@/db/schema'
-import { allocateInvoiceNumber } from '@/services/invoices'
+import { invoice } from '@/db/schema'
+import { issueInvoice, issuedAgainstQuote } from '@/services/invoices'
+import { remainingByRate, remainingToInvoice } from '@/domain/invoice-balance'
+import { computeTotals } from '@/domain/quote-totals'
+import { createCompany, createProject, depositLines, signedQuote } from './invoice-fixtures'
 
-/**
- * Ces tests n'effacent rien : la facture est immuable par declencheur, et le
- * compteur de sequence survit a la suite.
- *
- * Ils s'isolent donc par entreprise generee, comme le fait deja events.test.ts.
- * S'appuyer sur l'entreprise du jeu de donnees les rendrait dependants d'un
- * `supabase db reset` prealable : le deuxieme `pnpm vitest run` echouerait, avec
- * un compteur deja consomme.
- */
-const COMPANY = randomUUID()
+let COMPANY: string
+let PROJECT: string
 
 beforeAll(async () => {
-  await db.insert(company).values({
-    id: COMPANY,
-    siret: randomUUID().replace(/\D/g, '').padEnd(14, '0').slice(0, 14),
-    legalName: 'Entreprise de test',
-  })
+  COMPANY = await createCompany()
+  PROJECT = await createProject(COMPANY)
 })
 
 afterAll(async () => {
   await connection.end()
 })
 
-describe('attribution du numero de facture', () => {
-  it('produit une sequence continue', async () => {
-    const first = await allocateInvoiceNumber(COMPANY, 2030)
-    const second = await allocateInvoiceNumber(COMPANY, 2030)
-    const third = await allocateInvoiceNumber(COMPANY, 2030)
+const quoteFor = (status: 'sent' | 'signed' = 'signed') => signedQuote(COMPANY, PROJECT, status)
 
-    expect(first).toBe('F2030-0001')
-    expect(second).toBe('F2030-0002')
-    expect(third).toBe('F2030-0003')
+describe('emission des factures', () => {
+  it('refuse de facturer un devis non signe', async () => {
+    const source = await quoteFor('sent')
+
+    await expect(
+      issueInvoice({
+        companyId: COMPANY,
+        quoteId: source.id,
+        type: 'balance',
+        dueInDays: 30,
+        lines: depositLines(100),
+      }),
+    ).rejects.toThrow('signe')
   })
 
-  it('ne laisse aucun trou sous concurrence', async () => {
-    // Dix attributions simultanees doivent produire dix rangs consecutifs.
-    // C'est precisement ce que la reprise sur collision des devis ne garantit
-    // pas, et pourquoi la facture exige un compteur incremente en base.
-    const numbers = await Promise.all(
-      Array.from({ length: 10 }, () => allocateInvoiceNumber(COMPANY, 2031)),
-    )
+  it('emet un acompte ventile sur les deux taux', async () => {
+    const source = await quoteFor()
 
-    const sequences = numbers.map((n) => Number(n.split('-')[1])).sort((a, b) => a - b)
-    expect(sequences).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    const created = await issueInvoice({
+      companyId: COMPANY,
+      quoteId: source.id,
+      type: 'deposit',
+      dueInDays: 30,
+      lines: depositLines(30),
+    })
+
+    // 255,00 a 10 % et 18,00 a 20 % : 273,00 HT, 302,10 TTC. Un taux unique
+    // applique a ce devis donnerait 300,30 TTC — une TVA fausse.
+    expect(created.totalExclTax).toBe(27300)
+    expect(created.totalInclTax).toBe(30210)
+    expect(created.number).toMatch(/^F\d{4}-\d{4,}$/)
   })
 
-  it('repart a 1 sur une nouvelle annee', async () => {
-    expect(await allocateInvoiceNumber(COMPANY, 2032)).toBe('F2032-0001')
+  it('refuse un solde superieur au reste a facturer', async () => {
+    const source = await quoteFor()
+    await issueInvoice({
+      companyId: COMPANY,
+      quoteId: source.id,
+      type: 'deposit',
+      dueInDays: 30,
+      lines: depositLines(30),
+    })
+
+    await expect(
+      issueInvoice({
+        companyId: COMPANY,
+        quoteId: source.id,
+        type: 'balance',
+        dueInDays: 30,
+        lines: depositLines(100),
+      }),
+    ).rejects.toThrow('depasse')
   })
 
-  it('rend le rang si la transaction echoue', async () => {
-    // La raison d'etre du parametre de transaction. Attribuer le rang hors de
-    // la transaction qui insere la facture laisserait un trou au premier echec
-    // — precisement le manquement comptable que toute cette conception evite.
-    expect(await allocateInvoiceNumber(COMPANY, 2033)).toBe('F2033-0001')
+  it("n'applique pas le plafond a un avoir", async () => {
+    // Un avoir reduit la facturation : le controle de depassement n'a pas de
+    // sens pour lui, et l'appliquer empecherait de corriger une erreur.
+    const source = await quoteFor()
+    const deposit = await issueInvoice({
+      companyId: COMPANY,
+      quoteId: source.id,
+      type: 'deposit',
+      dueInDays: 30,
+      lines: depositLines(100),
+    })
 
-    await db
-      .transaction(async (tx) => {
-        await allocateInvoiceNumber(COMPANY, 2033, tx)
-        throw new Error('echec apres attribution')
+    const credit = await issueInvoice({
+      companyId: COMPANY,
+      quoteId: source.id,
+      type: 'credit_note',
+      dueInDays: 0,
+      correctsInvoiceId: deposit.id,
+      lines: depositLines(100),
+    })
+
+    expect(credit.type).toBe('credit_note')
+    expect(remainingToInvoice(source.totalInclTax, await issuedAgainstQuote(source.id))).toBe(100700)
+  })
+
+  it('solde un devis au centime pres apres trois situations arrondies', async () => {
+    // Le defaut qu'un solde calcule en pourcentage du reste TTC produirait :
+    // trois arrondis successifs laissent un residu qu'aucune facture ne peut
+    // solder, et le devis reste indefiniment ouvert.
+    const source = await quoteFor()
+    const totals = computeTotals([
+      { quantity: '1', unitPriceExclTax: 85000, taxRate: 1000 },
+      { quantity: '1', unitPriceExclTax: 6000, taxRate: 2000 },
+    ])
+
+    for (const percent of [33, 33, 33]) {
+      await issueInvoice({
+        companyId: COMPANY,
+        quoteId: source.id,
+        type: 'progress',
+        dueInDays: 30,
+        lines: depositLines(percent),
       })
-      .catch(() => {})
+    }
 
-    expect(await allocateInvoiceNumber(COMPANY, 2033)).toBe('F2033-0002')
+    const balance = remainingByRate(totals.byRate, await issuedAgainstQuote(source.id))
+    await issueInvoice({
+      companyId: COMPANY,
+      quoteId: source.id,
+      type: 'balance',
+      dueInDays: 30,
+      lines: balance.map((line) => ({
+        label: 'Solde',
+        unit: 'u',
+        quantity: '1',
+        unitPriceExclTax: line.unitPriceExclTax,
+        taxRate: line.rate,
+      })),
+    })
+
+    expect(remainingToInvoice(source.totalInclTax, await issuedAgainstQuote(source.id))).toBe(0)
+  })
+
+  it('produit une sequence sans trou sur toutes les factures emises', async () => {
+    const rows = await db.query.invoice.findMany({ where: eq(invoice.companyId, COMPANY) })
+    const sequences = rows.map((row) => Number(row.number.split('-')[1])).sort((a, b) => a - b)
+
+    expect(sequences).toEqual(Array.from({ length: sequences.length }, (_, i) => i + 1))
   })
 })

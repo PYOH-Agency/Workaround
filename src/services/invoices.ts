@@ -6,6 +6,7 @@ import { formatInvoiceNumber } from '@/domain/invoice-number'
 import { assertInvoiceable, type InvoiceType } from '@/domain/invoice-balance'
 import { computeTotals, type LineInput } from '@/domain/quote-totals'
 import { missingInvoiceMentions, LEGAL_RECOVERY_INDEMNITY_CENTS } from '@/domain/legal-mentions'
+import { multiply } from '@/domain/money'
 import { recordEvent } from '@/services/events'
 
 /**
@@ -141,4 +142,27 @@ export async function issueInvoice(input: IssueInvoiceInput) {
   })
 
   return created
+}
+
+/**
+ * Ce qu'un devis a deja produit comme facturation, ventile par taux.
+ *
+ * La ventilation est reconstruite depuis les lignes plutot que stockee : la
+ * facture est immuable, ses lignes le sont donc aussi, et un total derive de
+ * donnees figees ne peut pas diverger.
+ */
+export async function issuedAgainstQuote(quoteId: string) {
+  const rows = await db.query.invoice.findMany({
+    where: eq(invoice.quoteId, quoteId),
+    with: { lines: true },
+  })
+
+  return rows.map((row) => ({
+    type: row.type,
+    totalInclTax: row.totalInclTax,
+    byRate: row.lines.map((line) => ({
+      rate: line.taxRate,
+      unitPriceExclTax: multiply(line.unitPriceExclTax, line.quantity),
+    })),
+  }))
 }

@@ -12,28 +12,7 @@ import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
 import { TotalsPanel } from '@/ui/organisms/totals-panel'
 import { saveQuote, type QuoteFormState } from '../actions'
-
-const TAX_RATES = [
-  { value: 550, label: '5,5 %' },
-  { value: 1000, label: '10 %' },
-  { value: 2000, label: '20 %' },
-]
-
-interface LineDraft {
-  label: string
-  unit: string
-  quantity: string
-  price: string
-  taxRate: number
-}
-
-const emptyLine = (): LineDraft => ({
-  label: '',
-  unit: 'u',
-  quantity: '1',
-  price: '',
-  taxRate: 1000,
-})
+import { emptyLine, QuoteLineRow, type LineDraft } from './QuoteLines'
 
 const initialState: QuoteFormState = {}
 
@@ -145,83 +124,9 @@ export function NewQuoteForm({ validityDays }: { validityDays: number }) {
             Les prestations
           </Heading>
 
-          {/*
-            Volontairement pas de `Field` ici.
-            C'est une grille de saisie, pas une pile de champs : l'en-tete n'est
-            affiche qu'une fois et chaque controle porte un `aria-label`, ce qui
-            evite de repeter « Designation » a chaque ligne tout en gardant les
-            controles nommes pour un lecteur d'ecran.
-          */}
           <div className="flex flex-col gap-3">
             {lines.map((line, i) => (
-              <div key={i} className="grid gap-3 sm:grid-cols-12">
-                <div className="flex flex-col gap-1 sm:col-span-5">
-                  {i === 0 ? (
-                    <Text size="label" tone="muted" as="span">
-                      Désignation
-                    </Text>
-                  ) : null}
-                  <Input
-                    aria-label="Désignation"
-                    name={`ligne[${i}][libelle]`}
-                    value={line.label}
-                    onChange={(e) => update(i, 'label', e.target.value)}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1 sm:col-span-2">
-                  {i === 0 ? (
-                    <Text size="label" tone="muted" as="span">
-                      Quantité
-                    </Text>
-                  ) : null}
-                  <Input
-                    aria-label="Quantité"
-                    name={`ligne[${i}][quantite]`}
-                    inputMode="decimal"
-                    value={line.quantity}
-                    onChange={(e) => update(i, 'quantity', e.target.value)}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1 sm:col-span-3">
-                  {i === 0 ? (
-                    <Text size="label" tone="muted" as="span">
-                      Prix unitaire HT
-                    </Text>
-                  ) : null}
-                  <Input
-                    aria-label="Prix unitaire HT"
-                    name={`ligne[${i}][prix]`}
-                    inputMode="decimal"
-                    placeholder="0.00"
-                    value={line.price}
-                    onChange={(e) => update(i, 'price', e.target.value)}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1 sm:col-span-2">
-                  {i === 0 ? (
-                    <Text size="label" tone="muted" as="span">
-                      TVA
-                    </Text>
-                  ) : null}
-                  <Select
-                    aria-label="TVA"
-                    name={`ligne[${i}][tva]`}
-                    value={line.taxRate}
-                    onChange={(e) => update(i, 'taxRate', Number(e.target.value))}
-                  >
-                    {TAX_RATES.map((rate) => (
-                      <option key={rate.value} value={rate.value}>
-                        {rate.label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-
-                <input type="hidden" name={`ligne[${i}][unite]`} value={line.unit} />
-              </div>
+              <QuoteLineRow key={i} index={i} line={line} onChange={update} />
             ))}
           </div>
 

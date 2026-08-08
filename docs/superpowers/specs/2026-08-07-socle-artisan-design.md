@@ -46,7 +46,9 @@ Trois briques que l'on croyait séparées sont le même objet. **L'outil est le 
 
 **P1 couvre les étapes 1, 2, 3 et 5.**
 
-L'étape **4** n'est couverte qu'à moitié : le passeport est public et référencé, donc un demandeur peut trouver une entreprise et lui faire confiance — mais il n'y a aucune mise en relation dans le produit. Il appelle. La boucle complète se referme en **P2**, et l'étape **6** en P3.
+L'étape **4** est couverte, mais sans instrumentation : le passeport est public et référencé, un annuaire permet de chercher par activité et par zone (M4), et le demandeur **appelle**. Il n'y a ni dépôt de projet, ni appel d'offres, ni matching, ni lead vendu — la mise en relation instrumentée reste en **P2**, et l'étape **6** en P3.
+
+C'est une correction de séquence assumée : l'étape 4 devait initialement attendre P2. Mais un artisan qui alimente le capteur sans jamais recevoir d'appel s'en va — et emporte la donnée. Voir le risque n° 11 (§13).
 
 ## 4. Périmètre de P1
 
@@ -221,6 +223,8 @@ Cela donne une phrase que personne d'autre en France ne peut prononcer : *« tou
 
 La jauge de vérification devient un moteur d'engagement : l'artisan voit son passeport se débloquer. Une assurance absente ou mal dimensionnée est **signalée à l'artisan** plutôt que de le rejeter silencieusement — orientation vers un courtier partenaire à terme.
 
+> **Décision, issue de l'[AIPD](../rgpd/2026-08-08-aipd-passeport.md).** Retirer une activité de la vitrine est une décision automatisée qui prive l'artisan d'accès aux demandeurs. L'article 22.3 impose donc, en plus du signalement : un **préavis** (J-60, J-30, J-7), une **explication** — quelle activité, pourquoi —, une **voie de rétablissement**, et un **recours humain**. Aucune suspension muette.
+
 ## 9. Le passeport
 
 ### Ce qu'il n'est pas
@@ -258,6 +262,22 @@ Les chantiers non signés existent dans l'outil mais ne comptent pas dans le pas
 ### Portabilité
 
 Le passeport est exportable : widget pour le site de l'entreprise, bloc sur ses devis, QR code. Le label devient son argument commercial, donc il le défend et le diffuse gratuitement.
+
+### Contestabilité
+
+> Issu de l'[AIPD du passeport](../rgpd/2026-08-08-aipd-passeport.md) — ces règles sont les conditions de licéité du traitement, pas des options.
+
+> **Décision.** Il n'existe pas de fiche publique sans passeport. Un artisan qui s'oppose à la publication est retiré intégralement de la vitrine, sans condition et sans délai — **et conserve son outil** : devis, factures, historique.
+
+Maintenir une fiche visible sans métriques créerait la catégorie où se réfugierait tout artisan aux chiffres médiocres. Elle deviendrait en deux mouvements le signal qu'elle prétendait éviter.
+
+> **Décision.** Le passeport reste dérivé et non éditable. La rectification porte sur **l'événement sous-jacent**, jamais sur la métrique.
+
+Un événement rectificatif neutralise le précédent sans modifier le journal — la même règle que l'avoir qui corrige une facture. S'y ajoute un **droit de déclaration complémentaire** (article 16) : l'artisan ne change pas le chiffre, mais attache un contexte au chantier — *« retard imputable à l'indisponibilité du client »*.
+
+Et une règle qui n'est pas juridique mais sans laquelle les deux précédentes sont vides : **la définition de chaque métrique est publique.** Un chiffre dont on ignore la règle de calcul est incontestable, donc arbitraire.
+
+**Le risque dominant du passeport n'est pas l'intrusion, c'est la justesse** : un système parfaitement sûr publiant un chiffre faux — un chantier interrompu par le client compté comme un retard de l'artisan. D'où la notification individuelle **avant** la première publication, avec délai de contestation.
 
 ## 10. L'espace demandeur
 
@@ -331,6 +351,19 @@ Trois, et trois seulement :
 
 En P1, le demandeur voit donc « entretien chaudière : février 2027 » sans pouvoir cliquer. C'est délibéré : **cette frustration est la demande de P2 qui se constitue d'elle-même.**
 
+### Ce que le demandeur cherche vraiment
+
+Il dit « je veux un artisan pas cher ». Le prendre au mot serait une erreur qui détruirait le produit.
+
+Un comparateur de prix ferait fuir exactement la population qu'on veut attirer : l'artisan assuré et qualifié n'a aucune envie de concourir contre le moins-disant. Il contredirait la thèse — on ne peut pas être à la fois le lieu du sérieux et celui du pas cher. Et il est déjà fait, mal, par tout le monde.
+
+> **« Pas cher » n'est pas une demande de rabais, c'est un aveu d'absence de repère.** Le demandeur ne sait pas si un prix est juste, donc il suppose qu'on l'arnaque.
+
+Deux réponses, toutes deux déjà dans la conception :
+
+- **Le prix ne bougera pas** — c'est la métrique « écart devis → facture ». La vraie peur des travaux n'est pas le devis à 1 200 €, c'est la facture à 1 900 €.
+- **Le prix est normal** — c'est l'observatoire des prix. Il ne se décide pas, il **se déclenche** : une médiane n'a de sens qu'à partir d'un certain volume de devis signés. C'est un seuil de données, pas un arbitrage de priorité.
+
 ## 11. Business model
 
 Trois sources de revenus classiques du secteur nous sont **volontairement interdites** : vendre des leads, vendre le classement, facturer l'outil au prix du marché. C'est le prix de la confiance.
@@ -352,20 +385,45 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 3. **Le passeport est dérivé, jamais éditable** — ni par l'artisan, ni par un annonceur, ni par nous.
 4. **L'outil est ouvert, la vitrine se mérite.**
 5. **Aucune donnée identifiante n'est vendue.** Les prix de marché agrégés et anonymisés sont exploitables ; le comportement d'une entreprise identifiable ne l'est jamais.
+6. **Le backoffice agit sur les faits, jamais sur les chiffres.** Voir ci-dessous.
+
+### Le backoffice
+
+Il répond à deux besoins qu'il ne faut surtout pas confondre.
+
+**Observer.** Santé du service, disponibilité des sources ouvertes, volumes, entonnoir de vérification. Le risque non évident est là : les contrôles automatiques sont écrits pour **n'écrire aucun constat quand une source est indisponible** — c'est la bonne décision pour la justesse, mais elle rend les pannes silencieuses. Si l'ADEME change son format, la vérification s'arrête sans que personne ne le sache. **Cela demande une alerte, pas un tableau de bord.**
+
+**Contrôler.** Et c'est ici que la ligne doit être tenue.
+
+> **Décision.** Aucun opérateur ne peut ajuster une métrique, faire remonter ou descendre une entreprise, ni retirer un label par appréciation.
+
+Un label qu'un humain peut baisser n'est plus mesuré : il est arbitré, donc discutable, donc négociable — et l'artisan qui a un bon contact chez nous obtient un meilleur classement. L'AIPD y ajoute un argument juridique : la légitimité du traitement repose sur le fait que **la mesure est authentifiée par le client, pas par nous**. Un opérateur qui l'ajuste fait tomber l'édifice entier.
+
+| Le backoffice peut | Il ne peut pas |
+|---|---|
+| Invalider un **événement** frauduleux — faux client, chantier fictif | Ajuster une métrique |
+| Suspendre sur un **fait vérifiable** — attestation périmée, procédure collective | Faire remonter ou descendre une entreprise |
+| Arbitrer une **contestation** — l'AIPD l'impose | Retirer un label par appréciation |
+| Instruire une **anomalie** détectée | Décider sans laisser de trace |
+
+Le mécanisme existe déjà : l'**événement rectificatif** conçu par l'AIPD pour le droit de rectification. On corrige le fait, la métrique se recalcule seule, le journal reste intact. La même machinerie sert la conformité et la lutte contre la fraude.
+
+**Le vrai travail du backoffice, c'est la fraude** — un artisan qui se crée de faux clients pour signer ses propres devis (risque n° 2). Pas le jugement de valeur.
 
 ## 13. Risques et hypothèses à valider
 
 | # | Risque | Traitement |
 |---|---|---|
 | 1 | **Le périmètre de P1 est large** — option « socle complet », tous les métiers, et face demandeur incluse. Chaque élargissement repousse la date à laquelle un artisan bordelais utilise réellement le produit, et c'est cette date qui compte | Le plan d'implémentation doit impérativement le découper en incréments livrables. Chemin critique : devis → facture → passeport. Hors chemin critique : agenda, situations de travaux, espace demandeur |
-| 2 | **Falsification des métriques** en l'absence de paiement transitant par la plateforme | Signature client obligatoire (§9). Risque résiduel assumé : faux clients. Détection d'anomalies à prévoir |
+| 2 | **Falsification des métriques** en l'absence de paiement transitant par la plateforme | Signature client obligatoire (§9). Risque résiduel assumé : faux clients. **C'est le travail principal du backoffice** (§12) : détection d'anomalies, instruction, invalidation de l'événement frauduleux |
 | 3 | **Extraction fiable des attestations de décennale** — PDF hétérogènes, sans standard | Revue humaine systématique au démarrage, automatisation progressive |
 | 4 | **Marché des outils de devis/facture mature et concurrentiel** | Notre différenciateur n'est pas l'outil mais le passeport. L'outil doit être bon, pas révolutionnaire |
 | 5 | ~~**Facturation électronique**~~ — **levé**, voir [la recherche](../research/2026-08-07-facturation-electronique.md) | Nous serons **Solution Compatible** raccordée à une **Plateforme Agréée**, jamais agréés nous-mêmes. Échéance TPE : 1ᵉʳ septembre 2027. L'obligation dominante de nos artisans est le **e-reporting** (clients particuliers), pas le e-invoicing. Le suivi des paiements devient une exigence réglementaire |
-| 6 | ~~**RGPD**~~ — **cadré**, voir [le document](../research/2026-08-08-cadrage-rgpd.md) | Rôles répartis, durées arrêtées, information des personnes écrite. Deux défauts corrigés : un e-mail en clair dans le journal ineffaçable, et des numéros de téléphone conservés sans fin. **Reste bloquant : l'AIPD du passeport, obligatoire avant M4** — le traitement remplit six des neuf critères du G29 |
+| 6 | ~~**RGPD**~~ — **cadré**, voir [le document](../research/2026-08-08-cadrage-rgpd.md) | Rôles répartis, durées arrêtées, information des personnes écrite. Deux défauts corrigés : un e-mail en clair dans le journal ineffaçable, et des numéros de téléphone conservés sans fin. ~~Reste bloquant : l'AIPD du passeport~~ — **menée le 2026-08-08**, voir [l'AIPD](../rgpd/2026-08-08-aipd-passeport.md). Cinq critères du G29 sont certains, deux partiels : le décompte de six annoncé ici était trop généreux |
 | 7 | **Zéro revenu si l'abonnement Pro n'est pas adopté** | Mesurer tôt le taux de conversion vers l'offre payante sur les entreprises de 3 salariés et plus |
-| 8 | **Accès aux sources de vérification** (RNE, URSSAF, RGE, Qualibat) | Vérification technique à mener avant le plan |
+| 8 | ~~**Accès aux sources de vérification**~~ — **levé**, voir [la recherche](../research/2026-08-08-sources-de-verification.md) | Quatre sources ouvertes et gratuites testées en direct : Sirene, BODACC, ADEME RGE — qui porte aussi Qualibat, avec les dates de validité. **API Entreprise nous est fermée** (réservée aux missions de service public) : l'URSSAF sort du périmètre de M3, et ce qu'on ne peut pas récupérer, l'artisan le fournit. Le RNE direct est redondant |
 | 9 | **Volume du référentiel d'activités** — couvrir tous les métiers demande une nomenclature large, et la correspondance avec les libellés d'assurance est le point dur | Partir d'une nomenclature existante plutôt que d'en créer une. Le référentiel est une donnée, pas du code : il peut s'enrichir en continu sans refonte |
+| 11 | **La ligne de partage n'était tracée que pour le demandeur.** P1 crée délibérément chez lui une frustration qui deviendra la demande de P2. Rien d'équivalent n'existait côté artisan : entre la vérification et la marketplace, il gagne un outil sur un marché encombré et un passeport que personne ne cherche. **Un artisan qui ne reçoit aucun chantier part — et emporte la donnée**, donc le label, donc le produit | **L'annuaire consultable est avancé, avant les métriques** (§14). Ce n'est pas la marketplace : ni agrégation de demande, ni matching, ni lead vendu — donc aucun des trois interdits n'est franchi. Sans métriques, il dit déjà « tous ces artisans sont assurés pour ce qu'ils font », ce que personne d'autre ne peut dire |
 | 10 | **Promesse marketing plus générique** — « l'outil des plombiers bordelais » convertit mieux que « l'outil des artisans » | Problème de go-to-market, pas de produit : acquisition ciblée métier par métier sur un produit générique |
 
 | 13 | **Mention d'assurance obligatoire sur les devis et factures.** L'article L243-2 du Code des assurances, renforcé par la loi Macron de 2015, impose de faire figurer sur tout devis et toute facture du bâtiment : la mention « Assurance professionnelle », le nom et l'adresse de l'assureur, la référence du contrat, les activités garanties et la zone géographique couverte. Amende administrative de 3 000 € pour un artisan individuel, 15 000 € pour une société, **par infraction constatée** | **Bloquant dès M1.** Un devis émis sans ces mentions expose l'artisan à une amende — inacceptable sur un produit dont l'argument central est la confiance. Ces données sont collectées **de façon déclarative dès l'inscription** ; M3 ne fait qu'y ajouter la vérification. La donnée déclarée en M1 devient exactement ce que M3 contrôle |
@@ -373,7 +431,7 @@ Les solos apportent la donnée et le référencement, les entreprises structuré
 ### Hypothèses ouvertes
 
 - **Le métier de départ à Bordeaux** n'a pas besoin d'être tranché en P1 : un outil de devis/facture est transversal et P1 est mono-utilisateur. Ce choix ne devient structurant qu'en P2, quand la liquidité locale compte.
-- **Profondeur du référentiel d'activités.** La granularité exacte reste à arrêter. Piste : s'aligner sur une nomenclature existante (Qualibat, listes d'activités des assureurs) plutôt que d'en inventer une — la correspondance avec les libellés d'assurance étant le cœur du contrôle, partir de leur vocabulaire réduit le risque d'écart.
+- ~~**Profondeur du référentiel d'activités.**~~ **Tranchée** : la **nomenclature France Assureurs** — 50 activités en 5 familles, révision 2019 —, référentiel commun à tous les assureurs construction. Pas Qualibat, qui nomme des *compétences* et non des *activités* : partir de lui obligerait à traduire chaque libellé d'attestation vers une nomenclature étrangère, au point le plus fragile de la chaîne. Attention toutefois : `assurance_requise` **ne se déduit pas** de l'appartenance à la liste. Elle contient des entrées qui n'engagent pas l'article 1792 — *Paysagiste*, *Agencement de cuisines* —, présentes parce que les assureurs les nomment sur les mêmes contrats. Le champ se renseigne activité par activité. Voir [la recherche](../research/2026-08-08-sources-de-verification.md).
 
 ## 14. Jalons de livraison
 
@@ -384,12 +442,21 @@ P1 ne se construit pas d'un bloc. Chaque jalon doit produire un logiciel utilisa
 | **M1 — Le devis qui se signe** | Compte entreprise (SIRET pré-rempli via Sirene), client, logement, devis à lignes libres, TVA multi-taux, PDF, envoi par lien, **signature électronique** | Faire ses devis et les faire signer. C'est déjà mieux que Word. |
 | **M2 — La facture** | Acompte, solde, avoir, PDF, suivi payé / impayé | Abandonner son outil actuel. Le capteur est complet. |
 | **M3 — Vérification et passeport** | Sirene + BODACC automatiques, dépôt d'attestation, extraction, revue humaine, référentiel d'activités minimal, page publique | Être trouvé sur Google avec ses vérifications à jour. **La différenciation apparaît ici.** |
-| **M4 — Les métriques** | Journal d'événements, calcul des six métriques, seuils de volume | Son passeport se remplit tout seul. |
-| **M5 — L'espace demandeur** | Compte à la signature, carnet, suivi de chantier, répertoire, reprise de contact | Ses clients ont un espace. |
-| **M6 — Agenda et RDV** | Créneaux, synchronisation externe, rendez-vous de visite et d'intervention | Arrêter de gérer ses rendez-vous au téléphone. |
-| **M7 — L'offre payante** | Équipe et rôles, situations de travaux, relances d'impayés | Ce qui justifie l'abonnement Pro. |
+| **M4 — L'annuaire** | Recherche par activité et par zone sur les pages publiques de M3, point de contact direct, backoffice d'observation | **Être trouvé et recevoir des appels.** C'est ici que le passeport commence à rapporter. |
+| **M5 — Les métriques** | Journal d'événements, calcul des métriques, seuils de volume, contestation | Son passeport se remplit tout seul. |
+| **M6 — L'espace demandeur** | Compte à la signature, carnet, suivi de chantier, répertoire, reprise de contact | Ses clients ont un espace. |
+| **M7 — Agenda et RDV** | Créneaux, synchronisation externe, rendez-vous de visite et d'intervention | Arrêter de gérer ses rendez-vous au téléphone. |
+| **M8 — L'offre payante** | Équipe et rôles, situations de travaux, relances d'impayés | Ce qui justifie l'abonnement Pro. |
 
-> **Première mise en marché : M1 → M3.** C'est le plus petit ensemble qui soit à la fois utilisable au quotidien et porteur de la différenciation. M4 suit naturellement puisque la donnée existe déjà. Tout ce qui vient après enrichit un produit déjà en service.
+> **Première mise en marché : M1 → M4.** C'est le plus petit ensemble qui soit à la fois utilisable au quotidien, porteur de la différenciation, **et qui rende quelque chose à l'artisan**. Les métriques suivent naturellement puisque la donnée existe déjà. Tout ce qui vient après enrichit un produit déjà en service.
+
+### Pourquoi l'annuaire passe devant les métriques
+
+L'artisan vient pour travailler, pas pour tenir sa comptabilité. Jusqu'à M3 inclus, le produit lui demande d'alimenter un capteur en échange d'une promesse différée : un passeport que rien ne permet encore de trouver. **Les métriques rendraient ce passeport plus beau sans le rendre plus utile.**
+
+L'annuaire est ce qui referme l'étape 4 de la boucle (§3). Et il est nettement plus petit que la marketplace : pas de dépôt de projet, pas d'appel d'offres, pas de matching, pas de lead vendu. Un demandeur cherche « plombier à Bordeaux », trouve des artisans **assurés pour ce qu'ils font**, et appelle. La frontière de §4 tient toujours : la mise en relation instrumentée reste en P2.
+
+**Ce que l'annuaire donne sans métrique est déjà unique** — aucun autre annuaire français ne peut affirmer que chaque professionnel listé est couvert pour chacune des activités qu'il affiche.
 
 ### Décisions techniques préalables
 
@@ -399,7 +466,7 @@ Aucun plan ne peut être écrit avant qu'elles soient prises. Trois d'entre elle
 |---|---|---|
 | 1 | ~~Facturation électronique~~ — **tranchée** : Solution Compatible raccordée à une Plateforme Agréée. [Recherche](../research/2026-08-07-facturation-electronique.md) | Reste à choisir la PA partenaire, avant d'écrire le module de facturation |
 | 2 | ~~Signature électronique~~ — **tranchée** : simple, en interne, code SMS, PDF archivé, horodatage RFC 3161 non bloquant. [Recherche](../research/2026-08-07-signature-electronique.md) | — |
-| 3 | **Extraction des attestations** — OCR, LLM, seuil de confiance, circuit de revue humaine | Conditionne le coût récurrent de M3 et le délai de vérification perçu par l'artisan |
+| 3 | ~~**Extraction des attestations**~~ — **tranchée** : [recherche](../research/2026-08-08-sources-de-verification.md) | **La revue humaine se construit d'abord, l'extraction ensuite.** Si un humain valide chaque attestation au démarrage, l'extraction n'est pas un mécanisme de justesse mais un accélérateur de saisie : la construire en premier reviendrait à bâtir la partie facultative avant l'essentielle. Le coût récurrent n'était pas le vrai risque — quelques centimes par document. Le délai perçu dépend du circuit de revue, pas du modèle. Et le point dur n'est pas l'extraction du libellé, c'est sa **correspondance** avec une activité du référentiel : c'est elle qui engage |
 | 4 | Stack applicative, base de données, hébergement | — |
 | 5 | Authentification — deux publics distincts (entreprise, demandeur) | — |
 | 6 | Génération de PDF, stockage des pièces et photos | — |
