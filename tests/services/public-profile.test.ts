@@ -9,7 +9,10 @@ import {
 } from '@/db/schema'
 import { publicProfile } from '@/services/public-profile'
 
-const SIREN = '507698299'
+// SIREN genere : le pre-push ne reinitialise pas la base, et un SIRET code en
+// dur entre en collision des le deuxieme lancement. Meme piege que sur les
+// controles legaux.
+const SIREN = String(500000000 + Math.floor(Math.random() * 99999999))
 const SIRET = `${SIREN}00011`
 const COMPANY = randomUUID()
 const NOW = new Date('2026-08-08')
@@ -74,7 +77,7 @@ describe('profil public', () => {
     expect(profile!.activities).toEqual([
       { code: '30', label: 'Plomberie — installations sanitaires', coveredBy: 'decennale' },
     ])
-    expect(profile!.slug).toBe('plomberie-du-test-507698299')
+    expect(profile!.slug).toBe(`plomberie-du-test-${SIREN}`)
     expect(profile!.insurer.name).toBe('SMABTP')
   }, 30_000)
 
