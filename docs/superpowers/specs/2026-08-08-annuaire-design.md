@@ -41,6 +41,26 @@ Sans cette règle, l'annuaire dirait *« assuré »* là où M3 dit *« assuré 
 
 Conséquence d'implémentation, dans la lignée de l'AIPD : **le filtre est porté par la requête, jamais par l'affichage.** Une liste complète filtrée à l'écran finirait par laisser passer une entreprise au premier remaniement.
 
+### 3.2 Le vocabulaire du demandeur
+
+Le référentiel dit « Menuiseries extérieures ». Le demandeur pense « changer mes fenêtres ». Lui demander de traduire, c'est lui demander de connaître la nomenclature des assureurs — l'inverse de rassurant.
+
+> **Décision.** Un référentiel de **besoins courants**, en français de demandeur, chacun pointant vers une activité. Une donnée, comme le référentiel d'activités : elle s'enrichit par migration, sans redéploiement.
+
+La recherche accepte donc soit un besoin (« Remplacer un chauffe-eau »), soit une activité pour qui connaît le vocabulaire.
+
+> **Un besoin ne pointe que vers UNE activité.**
+
+« Refaire une salle de bain » toucherait la plomberie, le carrelage, l'électricité et la menuiserie. Renvoyer un plombier en laissant croire qu'il fait le tout serait la promesse floue qu'on reproche au secteur. Les besoins multi-corps d'état demandent un séquençage : c'est **P6**, pas M4.
+
+### 3.3 Pourquoi pas de moteur de correspondance
+
+L'idée revient naturellement quand on cherche à rassurer. Elle est écartée pour deux raisons, et la seconde suffirait.
+
+**Elle contredit le discriminant du §2** : un moteur choisit à la place du demandeur.
+
+**Et surtout, il n'aurait rien sur quoi correspondre.** Les métriques arrivent en M5. On ne dispose aujourd'hui que de la couverture et de la proximité — exactement ce que la recherche fait déjà. Un « match » serait la même chose sous un nom promettant un jugement qu'on n'est pas en état de porter : le mensonge le plus coûteux possible sur un produit qui vend la confiance.
+
 ## 4. Le classement
 
 Aucune métrique n'existe encore — elles arrivent en M5. Il faut pourtant ordonner, et **ce qu'on choisit devient la monnaie que les artisans chercheront à optimiser.**
@@ -93,6 +113,14 @@ Ce n'est pas une économie de table. C'est ce qui rend l'interdit tenable :
 
 Ce fait suffit à l'attribution : *« 3 demandes via D'équerre ce mois-ci »*. Et l'attribution est exactement ce qui répond au problème du §1 — sans elle, l'artisan ne sait pas si l'outil lui rapporte, donc il part.
 
+### 5.3 La conversation sort du produit, et c'est voulu
+
+Le demandeur écrit depuis le site ; **l'artisan reçoit un courriel et répond directement**, par téléphone ou par mail. Aucun fil de discussion, aucune boîte de réception, aucun compte.
+
+Tenir la conversation serait le premier pas vers tenir le lead. Le coût est assumé : on voit le premier contact, jamais la suite.
+
+**Mais la boucle se referme ailleurs.** Si le contact devient un chantier, l'artisan rédige un devis dans l'outil — et M1 le capte déjà. Il n'y a pas besoin d'une messagerie pour savoir si l'annuaire produit du travail.
+
 ### 5.2 Contre l'abus
 
 Un formulaire public qui envoie des courriels sans limite est un relais de spam.
@@ -115,7 +143,9 @@ contact_throttle
 
 Le journal d'événements reçoit un `directory.contact` portant l'entreprise et la date. Aucun nom, aucune adresse, aucun message.
 
-Rien d'autre n'est ajouté au schéma : la recherche lit ce que M3 a déjà posé — `company`, `company_activity`, `insurance_certificate`, `certificate_activity`.
+S'y ajoute le référentiel des besoins — `need(slug, label, activity_code)` —, alimenté par migration comme celui des activités.
+
+Rien d'autre : la recherche lit ce que M3 a déjà posé — `company`, `company_activity`, `insurance_certificate`, `certificate_activity`.
 
 ## 7. Protection des données
 
