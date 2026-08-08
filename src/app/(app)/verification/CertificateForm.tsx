@@ -1,11 +1,13 @@
 'use client'
 
 import { useActionState } from 'react'
+import { Button } from '@/ui/atoms/button'
+import { Input } from '@/ui/atoms/input'
+import { Select } from '@/ui/atoms/select'
+import { Field } from '@/ui/molecules/field'
 import { submitCertificate, type VerificationState } from './actions'
 
 const initialState: VerificationState = {}
-
-const field = 'rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20'
 
 /**
  * Depot d'une attestation.
@@ -20,33 +22,38 @@ export function CertificateForm() {
     <form
       key={state.saved ?? 0}
       action={action}
-      className="flex flex-wrap items-end gap-3 rounded-xl border border-black/10 p-4 dark:border-white/15"
+      className="flex flex-col gap-4 rounded-card border border-rule bg-card p-5"
     >
-      <label className="flex flex-col gap-1 text-sm">
-        Type d’assurance
-        <select name="type" defaultValue="decennale" className={field}>
-          <option value="decennale">Garantie décennale</option>
-          <option value="rc_pro">RC professionnelle</option>
-        </select>
-      </label>
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="min-w-56">
+          <Field label="Type d’assurance">
+            {(p) => (
+              <Select {...p} name="type" defaultValue="decennale">
+                <option value="decennale">Garantie décennale</option>
+                <option value="rc_pro">RC professionnelle</option>
+              </Select>
+            )}
+          </Field>
+        </div>
 
-      <label className="flex flex-col gap-1 text-sm">
-        Attestation (PDF)
-        <input name="fichier" type="file" accept="application/pdf" required className={field} />
-      </label>
+        <div className="min-w-64 flex-1">
+          <Field label="Attestation (PDF)" required>
+            {(p) => <Input {...p} name="fichier" type="file" accept="application/pdf" />}
+          </Field>
+        </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-50"
-      >
-        {pending ? 'Dépôt…' : 'Déposer'}
-      </button>
+        <Button type="submit" pending={pending}>
+          {pending ? 'Dépôt…' : 'Déposer'}
+        </Button>
+      </div>
 
       {state.error && (
-        <p role="alert" className="w-full text-sm text-red-600">
+        <div
+          role="alert"
+          className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+        >
           {state.error}
-        </p>
+        </div>
       )}
     </form>
   )

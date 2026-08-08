@@ -4,6 +4,7 @@ import { db } from '@/db/client'
 import { company } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
 import { hasLegalMentions } from '@/domain/legal-mentions'
+import { AppShell } from '@/ui/shells/app-shell'
 import { NewQuoteForm } from './NewQuoteForm'
 
 export default async function NewQuotePage() {
@@ -23,5 +24,9 @@ export default async function NewQuotePage() {
   // amende. On ne le laisse donc pas en rediger un avant de les avoir toutes.
   if (!hasLegalMentions(current)) redirect('/mentions')
 
-  return <NewQuoteForm validityDays={current.quoteValidityDays ?? 90} />
+  return (
+    <AppShell companyName={current.legalName}>
+      <NewQuoteForm validityDays={current.quoteValidityDays ?? 90} />
+    </AppShell>
+  )
 }

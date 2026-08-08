@@ -1,10 +1,13 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { db } from '@/db/client'
 import { activity } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
-import { companyCoverage } from '@/services/visibility'
 import { companyCertificates } from '@/services/certificates'
+import { companyCoverage } from '@/services/visibility'
+import { Heading } from '@/ui/atoms/heading'
+import { Link } from '@/ui/atoms/link'
+import { Text } from '@/ui/atoms/text'
+import { AppShell } from '@/ui/shells/app-shell'
 import { ActivityForm } from './ActivityForm'
 import { CertificateForm } from './CertificateForm'
 import { CertificateList } from './CertificateList'
@@ -35,36 +38,40 @@ export default async function VerificationPage() {
   ])
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-10 px-6 py-16">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Vérification</h1>
-          <p className="mt-1 text-sm opacity-70">
+    <AppShell>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <Heading level={1}>Vérification</Heading>
+          <Text size="sm" tone="soft">
             {coverage.isPublic
               ? 'Votre page publique est en ligne.'
               : 'Votre page publique s’affichera dès qu’une activité sera couverte.'}
-          </p>
+          </Text>
         </div>
-        <Link href="/devis" className="text-sm underline opacity-70">
-          Vos devis
+        <Link href="/devis" tone="bare">
+          <span className="text-sm">Vos devis</span>
         </Link>
       </div>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-medium">Vos activités</h2>
+        <Heading level={3} as="h2">
+          Vos activités
+        </Heading>
         <CoverageList activities={coverage.activities} />
         <ActivityForm options={referential} />
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-medium">Vos attestations</h2>
+        <Heading level={3} as="h2">
+          Vos attestations
+        </Heading>
         <CertificateList certificates={certificates} />
         <CertificateForm />
-        <p className="text-xs opacity-60">
+        <Text size="sm" tone="muted">
           Une attestation est relue par une personne avant d’être prise en compte : c’est cette
           relecture qui rattache chaque libellé de votre contrat à une activité du référentiel.
-        </p>
+        </Text>
       </section>
-    </main>
+    </AppShell>
   )
 }

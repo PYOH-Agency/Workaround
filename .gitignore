@@ -49,3 +49,6 @@ supabase/.branches
 
 # superpowers (maquettes de brainstorming)
 .superpowers/
+
+# worktrees crees par Claude Code
+.claude/worktrees/

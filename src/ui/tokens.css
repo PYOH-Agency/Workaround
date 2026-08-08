@@ -1,0 +1,152 @@
+/**
+ * Projection CSS de `tokens.ts`.
+ *
+ * Les variables brutes sont prefixees `--dq-*` et `@theme inline` les expose
+ * sous des noms de couleurs Tailwind. Le prefixe evite la reference circulaire
+ * qu'on obtiendrait avec `--color-surface: var(--color-surface)`, et `inline`
+ * fait emettre aux utilitaires un `var()` plutot qu'une valeur resolue : c'est
+ * ce qui rend la bascule de theme instantanee sans dupliquer les utilitaires.
+ *
+ * Six roles sont volontairement identiques dans les deux blocs — voir
+ * `THEME_INDEPENDENT` dans `tokens.ts`. La duplication entre
+ * `[data-theme='dark']` et `prefers-color-scheme` est assumee :
+ * `tests/ui/tokens.test.ts` verifie que les deux blocs restent identiques a
+ * `roles.dark`.
+ */
+
+:root {
+  --dq-surface: #F5F1E8;
+  --dq-card: #FDFCF8;
+  --dq-raised: #FFFFFF;
+  --dq-ink: #1C1714;
+  --dq-ink-soft: #4A4239;
+  --dq-ink-muted: #6B6357;
+  --dq-link: #9E3E14;
+  --dq-brand: #E2652B;
+  --dq-rule: #DCD4C4;
+  --dq-field: #8C8375;
+  --dq-ring: #C4501C;
+  --dq-primary: #1C1714;
+  --dq-on-primary: #F5F1E8;
+  --dq-conversion: #C4501C;
+  --dq-on-conversion: #FFFFFF;
+  --dq-verified: #3B5229;
+  --dq-verified-bg: #EDF1E4;
+  --dq-warning: #7A5C16;
+  --dq-warning-bg: #FBF3DF;
+  --dq-danger: #8E1B15;
+  --dq-danger-bg: #FBEAE8;
+  --dq-danger-solid: #9B1C1C;
+  --dq-on-danger: #FFFFFF;
+}
+
+:root[data-theme='dark'] {
+  --dq-surface: #14110E;
+  --dq-card: #1F1A16;
+  --dq-raised: #2A2320;
+  --dq-ink: #F5F1E8;
+  --dq-ink-soft: #C4BBA8;
+  --dq-ink-muted: #968C7D;
+  --dq-link: #F0A87E;
+  --dq-brand: #E2652B;
+  --dq-rule: #3A322C;
+  --dq-field: #8C8375;
+  --dq-ring: #F0A87E;
+  --dq-primary: #F5F1E8;
+  --dq-on-primary: #14110E;
+  --dq-conversion: #C4501C;
+  --dq-on-conversion: #FFFFFF;
+  --dq-verified: #9CBB7E;
+  --dq-verified-bg: #232B1C;
+  --dq-warning: #DDB661;
+  --dq-warning-bg: #2E2611;
+  --dq-danger: #EC8B80;
+  --dq-danger-bg: #2E1614;
+  --dq-danger-solid: #9B1C1C;
+  --dq-on-danger: #FFFFFF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --dq-surface: #14110E;
+    --dq-card: #1F1A16;
+    --dq-raised: #2A2320;
+    --dq-ink: #F5F1E8;
+    --dq-ink-soft: #C4BBA8;
+    --dq-ink-muted: #968C7D;
+    --dq-link: #F0A87E;
+    --dq-brand: #E2652B;
+    --dq-rule: #3A322C;
+    --dq-field: #8C8375;
+    --dq-ring: #F0A87E;
+    --dq-primary: #F5F1E8;
+    --dq-on-primary: #14110E;
+    --dq-conversion: #C4501C;
+    --dq-on-conversion: #FFFFFF;
+    --dq-verified: #9CBB7E;
+    --dq-verified-bg: #232B1C;
+    --dq-warning: #DDB661;
+    --dq-warning-bg: #2E2611;
+    --dq-danger: #EC8B80;
+    --dq-danger-bg: #2E1614;
+    --dq-danger-solid: #9B1C1C;
+    --dq-on-danger: #FFFFFF;
+  }
+}
+
+@theme inline {
+  --color-surface: var(--dq-surface);
+  --color-card: var(--dq-card);
+  --color-raised: var(--dq-raised);
+  --color-ink: var(--dq-ink);
+  --color-ink-soft: var(--dq-ink-soft);
+  --color-ink-muted: var(--dq-ink-muted);
+  --color-link: var(--dq-link);
+  --color-brand: var(--dq-brand);
+  --color-rule: var(--dq-rule);
+  --color-field: var(--dq-field);
+  --color-ring: var(--dq-ring);
+  --color-primary: var(--dq-primary);
+  --color-on-primary: var(--dq-on-primary);
+  --color-conversion: var(--dq-conversion);
+  --color-on-conversion: var(--dq-on-conversion);
+  --color-verified: var(--dq-verified);
+  --color-verified-bg: var(--dq-verified-bg);
+  --color-warning: var(--dq-warning);
+  --color-warning-bg: var(--dq-warning-bg);
+  --color-danger: var(--dq-danger);
+  --color-danger-bg: var(--dq-danger-bg);
+  --color-danger-solid: var(--dq-danger-solid);
+  --color-on-danger: var(--dq-on-danger);
+
+  --font-display: var(--font-archivo);
+  --font-sans: var(--font-inter);
+
+  --radius-badge: 3px;
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-modal: 14px;
+
+  --shadow-e1: 0 1px 2px rgba(28, 23, 20, 0.06);
+  --shadow-e2:
+    0 2px 6px rgba(28, 23, 20, 0.09), 0 1px 2px rgba(28, 23, 20, 0.05);
+  --shadow-e3:
+    0 8px 24px rgba(28, 23, 20, 0.11), 0 2px 6px rgba(28, 23, 20, 0.06);
+  --shadow-e4: 0 24px 60px rgba(28, 23, 20, 0.19);
+}
+
+/**
+ * La variante `dark:` de Tailwind v4 suit `prefers-color-scheme` par defaut,
+ * ce qui ignorerait un `data-theme` explicite. On la redefinit pour qu'elle
+ * couvre les deux cas, dans le meme ordre que les variables ci-dessus.
+ */
+@custom-variant dark {
+  &:where([data-theme='dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme='light']) *) {
+      @slot;
+    }
+  }
+}

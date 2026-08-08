@@ -1,3 +1,7 @@
+import { Heading } from '@/ui/atoms/heading'
+import { Text } from '@/ui/atoms/text'
+import { PublicShell } from '@/ui/shells/public-shell'
+
 export const metadata = {
   title: 'Protection de vos données',
 }
@@ -12,45 +16,46 @@ export const metadata = {
  */
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-8 px-6 py-12 text-sm leading-relaxed">
-      <h1 className="text-2xl font-semibold">Protection de vos données</h1>
+    <PublicShell>
+      <div className="flex flex-col gap-8 text-sm leading-relaxed text-ink">
+        <Heading level={1}>Protection de vos données</Heading>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-base font-medium">Qui décide de quoi</h2>
-        <p>
+        <Heading level={3} as="h2">Qui décide de quoi</Heading>
+        <Text size="sm" tone="soft">
           Si vous êtes <strong>un client</strong> ayant reçu un devis : c’est l’entreprise
           artisanale qui vous l’a adressé qui décide des données vous concernant et de leur usage.
           Nous n’intervenons que comme prestataire technique, sur ses instructions. Adressez-lui vos
           demandes en priorité ; nous les relaierons si vous nous écrivez.
-        </p>
-        <p>
+        </Text>
+        <Text size="sm" tone="soft">
           Si vous êtes <strong>une entreprise inscrite</strong> : nous décidons des traitements liés
           à votre compte et, à terme, à votre page publique.
-        </p>
+        </Text>
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-base font-medium">Ce que nous traitons, et pourquoi</h2>
+        <Heading level={3} as="h2">Ce que nous traitons, et pourquoi</Heading>
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-black/15 dark:border-white/20">
+            <tr className="border-b border-field text-left">
               <th className="py-2 font-medium">Données</th>
               <th className="py-2 font-medium">Finalité</th>
               <th className="py-2 font-medium">Base légale</th>
             </tr>
           </thead>
           <tbody className="align-top">
-            <tr className="border-b border-black/5 dark:border-white/10">
+            <tr className="border-b border-rule">
               <td className="py-2 pr-3">Compte de l’entreprise</td>
               <td className="py-2 pr-3">Fournir le service</td>
               <td className="py-2">Exécution du contrat</td>
             </tr>
-            <tr className="border-b border-black/5 dark:border-white/10">
+            <tr className="border-b border-rule">
               <td className="py-2 pr-3">Nom, e-mail, téléphone et adresse du client</td>
               <td className="py-2 pr-3">Établir et transmettre le devis</td>
               <td className="py-2">Exécution du contrat</td>
             </tr>
-            <tr className="border-b border-black/5 dark:border-white/10">
+            <tr className="border-b border-rule">
               <td className="py-2 pr-3">
                 Code envoyé par SMS, horodatage de sa validation, adresse IP et navigateur au moment
                 de la signature
@@ -70,7 +75,7 @@ export default function PrivacyPage() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-base font-medium">Combien de temps</h2>
+        <Heading level={3} as="h2">Combien de temps</Heading>
         <ul className="list-disc pl-5">
           <li>Devis non signé : trois ans après le dernier échange.</li>
           <li>
@@ -90,27 +95,28 @@ export default function PrivacyPage() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-base font-medium">Qui d’autre y a accès</h2>
-        <p>
+        <Heading level={3} as="h2">Qui d’autre y a accès</Heading>
+        <Text size="sm" tone="soft">
           Notre hébergeur, notre prestataire d’envoi d’e-mails et de SMS, et l’autorité qui horodate
           les signatures — cette dernière ne reçoit qu’une empreinte du document, jamais son
           contenu. Aucune donnée n’est vendue ni cédée à des fins publicitaires.
-        </p>
+        </Text>
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-base font-medium">Vos droits</h2>
-        <p>
+        <Heading level={3} as="h2">Vos droits</Heading>
+        <Text size="sm" tone="soft">
           Vous pouvez demander l’accès à vos données, leur rectification, leur effacement, la
           limitation de leur traitement, ou vous opposer à celui-ci. Certaines données ne peuvent
           toutefois pas être effacées avant leur échéance : un devis signé et sa preuve de signature
           servent à établir un droit en cas de litige, et la loi nous impose de les conserver.
-        </p>
-        <p>
+        </Text>
+        <Text size="sm" tone="soft">
           Écrivez-nous pour exercer ces droits. Vous pouvez également introduire une réclamation
           auprès de la CNIL.
-        </p>
-      </section>
-    </main>
+        </Text>
+        </section>
+      </div>
+    </PublicShell>
   )
 }

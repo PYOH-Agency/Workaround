@@ -1,26 +1,44 @@
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import { format } from '@/domain/money'
 import type { PublicQuote } from '@/services/quote-public'
+import { registerBrandFonts } from './fonts'
+import { pdf, pdfFont } from './tokens'
+
+registerBrandFonts()
+
+/** Un montant : le symbole est pose ici, une seule fois, pour tout le document. */
+const euro = (cents: number) => `${format(cents)} €`
+
+/** Le taux est en centiemes de pourcent : 2000 => « 20,0 % ». */
+const rate = (r: number) => `${(r / 100).toFixed(1).replace('.', ',')} %`
+
+const bold = { fontFamily: pdfFont.display, fontWeight: 700 } as const
 
 const styles = StyleSheet.create({
-  page: { padding: 44, fontSize: 9.5, fontFamily: 'Helvetica', color: '#1a1a1a' },
-  title: { fontSize: 18, fontFamily: 'Helvetica-Bold' },
-  muted: { color: '#666' },
+  page: {
+    padding: 44,
+    fontSize: 9.5,
+    fontFamily: pdfFont.body,
+    color: pdf.ink,
+    backgroundColor: pdf.paper,
+  },
+  title: { fontSize: 18, fontFamily: pdfFont.display, fontWeight: 800, letterSpacing: -0.4 },
+  muted: { color: pdf.muted },
   block: { marginBottom: 20 },
   parties: { flexDirection: 'row', gap: 32, marginBottom: 24 },
   party: { flex: 1 },
-  partyTitle: { fontFamily: 'Helvetica-Bold', marginBottom: 4 },
+  partyTitle: { ...bold, marginBottom: 4 },
   head: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
+    borderBottomColor: pdf.ink,
     paddingBottom: 5,
-    fontFamily: 'Helvetica-Bold',
+    ...bold,
   },
   row: {
     flexDirection: 'row',
     borderBottomWidth: 0.5,
-    borderBottomColor: '#ddd',
+    borderBottomColor: pdf.rule,
     paddingVertical: 5,
   },
   colLabel: { flex: 5 },
@@ -31,23 +49,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderTopWidth: 1,
-    borderTopColor: '#1a1a1a',
+    borderTopColor: pdf.ink,
     marginTop: 4,
     paddingTop: 4,
-    fontFamily: 'Helvetica-Bold',
+    ...bold,
     fontSize: 11,
   },
   signature: {
     marginTop: 32,
     borderWidth: 0.5,
-    borderColor: '#999',
+    borderColor: pdf.field,
     padding: 14,
     width: 260,
   },
   withdrawal: {
     marginTop: 22,
     borderWidth: 0.5,
-    borderColor: '#999',
+    borderColor: pdf.field,
     padding: 10,
     fontSize: 7.5,
     lineHeight: 1.5,
@@ -55,16 +73,21 @@ const styles = StyleSheet.create({
   insurance: {
     marginTop: 14,
     borderTopWidth: 0.5,
-    borderTopColor: '#ccc',
+    borderTopColor: pdf.rule,
     paddingTop: 8,
     fontSize: 7.5,
-    color: '#555',
+    color: pdf.soft,
     lineHeight: 1.5,
   },
-  footer: { position: 'absolute', bottom: 28, left: 44, right: 44, fontSize: 7.5, color: '#888' },
+  footer: {
+    position: 'absolute',
+    bottom: 28,
+    left: 44,
+    right: 44,
+    fontSize: 7.5,
+    color: pdf.muted,
+  },
 })
-
-const rate = (r: number) => `${(r / 100).toFixed(1).replace('.', ',')} %`
 
 function QuoteDocument({ quote }: { quote: PublicQuote }) {
   return (
@@ -128,24 +151,26 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
         <View style={styles.totals}>
           <View style={styles.totalRow}>
             <Text>Total HT</Text>
-            <Text>{format(quote.totals.totalExclTax)} €</Text>
+            <Text>{euro(quote.totals.totalExclTax)}</Text>
           </View>
           {quote.totals.byRate.map((b) => (
             <View style={styles.totalRow} key={b.rate}>
               <Text style={styles.muted}>
-                TVA {rate(b.rate)} sur {format(b.baseExclTax)} €
+                TVA {rate(b.rate)} sur {euro(b.baseExclTax)}
               </Text>
-              <Text style={styles.muted}>{format(b.taxAmount)} €</Text>
+              <Text style={styles.muted}>{euro(b.taxAmount)}</Text>
             </View>
           ))}
           <View style={styles.grandTotal}>
             <Text>Total TTC</Text>
-            <Text>{format(quote.totals.totalInclTax)} €</Text>
+            <Text>{euro(quote.totals.totalInclTax)}</Text>
           </View>
         </View>
 
         <View style={{ marginTop: 24, lineHeight: 1.6 }}>
-          <Text>Validité de la présente offre : {quote.validityDays} jours à compter de son émission.</Text>
+          <Text>
+            Validité de la présente offre : {quote.validityDays} jours à compter de son émission.
+          </Text>
           {quote.committedLeadTimeDays !== null && (
             <Text>
               Délai d’exécution engagé : {quote.committedLeadTimeDays} jours ouvrés à compter de
@@ -160,10 +185,8 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
         </View>
 
         <View style={styles.signature}>
-          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Bon pour accord</Text>
-          <Text style={[styles.muted, { marginTop: 4 }]}>
-            Date, nom et signature du client
-          </Text>
+          <Text style={bold}>Bon pour accord</Text>
+          <Text style={[styles.muted, { marginTop: 4 }]}>Date, nom et signature du client</Text>
           <Text style={{ marginTop: 34 }} />
         </View>
 
@@ -174,7 +197,7 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
         */}
         {quote.customer.isIndividual && (
           <View style={styles.withdrawal}>
-            <Text style={{ fontFamily: 'Helvetica-Bold' }}>Droit de rétractation</Text>
+            <Text style={bold}>Droit de rétractation</Text>
             <Text>
               Pour un contrat conclu hors établissement, vous disposez d’un délai de quatorze jours
               à compter de son acceptation pour vous rétracter, sans avoir à motiver votre décision.
@@ -190,7 +213,7 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
           une amende administrative de 3 000 EUR, 15 000 EUR pour une societe.
         */}
         <View style={styles.insurance}>
-          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Assurance professionnelle</Text>
+          <Text style={bold}>Assurance professionnelle</Text>
           <Text>
             {quote.company.legal.insurerName} — {quote.company.legal.insurerAddress}
           </Text>

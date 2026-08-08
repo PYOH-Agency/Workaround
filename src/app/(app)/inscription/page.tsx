@@ -1,6 +1,13 @@
 'use client'
 
 import { useActionState } from 'react'
+import { Button } from '@/ui/atoms/button'
+import { Heading } from '@/ui/atoms/heading'
+import { Input } from '@/ui/atoms/input'
+import { Link } from '@/ui/atoms/link'
+import { Text } from '@/ui/atoms/text'
+import { Field } from '@/ui/molecules/field'
+import { PublicShell } from '@/ui/shells/public-shell'
 import { signUp, type SignUpState } from './actions'
 
 const initialState: SignUpState = {}
@@ -8,54 +15,43 @@ const initialState: SignUpState = {}
 export default function SignUpPage() {
   const [state, action, pending] = useActionState(signUp, initialState)
 
-  const field = 'rounded-lg border border-black/15 px-3 py-2 dark:border-white/20'
-
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 px-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Votre entreprise</h1>
-        <p className="mt-2 text-sm opacity-70">
+    <PublicShell variant="plain">
+      <div className="flex flex-col gap-2">
+        <Heading level={1}>Votre entreprise</Heading>
+        <Text size="sm" tone="soft">
           Saisissez votre SIRET : on récupère le reste tout seul.
-        </p>
+        </Text>
       </div>
 
-      <form action={action} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="siret" className="text-sm font-medium">
-            SIRET
-          </label>
-          <input
-            id="siret"
-            name="siret"
-            required
-            inputMode="numeric"
-            placeholder="123 456 789 00012"
-            className={`${field} font-mono`}
-          />
-          <p className="text-xs opacity-60">14 chiffres, espaces acceptés.</p>
-          <p className="text-xs opacity-60">
-            En continuant, vous acceptez notre{' '}
-            <a href="/confidentialite" target="_blank" className="underline">
-              politique de protection des données
-            </a>
-            .
-          </p>
-        </div>
+      <form action={action} className="flex flex-col gap-5">
+        <Field label="SIRET" help="14 chiffres, espaces acceptés." required>
+          {(p) => (
+            <Input {...p} name="siret" inputMode="numeric" placeholder="123 456 789 00012" />
+          )}
+        </Field>
+
+        <Text size="sm" tone="muted">
+          En continuant, vous acceptez notre{' '}
+          <Link href="/confidentialite" newTab>
+            politique de protection des données
+          </Link>
+          .
+        </Text>
 
         {state.error && (
-          <p role="alert" className="text-sm text-red-600">
+          <div
+            role="alert"
+            className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+          >
             {state.error}
-          </p>
+          </div>
         )}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-foreground px-4 py-2 font-medium text-background disabled:opacity-50"
-        >
+        <Button type="submit" size="lg" pending={pending}>
           {pending ? 'Recherche…' : 'Continuer'}
-        </button>
+        </Button>
       </form>
-    </main>
+    </PublicShell>
   )
 }

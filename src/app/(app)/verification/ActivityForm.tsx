@@ -1,6 +1,9 @@
 'use client'
 
 import { useActionState } from 'react'
+import { Button } from '@/ui/atoms/button'
+import { Select } from '@/ui/atoms/select'
+import { Field } from '@/ui/molecules/field'
 import { declareActivity, type VerificationState } from './actions'
 
 const initialState: VerificationState = {}
@@ -16,38 +19,37 @@ export function ActivityForm({ options }: { options: ActivityOption[] }) {
   const [state, action, pending] = useActionState(declareActivity, initialState)
 
   return (
-    <form key={state.saved ?? 0} action={action} className="flex flex-wrap items-end gap-3">
-      <label className="flex flex-1 flex-col gap-1 text-sm">
-        Ajouter une activité
-        <select
-          name="activite"
-          required
-          defaultValue=""
-          className="rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20"
-        >
-          <option value="" disabled>
-            Choisir dans le référentiel…
-          </option>
-          {options.map((option) => (
-            <option key={option.code} value={option.code}>
-              {option.code} — {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+    <form key={state.saved ?? 0} action={action} className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-64 flex-1">
+          <Field label="Ajouter une activité" required>
+            {(p) => (
+              <Select {...p} name="activite" defaultValue="">
+                <option value="" disabled>
+                  Choisir dans le référentiel…
+                </option>
+                {options.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.code} — {option.label}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg border border-black/15 px-4 py-2 text-sm dark:border-white/20"
-      >
-        Déclarer
-      </button>
+        <Button type="submit" tone="secondary" pending={pending}>
+          Déclarer
+        </Button>
+      </div>
 
       {state.error && (
-        <p role="alert" className="w-full text-sm text-red-600">
+        <div
+          role="alert"
+          className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+        >
           {state.error}
-        </p>
+        </div>
       )}
     </form>
   )

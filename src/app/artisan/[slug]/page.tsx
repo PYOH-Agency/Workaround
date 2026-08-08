@@ -2,6 +2,11 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { sirenFromSlug } from '@/domain/slug'
 import { publicProfile } from '@/services/public-profile'
+import { DateText } from '@/ui/atoms/date-text'
+import { Heading } from '@/ui/atoms/heading'
+import { Text } from '@/ui/atoms/text'
+import { SealBadge } from '@/ui/molecules/seal-badge'
+import { PublicShell } from '@/ui/shells/public-shell'
 import { CoveredActivities } from './CoveredActivities'
 import { Qualifications } from './Qualifications'
 
@@ -48,41 +53,67 @@ export default async function ArtisanPage({ params }: { params: Promise<{ slug: 
     ? new Date().getFullYear() - profile.foundedOn.getFullYear()
     : null
 
+  const trades = profile.activities.map((a) => a.label.split(' —')[0]).join(', ')
+
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-10 px-6 py-12">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-3xl font-semibold">{profile.legalName}</h1>
-        <p className="text-sm opacity-70">
-          {profile.city}
-          {years !== null && ` · ${years} ans d’activité`}
-        </p>
-        <p className="text-sm opacity-70">SIRET {profile.siret}</p>
+    <PublicShell>
+      <header className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <Heading level="display">{profile.legalName}</Heading>
+          <Text size="sm" tone="soft">
+            {profile.city}
+            {years !== null && ` · ${years} ans d’activité`}
+          </Text>
+          <Text size="sm" tone="muted">
+            SIRET {profile.siret}
+          </Text>
+        </div>
+
+        {/*
+          Le sceau, enfin honnete : la verification existe reellement ici, et
+          chaque activite listee est couverte par une assurance adaptee. Format
+          « page » : l'adresse du passeport est celle de cette page, l'afficher
+          n'apprendrait rien.
+        */}
+        <SealBadge format="page" activities={trades} />
       </header>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-medium">Activités vérifiées</h2>
-        <p className="text-sm opacity-70">
+        <Heading level={3} as="h2">
+          Activités vérifiées
+        </Heading>
+        <Text size="sm" tone="soft">
           Chacune est couverte par une assurance en cours de validité, adaptée à cette activité.
-        </p>
+        </Text>
         <CoveredActivities activities={profile.activities} />
       </section>
 
       {profile.qualifications.length > 0 && (
         <section className="flex flex-col gap-4">
-          <h2 className="font-medium">Qualifications</h2>
+          <Heading level={3} as="h2">
+            Qualifications
+          </Heading>
           <Qualifications qualifications={profile.qualifications} />
         </section>
       )}
 
       {/* Mentions imposees par l'article L243-2 du Code des assurances. */}
-      <section className="border-t border-black/10 pt-4 text-xs opacity-70 dark:border-white/15">
-        <p className="font-medium">Assurance professionnelle</p>
-        <p>{profile.insurer.name}</p>
-        <p>Contrat n° {profile.insurer.policyNumber}</p>
+      <section className="flex flex-col gap-0.5 border-t border-rule pt-5">
+        <Text size="label" tone="muted">
+          Assurance professionnelle
+        </Text>
+        <Text size="sm" tone="muted">
+          {profile.insurer.name}
+        </Text>
+        <Text size="sm" tone="muted">
+          Contrat n° {profile.insurer.policyNumber}
+        </Text>
         {profile.insurer.validUntil && (
-          <p>Valide jusqu’au {profile.insurer.validUntil.toLocaleDateString('fr-FR')}</p>
+          <Text size="sm" tone="muted">
+            Valide jusqu’au <DateText value={profile.insurer.validUntil} format="short" />
+          </Text>
         )}
       </section>
-    </main>
+    </PublicShell>
   )
 }

@@ -1,16 +1,20 @@
 'use client'
 
 import { useActionState, useMemo, useState } from 'react'
-import { saveQuote, type QuoteFormState } from '../actions'
+import { toCents } from '@/domain/money'
 import { computeTotals } from '@/domain/quote-totals'
-import { toCents, format } from '@/domain/money'
+import { Button } from '@/ui/atoms/button'
+import { Heading } from '@/ui/atoms/heading'
+import { Icon } from '@/ui/atoms/icon'
+import { Input } from '@/ui/atoms/input'
+import { Select } from '@/ui/atoms/select'
+import { Text } from '@/ui/atoms/text'
+import { Field } from '@/ui/molecules/field'
+import { TotalsPanel } from '@/ui/organisms/totals-panel'
+import { saveQuote, type QuoteFormState } from '../actions'
 import { emptyLine, QuoteLineRow, type LineDraft } from './QuoteLines'
 
 const initialState: QuoteFormState = {}
-
-const formatRate = (rate: number) => `${(rate / 100).toFixed(1).replace('.', ',')} %`
-
-const field = 'rounded-lg border border-black/15 px-3 py-2 dark:border-white/20'
 
 export function NewQuoteForm({ validityDays }: { validityDays: number }) {
   const [state, action, pending] = useActionState(saveQuote, initialState)
@@ -38,150 +42,143 @@ export function NewQuoteForm({ validityDays }: { validityDays: number }) {
   }, [lines])
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-12">
-      <h1 className="text-2xl font-semibold">Nouveau devis</h1>
+    <div className="flex flex-col gap-8">
+      <Heading level={1}>Nouveau devis</Heading>
 
-      <form action={action} className="flex flex-col gap-8">
+      <form action={action} className="flex flex-col gap-10">
         <input type="hidden" name="validity_days" value={validityDays} />
-        <section className="flex flex-col gap-4">
-          <h2 className="font-medium">Le client</h2>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm">
-              Client
-              <input name="client_nom" required className={field} />
-            </label>
+        <section className="flex flex-col gap-5">
+          <Heading level={3} as="h2">
+            Le client
+          </Heading>
 
-            <label className="flex flex-col gap-2 text-sm">
-              Type de client
-              <select
-                name="client_type"
-                value={customerType}
-                onChange={(e) => setCustomerType(e.target.value as typeof customerType)}
-                className={field}
-              >
-                <option value="particulier">Particulier</option>
-                <option value="professionnel">Professionnel</option>
-              </select>
-            </label>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Client" required>
+              {(p) => <Input {...p} name="client_nom" />}
+            </Field>
 
-            <label className="flex flex-col gap-2 text-sm">
-              E-mail du client
-              <input name="client_email" type="email" required className={field} />
-            </label>
+            <Field label="Type de client">
+              {(p) => (
+                <Select
+                  {...p}
+                  name="client_type"
+                  value={customerType}
+                  onChange={(e) => setCustomerType(e.target.value as typeof customerType)}
+                >
+                  <option value="particulier">Particulier</option>
+                  <option value="professionnel">Professionnel</option>
+                </Select>
+              )}
+            </Field>
 
-            <label className="flex flex-col gap-2 text-sm">
-              Téléphone du client
-              <input name="client_telephone" required className={field} />
-              <span className="text-xs opacity-60">Sert à identifier le signataire par SMS.</span>
-            </label>
+            <Field label="E-mail du client" required>
+              {(p) => <Input {...p} name="client_email" type="email" />}
+            </Field>
+
+            <Field
+              label="Téléphone du client"
+              help="Sert à identifier le signataire par SMS."
+              required
+            >
+              {(p) => <Input {...p} name="client_telephone" type="tel" />}
+            </Field>
 
             {customerType === 'professionnel' && (
-              <label className="flex flex-col gap-2 text-sm">
-                SIRET du client
-                <input name="client_siret" required className={`${field} font-mono`} />
-                <span className="text-xs opacity-60">Exigé pour la facturation électronique.</span>
-              </label>
+              <Field
+                label="SIRET du client"
+                help="Exigé pour la facturation électronique."
+                required
+              >
+                {(p) => <Input {...p} name="client_siret" inputMode="numeric" />}
+              </Field>
             )}
           </div>
         </section>
 
-        <section className="flex flex-col gap-4">
-          <h2 className="font-medium">Le chantier</h2>
+        <section className="flex flex-col gap-5">
+          <Heading level={3} as="h2">
+            Le chantier
+          </Heading>
 
-          <label className="flex flex-col gap-2 text-sm">
-            Intitulé
-            <input name="libelle" required placeholder="Rénovation salle de bain" className={field} />
-          </label>
+          <Field label="Intitulé" required>
+            {(p) => <Input {...p} name="libelle" placeholder="Rénovation salle de bain" />}
+          </Field>
 
-          <label className="flex flex-col gap-2 text-sm">
-            Adresse du chantier
-            <input name="adresse_ligne1" required className={field} />
-          </label>
+          <Field label="Adresse du chantier" required>
+            {(p) => <Input {...p} name="adresse_ligne1" />}
+          </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm">
-              Code postal
-              <input name="adresse_code_postal" required inputMode="numeric" className={field} />
-            </label>
-            <label className="flex flex-col gap-2 text-sm">
-              Ville
-              <input name="adresse_ville" required className={field} />
-            </label>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Code postal" required>
+              {(p) => <Input {...p} name="adresse_code_postal" inputMode="numeric" />}
+            </Field>
+            <Field label="Ville" required>
+              {(p) => <Input {...p} name="adresse_ville" />}
+            </Field>
           </div>
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="font-medium">Les prestations</h2>
+          <Heading level={3} as="h2">
+            Les prestations
+          </Heading>
 
-          {lines.map((line, i) => (
-            <QuoteLineRow key={i} index={i} line={line} onChange={update} />
-          ))}
+          <div className="flex flex-col gap-3">
+            {lines.map((line, i) => (
+              <QuoteLineRow key={i} index={i} line={line} onChange={update} />
+            ))}
+          </div>
 
-          <button
-            type="button"
-            onClick={() => setLines((all) => [...all, emptyLine()])}
-            className="self-start rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20"
-          >
-            Ajouter une ligne
-          </button>
+          <div className="self-start">
+            <Button
+              tone="secondary"
+              onClick={() => setLines((all) => [...all, emptyLine()])}
+            >
+              <Icon name="plus" size="sm" />
+              Ajouter une ligne
+            </Button>
+          </div>
 
-          <p className="text-xs opacity-60">
-            Le taux de TVA est de votre responsabilité : l’outil ne le détermine pas à votre place.
-          </p>
+          <Text size="sm" tone="muted">
+            Le taux de TVA est de votre responsabilité : l’outil ne le détermine pas à votre
+            place.
+          </Text>
         </section>
 
-        <section className="flex flex-col gap-4">
-          <label className="flex flex-col gap-2 text-sm sm:max-w-xs">
-            Délai d’exécution (jours ouvrés)
-            <input name="delai" type="number" min="1" required className={field} />
-            <span className="text-xs opacity-60">
-              Obligatoire : c’est l’engagement que votre passeport mesurera.
-            </span>
-          </label>
+        <section className="flex flex-col gap-6">
+          <div className="sm:max-w-xs">
+            <Field
+              label="Délai d’exécution (jours ouvrés)"
+              help="Obligatoire : c’est l’engagement que votre passeport mesurera."
+              required
+            >
+              {(p) => <Input {...p} name="delai" type="number" min="1" />}
+            </Field>
+          </div>
 
-          <label className="flex flex-col gap-2 text-sm sm:max-w-xs">
-            <span className="opacity-70">
-              Validité du devis : {validityDays} jours (modifiable dans vos mentions)
-            </span>
-          </label>
+          <Text size="sm" tone="muted">
+            Validité du devis : {validityDays} jours (modifiable dans vos mentions)
+          </Text>
 
-          {totals && (
-            <div className="rounded-xl border border-black/10 p-5 text-sm dark:border-white/15">
-              <div className="flex justify-between">
-                <span>Total HT</span>
-                <span data-testid="total-ht">{format(totals.totalExclTax)}</span>
-              </div>
-              {totals.byRate.map((b) => (
-                <div key={b.rate} className="flex justify-between opacity-70">
-                  <span>
-                    TVA {formatRate(b.rate)} sur {format(b.baseExclTax)}
-                  </span>
-                  <span>{format(b.taxAmount)}</span>
-                </div>
-              ))}
-              <div className="mt-2 flex justify-between border-t border-black/10 pt-2 font-semibold dark:border-white/15">
-                <span>Total TTC</span>
-                <span data-testid="total-ttc">{format(totals.totalInclTax)}</span>
-              </div>
-            </div>
-          )}
+          {totals && <TotalsPanel totals={totals} />}
         </section>
 
         {state.error && (
-          <p role="alert" className="text-sm text-red-600">
+          <div
+            role="alert"
+            className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+          >
             {state.error}
-          </p>
+          </div>
         )}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="self-start rounded-lg bg-foreground px-5 py-2.5 font-medium text-background disabled:opacity-50"
-        >
-          {pending ? 'Enregistrement…' : 'Enregistrer le devis'}
-        </button>
+        <div className="self-start">
+          <Button type="submit" size="lg" pending={pending}>
+            {pending ? 'Enregistrement…' : 'Enregistrer le devis'}
+          </Button>
+        </div>
       </form>
-    </main>
+    </div>
   )
 }
