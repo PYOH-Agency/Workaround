@@ -14,20 +14,24 @@ import { recordEvent } from '@/services/events'
  * devis d'origine.
  */
 export async function rootQuoteId(quoteId: string): Promise<string> {
-  let current = await db.query.quote.findFirst({ where: eq(quote.id, quoteId) })
-  if (!current) throw new Error('Devis introuvable')
+  let currentId = quoteId
 
   // La chaine est courte par construction — un avenant a la fois — mais la
   // borne evite qu'une donnee corrompue fasse tourner en boucle.
-  for (let hop = 0; current.supersedesQuoteId && hop < 50; hop++) {
-    const previous = await db.query.quote.findFirst({
-      where: eq(quote.id, current.supersedesQuoteId),
-    })
-    if (!previous) break
-    current = previous
+  for (let hop = 0; hop < 50; hop++) {
+    const [row] = await db
+      .select({ id: quote.id, supersedesQuoteId: quote.supersedesQuoteId })
+      .from(quote)
+      .where(eq(quote.id, currentId))
+      .limit(1)
+
+    if (!row) throw new Error('Devis introuvable')
+    if (!row.supersedesQuoteId) return row.id
+
+    currentId = row.supersedesQuoteId
   }
 
-  return current.id
+  return currentId
 }
 
 /** Toutes les versions d'un devis, de la plus ancienne a la plus recente. */
