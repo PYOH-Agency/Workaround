@@ -2,6 +2,11 @@
 #
 # Rien ne part vers le distant sans que la validation complete soit passee.
 #
+# `pnpm validate` lance `vitest run` seul, sans le `supabase db reset` de
+# `pnpm test` : les tests s'isolent par entreprise generee et se rejouent a
+# l'identique sur une base deja peuplee. Reinitialiser la base a chaque push
+# effacerait le jeu de donnees en cours de mise au point dans `pnpm dev`.
+#
 # Contourner ponctuellement : git push --no-verify
 set -e
 
