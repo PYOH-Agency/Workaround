@@ -25,6 +25,16 @@ export const company = pgTable('company', {
   quoteValidityDays: integer('quote_validity_days').default(90),
   paymentTerms: text('payment_terms'),
 
+  // Mentions dues entre professionnels (art. L441-9 et D441-5 du Code de
+  // commerce). L'indemnite de 40 EUR est fixee par la loi, seul le taux est
+  // declare par l'entreprise.
+  latePaymentRate: text('late_payment_rate').default('trois fois le taux d’intérêt légal'),
+  // Commande l'exigibilite de la TVA : a l'encaissement pour une prestation de
+  // services, ce qui declenche le e-reporting des donnees de paiement.
+  operationType: text('operation_type', { enum: ['services', 'goods', 'mixed'] })
+    .notNull()
+    .default('services'),
+
   // Mentions d'assurance obligatoires sur tout devis et toute facture du
   // batiment (art. L243-2 du Code des assurances). Nullables en base — on
   // n'alourdit pas l'inscription —, mais exigees avant toute emission de devis.
