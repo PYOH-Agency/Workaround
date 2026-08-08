@@ -4,6 +4,14 @@ import { redirect } from 'next/navigation'
 import { parseSiretInput } from '@/domain/siret'
 import { publicProfile } from '@/services/public-profile'
 
+/**
+ * Verification par SIRET — couche partagee, et non fonctionnalite d'un ecran.
+ *
+ * `lookupCompany` sert la page d'accueil pro et la page d'accueil demandeur :
+ * elle appartient donc aux deux, c'est-a-dire a aucune des deux. La
+ * colocaliser avec l'une des routes obligerait l'autre a en dependre, et les
+ * deux cesseraient d'etre autonomes.
+ */
 export interface LookupState {
   error?: string
 }

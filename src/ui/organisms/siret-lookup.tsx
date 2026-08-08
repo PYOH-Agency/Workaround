@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { lookupCompany, type LookupState } from '@/app/actions/public'
+import { lookupCompany, type LookupState } from '@/actions/public'
 import { Button } from '@/ui/atoms/button'
 import { Input } from '@/ui/atoms/input'
 import { Text } from '@/ui/atoms/text'

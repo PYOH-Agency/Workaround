@@ -29,15 +29,24 @@ export function isValidSiret(value: string): boolean {
 /**
  * Lit une saisie libre de SIRET et en tire le SIREN.
  *
- * Deux messages distincts, et c'est delibere : « incomplet » se corrige en
- * continuant a taper, « n'existe pas » demande de relire. Les confondre laisse
- * l'utilisateur devant un champ rouge sans savoir quoi faire.
+ * Quatre messages distincts, et c'est delibere : un format errone n'est pas
+ * une faute de frappe a corriger en continuant de taper, incomplet et trop
+ * long n'appellent pas le meme geste correctif, et une cle de Luhn fausse
+ * demande de relire les chiffres plutot que d'en ajouter ou d'en retirer.
+ * Les confondre laisse l'utilisateur devant un champ rouge sans savoir quoi
+ * faire.
  */
 export function parseSiretInput(value: string): { siren: string } | { error: string } {
   const digits = normalizeSiret(value)
 
-  if (digits.length !== 14) {
+  if (!/^\d*$/.test(digits)) {
+    return { error: 'Ce SIRET ne doit contenir que des chiffres.' }
+  }
+  if (digits.length < 14) {
     return { error: 'Ce SIRET est incomplet : il compte 14 chiffres.' }
+  }
+  if (digits.length > 14) {
+    return { error: 'Ce SIRET est trop long : il compte 14 chiffres.' }
   }
   if (!isValidSiret(digits)) {
     return { error: 'Ce SIRET n’existe pas : vérifiez les chiffres.' }

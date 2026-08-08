@@ -8,7 +8,15 @@
 
 ## 1. Ce que ces pages doivent obtenir
 
-**La page pro** vise une seule action : un SIRET saisi. Tout le reste sert cette action ou la crédibilise. L'artisan est l'utilisateur qui adopte, qui paie l'abonnement Pro et qui alimente le capteur ; sans lui, il n'y a ni label ni carnet.
+**La page pro** vise une seule action : entrer dans le parcours d'inscription. Tout le reste sert cette action ou la crédibilise. L'artisan est l'utilisateur qui adopte, qui paie l'abonnement Pro et qui alimente le capteur ; sans lui, il n'y a ni label ni carnet.
+
+> **Décision, prise en cours d'implémentation.** L'accroche pro portait initialement un **champ SIRET**. Elle ne le peut pas : `signUp` exige une session authentifiée, et le parcours réel est connexion, puis SIRET. Un champ SIRET en accroche aurait donc soit créé un compte impossible, soit renvoyé l'artisan vers un passeport public — pas vers une inscription.
+>
+> L'accroche porte donc un **bouton**, pas un champ. Sa destination est l'onboarding, **qui n'est pas encore construit**. En attendant, il pointe sur `/connexion`, qui est le début réel du parcours artisan aujourd'hui. La destination vit dans une constante nommée : le repointage sera d'une ligne.
+>
+> Une landing dont l'action principale renvoie une 404 serait pire que pas de landing — c'est la raison de ce provisoire, et il doit rester visible dans le code.
+
+L'authentification par mot de passe et par Google est un **chantier distinct**, décidé et volontairement reporté après cette landing. Il rouvrira l'arbitrage inscrit dans `src/app/connexion/page.tsx` — « l'artisan est sur un chantier, avec des gants et une 4G médiocre » — et devra le réécrire plutôt que le contredire en silence.
 
 **La page demandeur** vise la vérification d'une entreprise. C'est le seul geste qu'un demandeur fait spontanément *avant* de signer, et c'est le différenciateur du produit rendu tangible.
 
@@ -49,7 +57,7 @@ Les principes n° 1 et n° 2 sont **le meilleur argument commercial de la page**
 Sept sections. Une seule action, présentée deux fois, jamais concurrencée.
 
 ### 4.1 Accroche
-« Vos devis et vos factures, gratuits à vie. » Sous-titre sur les mentions obligatoires et la signature. Champ SIRET + bouton **en encre**. Mention de réassurance : trente secondes, aucune carte bancaire.
+« Vos devis et vos factures, gratuits à vie. » Sous-titre sur les mentions obligatoires et la signature. **Bouton en encre** vers le parcours d'inscription — pas de champ, voir la décision du §1. Mention de réassurance : trente secondes, aucune carte bancaire.
 
 ### 4.2 Le coût de l'erreur
 L'article L243-2 et les 3 000 € / 15 000 € d'amende **par infraction constatée**. C'est la douleur réelle et vérifiable, et c'est ce que le produit supprime dès le premier devis.
@@ -67,7 +75,7 @@ Les principes n° 1 et n° 2, énoncés en propre.
 La mise en relation, **sans date**, encadrée par la règle de la section précédente. Formulation à respecter : elle décrit une direction et un engagement, jamais une disponibilité.
 
 ### 4.7 Ce que ça coûte, et reprise
-La dernière section porte deux choses à la fois, et c'est voulu : l'énoncé du modèle — l'outil gratuit pour toujours, l'abonnement Pro sur ce qui vient après — et la **reprise du champ SIRET**. Un visiteur qui a lu jusqu'ici a la question du prix en tête ; y répondre juste avant l'action est le meilleur endroit, et évite une section de plus.
+La dernière section porte deux choses à la fois, et c'est voulu : l'énoncé du modèle — l'outil gratuit pour toujours, l'abonnement Pro sur ce qui vient après — et la **reprise du bouton**. Un visiteur qui a lu jusqu'ici a la question du prix en tête ; y répondre juste avant l'action est le meilleur endroit, et évite une section de plus.
 
 ## 5. La page demandeur — `/verifier`
 
@@ -168,6 +176,8 @@ Chaque page porte son `title`, sa `description` et son `canonical`. L'image de p
 | 1 | **Limitation de débit** sur le renvoi de lien de devis | À trancher au plan. Bloquant avant mise en ligne : sans elle, le formulaire est un vecteur d'envoi en masse. |
 | 2 | **Prix de l'abonnement Pro** | Hors périmètre de cette spec. La page n'affiche aucun chiffre tant qu'il n'est pas arrêté. |
 | 3 | **Formulation exacte de la section « la suite »** | Le principe est arrêté — direction, sans date. La rédaction finale se valide à la relecture des maquettes. |
+| 5 | **L'onboarding artisan n'existe pas** | Le bouton de la page pro pointe provisoirement sur `/connexion` via la constante `ONBOARDING_HREF`. À repointer quand l'onboarding sera construit — une ligne. |
+| 6 | **Authentification par mot de passe et par Google** | Décidée, et volontairement reportée après cette landing. Chantier distinct : elle rouvre l'arbitrage du lien magique, touche la configuration Supabase, et fait entrer Google comme tiers dans le cadrage RGPD. |
 | 4 | **Photographie et illustration** | Aucune. Les deux pages reposent sur la typographie, la couleur et le mouvement. À reconsidérer quand des chantiers réels seront photographiables. |
 
 ## 11. Les textes de référence
@@ -180,7 +190,7 @@ Les maquettes validées vivent sous `.superpowers/brainstorm/`, qui est **gitign
 |---|---|
 | Accroche | **Vos devis et vos factures, gratuits à vie.** |
 | Chapeau | Conformes aux mentions obligatoires du bâtiment, signés par vos clients en deux minutes. Et une page publique qui prouve que votre assurance est à jour. |
-| Champ | *Votre SIRET — 14 chiffres* · bouton **Commencer** |
+| Action | Bouton **Commencer**, en encre. Destination : `ONBOARDING_HREF`, provisoirement `/connexion`. |
 | Réassurance | Trente secondes. Aucune carte bancaire. |
 | §4.2 étiquette | Ce que ça vous évite |
 | §4.2 titre | **Un devis sans mention d'assurance coûte 15 000 €.** |
