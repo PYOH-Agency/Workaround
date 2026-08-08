@@ -12,6 +12,7 @@ export type AnomalyType =
   | 'unreachable_company'
   | 'source_silent'
   | 'shared_signer'
+  | 'completion_drift'
 
 export interface Anomaly {
   type: AnomalyType

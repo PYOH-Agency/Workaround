@@ -1,8 +1,9 @@
-import { and, desc, eq, isNotNull } from 'drizzle-orm'
+import { and, desc, eq, isNotNull, sql } from 'drizzle-orm'
 import { db } from '@/db/client'
 import {
   anomalyReview,
   company,
+  event,
   insuranceCertificate,
   legalCheck,
   project,
@@ -16,6 +17,7 @@ import {
 } from '@/domain/detectors/certificates'
 import { detectSilentSources } from '@/domain/detectors/sources'
 import { detectSharedSigners } from '@/domain/detectors/signers'
+import { detectCompletionDrift } from '@/domain/detectors/completion'
 
 const SOURCES = ['sirene', 'bodacc'] as const
 
@@ -26,20 +28,23 @@ const SOURCES = ['sirene', 'bodacc'] as const
  * toute la logique vit dans les detecteurs, qui sont purs et testes seuls.
  */
 export async function currentAnomalies(now: Date): Promise<Anomaly[]> {
-  const [pending, expiring, sources, signatures, companyCount, reviews] = await Promise.all([
-    pendingCertificates(),
-    expiringCertificates(),
-    sourceStates(),
-    signatureRecords(),
-    db.$count(company),
-    db.select().from(anomalyReview),
-  ])
+  const [pending, expiring, sources, signatures, completions, companyCount, reviews] =
+    await Promise.all([
+      pendingCertificates(),
+      expiringCertificates(),
+      sourceStates(),
+      signatureRecords(),
+      completionRecords(),
+      db.$count(company),
+      db.select().from(anomalyReview),
+    ])
 
   const anomalies = [
     ...detectWaitingCertificates(pending, now),
     ...detectUnreachableCompanies(expiring, now),
     ...detectSilentSources(sources, now, companyCount),
     ...detectSharedSigners(signatures),
+    ...detectCompletionDrift(completions),
   ]
 
   return sortAnomalies(suppressReviewed(anomalies, reviews))
@@ -101,4 +106,42 @@ function signatureRecords() {
     .innerJoin(quote, eq(signature.quoteId, quote.id))
     .innerJoin(project, eq(quote.projectId, project.id))
     .innerJoin(company, eq(quote.companyId, company.id))
+}
+
+/**
+ * Les chantiers dont le solde a audite une declaration.
+ *
+ * La date declaree se lit dans le JOURNAL, pas dans le devis : l'emission du
+ * solde a ecrase `completed_at`. C'est precisement ce que le journal immuable
+ * sert a conserver — ce qui a ete affirme avant d'etre corrige.
+ */
+function completionRecords() {
+  return db
+    .select({
+      quoteId: quote.id,
+      companyName: company.legalName,
+      declaredAt: sql<Date | null>`(
+        SELECT (e.payload ->> 'at')::timestamptz
+        FROM ${event} e
+        WHERE e.subject_id = ${quote.id}
+          AND e.type = 'chantier.completed'
+          AND e.payload ->> 'source' = 'declared'
+        ORDER BY e.occurred_at DESC
+        LIMIT 1
+      )`,
+      invoicedAt: quote.completedAt,
+    })
+    .from(quote)
+    .innerJoin(company, eq(quote.companyId, company.id))
+    .where(and(eq(quote.completionSource, 'invoiced'), isNotNull(quote.completedAt)))
+    .then((rows) =>
+      rows
+        .filter((row) => row.invoicedAt !== null)
+        .map((row) => ({
+          quoteId: row.quoteId,
+          companyName: row.companyName,
+          declaredAt: row.declaredAt ? new Date(row.declaredAt) : null,
+          invoicedAt: row.invoicedAt!,
+        })),
+    )
 }

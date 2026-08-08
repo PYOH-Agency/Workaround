@@ -15,7 +15,13 @@ export const anomalyReview = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     type: text('type', {
-      enum: ['certificate_waiting', 'unreachable_company', 'source_silent', 'shared_signer'],
+      enum: [
+        'certificate_waiting',
+        'unreachable_company',
+        'source_silent',
+        'shared_signer',
+        'completion_drift',
+      ],
     }).notNull(),
     subjectId: text('subject_id').notNull(),
     factsFingerprint: text('facts_fingerprint').notNull(),
