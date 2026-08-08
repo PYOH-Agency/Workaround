@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { issueCreditNote, type InvoiceFormState } from '../actions'
+import { issueCreditNote, type InvoiceFormState } from '@/actions/invoices'
 
 /**
  * L'avoir demande une confirmation : il consomme un numero de la sequence et
