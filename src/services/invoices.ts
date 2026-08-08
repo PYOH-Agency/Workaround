@@ -10,6 +10,7 @@ import { computeTotals, type LineInput } from '@/domain/quote-totals'
 import { missingInvoiceMentions, LEGAL_RECOVERY_INDEMNITY_CENTS } from '@/domain/legal-mentions'
 import { multiply } from '@/domain/money'
 import { recordEvent } from '@/services/events'
+import { recordInvoicedCompletion } from '@/services/completion'
 
 /**
  * Ce dont ce module a besoin pour ecrire : la base, ou une transaction ouverte
@@ -146,6 +147,13 @@ export async function issueInvoice(input: IssueInvoiceInput) {
 
     return row
   })
+
+  // Le solde constate la reception des travaux. L'appel est isole : une panne
+  // ici ne doit jamais empecher l'emission d'une facture, qui est une
+  // obligation legale.
+  if (input.type === 'balance') {
+    await recordInvoicedCompletion(root, now).catch(() => null)
+  }
 
   await recordEvent({
     type: 'invoice.issued',

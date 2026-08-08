@@ -57,6 +57,13 @@
       "when": 1786211187445,
       "tag": "0007_small_madrox",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786212634788,
+      "tag": "0008_freezing_captain_midlands",
+      "breakpoints": true
     }
   ]
 }
