@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "supabase db reset && vitest run",
     "test:unit": "vitest run tests/domain tests/lib",
-    "test:e2e": "playwright test",
+    "test:e2e": "supabase db reset && playwright test",
     "db:generate": "drizzle-kit generate",
     "db:reset": "supabase db reset",
     "test:integration": "vitest run --config vitest.integration.config.mts"

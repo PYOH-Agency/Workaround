@@ -9,6 +9,14 @@ export function SignatureBlock({ token, phoneHint }: { token: string; phoneHint:
   const [state, setState] = useState<SignState>({})
   const [pending, startTransition] = useTransition()
 
+  // Champs controles a dessein : React reinitialise un formulaire non controle
+  // apres chaque action. Sur un code refuse, le nom et l'e-mail disparaissaient,
+  // et la validation HTML bloquait ensuite toute nouvelle tentative — sans rien
+  // afficher. Le client restait coince sans comprendre pourquoi.
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
+
   if (state.signed) {
     return (
       <p role="status" className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-4">
@@ -44,11 +52,24 @@ export function SignatureBlock({ token, phoneHint }: { token: string; phoneHint:
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm">
               Votre nom
-              <input name="name" required className={field} />
+              <input
+                name="name"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={field}
+              />
             </label>
             <label className="flex flex-col gap-2 text-sm">
               Votre e-mail
-              <input name="email" type="email" required className={field} />
+              <input
+                name="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={field}
+              />
             </label>
           </div>
 
@@ -59,6 +80,8 @@ export function SignatureBlock({ token, phoneHint }: { token: string; phoneHint:
               required
               inputMode="numeric"
               maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
               className={`${field} font-mono tracking-widest`}
             />
           </label>
