@@ -459,7 +459,9 @@ P1 ne se construit pas d'un bloc. Chaque jalon doit produire un logiciel utilisa
 
 > **Première mise en marché : M1 → M4.** C'est le plus petit ensemble qui soit à la fois utilisable au quotidien, porteur de la différenciation, **et qui rende quelque chose à l'artisan**. Les métriques suivent naturellement puisque la donnée existe déjà. Tout ce qui vient après enrichit un produit déjà en service.
 >
-> **Première vente : M2.** Décidé le 2026-08-08. L'offre payante n'attend plus M8. Ce qui se vend en février 2027, c'est le devis signé, la facture et la conformité à la réforme — pas la gestion d'équipe. M8 devient un palier supérieur, et non plus la première monétisation. Le raccordement à une plateforme agréée devient de ce fait un préalable de M2, pas un chantier de fin de parcours.
+> **Première vente : M2.** Décidé le 2026-08-08. L'offre payante n'attend plus M8. Ce qui se vend en février 2027, c'est le devis signé, la facture et la conformité à la réforme — pas la gestion d'équipe. M8 devient un palier supérieur, et non plus la première monétisation.
+>
+> **Le raccordement à une plateforme agréée reste hors du chemin critique.** Chiffré le 2026-08-08 ([la recherche](../research/2026-08-08-raccordement-plateforme-agreee.md)) : 15 à 23 jours de développement, coût récurrent négligeable, et une échéance client au 1ᵉʳ septembre 2027 — soit douze mois après la première vente. Ce qui se vend en M2, c'est l'engagement daté&nbsp;; le connecteur est livré entre mars et août 2027.
 
 ### Pourquoi le payant remonte de M8 à M2
 

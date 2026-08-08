@@ -39,7 +39,7 @@ Prix relevés le 2026-08-08 sur les pages tarifaires des éditeurs.
 | **1ᵉʳ septembre 2026** | Réception de factures électroniques — **toutes** les entreprises assujetties à la TVA |
 | **1ᵉʳ septembre 2027** | Émission — TPE, PME et micro-entreprises |
 
-Sanctions : 15 € par facture non conforme (plafond 15 000 €/an), 250 € par e-reporting manquant (plafond 45 000 €/an).
+Sanctions : 15 € par facture non conforme, et **500 € par transmission d'e-reporting manquante** à partir du 1ᵉʳ septembre 2027 — 250 € avant cette date. Plafond commun de 15 000 € par année civile. Droit à l'erreur sur la première infraction.
 
 > **Décision.** La fenêtre d'acquisition est la réforme, pas le passeport. Chaque artisan de France doit prendre ou changer d'outil dans les douze mois — c'est le seul moment de la décennie où il décroche son téléphone pour parler logiciel de facturation. Le socle traite ce point comme un risque de conformité (risque n° 5)&nbsp;; c'est le canal d'acquisition principal, et il est gratuit.
 
@@ -113,10 +113,14 @@ Hypothèses : démarrage commercial au mois 2, 45 h/semaine dont 25 h de dévelo
 
 ### Ce que la décision engage
 
-Le raccordement à une plateforme agréée passe du statut de chantier de fin de parcours à celui de **préalable de M2**. C'est la dépendance la plus lourde introduite par cette décision, et elle n'est pas chiffrée (§7). Si elle se révèle plus longue que M1 + M2, l'argument de conformité ne sera pas disponible pour la première vente — et c'est lui qui justifie l'écart de prix avec Tolteck.
+~~Le raccordement à une plateforme agréée passe au statut de préalable de M2.~~ **Corrigé le 2026-08-08** — chiffrage mené, voir [Raccordement à une plateforme agréée](../research/2026-08-08-raccordement-plateforme-agreee.md).
+
+Le raccordement coûte 15 à 23 jours de développement et **0,05 à 0,20 € par client et par mois** en récurrent — une ligne inexistante. Surtout, l'obligation d'émission de nos clients est au **1ᵉʳ septembre 2027**, pas en février : le chantier a douze mois pour être livré. **Il sort du chemin critique.** Ce qui se vend dès M2, c'est l'engagement daté, pas le connecteur.
+
+Le seul coût réel est celui du délai : chaque mois de retard au démarrage commercial retire environ 400 € au MRR de février 2027.
 
 ## 7. Ce qui reste ouvert
 
-- **Le raccordement à une plateforme agréée** est un préalable à l'argument commercial de la conformité. Son coût et son délai ne sont pas chiffrés ici et conditionnent le prix plancher de 79 €.
+- ~~**Le raccordement à une plateforme agréée**~~ — **chiffré le 2026-08-08**, voir [la recherche](../research/2026-08-08-raccordement-plateforme-agreee.md). 15 à 23 jours de développement, coût récurrent négligeable, échéance réelle en septembre 2027. Hors chemin critique. Reste ouvert : le choix de la plateforme (Iopole ou Super PDP) et le devis de set-up, à trancher début 2027.
 - **Le taux de résiliation à 2,5 %** est une hypothèse, pas une mesure. Sur un outil de facturation, il est structurellement bas (coût de sortie élevé), mais il n'est pas observé.
 - **Le canal prescripteur** (experts-comptables, CAPEB, FFB) est modélisé à 6 contacts par semaine sans qu'aucun accord n'existe. C'est le poste le plus incertain de l'entonnoir.
