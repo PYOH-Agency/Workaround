@@ -71,6 +71,25 @@ test('de l’acompte au solde réglé', async ({ page }) => {
     await expect(page.getByText('Ce devis est déjà intégralement facturé.')).toBeVisible()
   })
 
+  await test.step('un avenant rouvre la facturation d’un devis soldé', async () => {
+    // Ce que ce jalon debloque : sans avenant, l'artisan dont le chantier
+    // grossit ne pouvait ni facturer plus, ni creer l'avenant que le message
+    // d'erreur lui recommandait. Il sortait son complement de l'outil.
+    await page.getByRole('button', { name: 'Créer un avenant' }).click()
+    await page.getByRole('button', { name: 'Confirmer l’avenant' }).click()
+
+    // On arrive sur le brouillon de la version 2, lignes reprises et modifiables.
+    await expect(page.getByRole('heading', { name: /Modifier D/ })).toBeVisible()
+    await expect(page.getByLabel('Désignation').first()).toHaveValue(/Chauffe-eau/)
+  })
+
+  await test.step('l’historique des versions reste consultable', async () => {
+    await page.getByRole('button', { name: 'Enregistrer les modifications' }).click()
+
+    await expect(page.getByTestId('version-1')).toContainText('Devis initial')
+    await expect(page.getByTestId('version-2')).toContainText('Avenant n° 1')
+  })
+
   await test.step('le client consulte sa facture sans compte', async () => {
     await page.goto('/factures')
     await page.getByText('F2026-0001').click()
