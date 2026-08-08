@@ -5,7 +5,7 @@ import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
-import { LegalMentionsPanel } from '@/ui/organisms/legal-mentions-panel'
+import { LegalMentionsPanel, mention } from '@/ui/organisms/legal-mentions-panel'
 import { QuoteLinesTable } from '@/ui/organisms/quote-lines-table'
 import { TotalsPanel } from '@/ui/organisms/totals-panel'
 import { PublicShell } from '@/ui/shells/public-shell'
@@ -13,23 +13,6 @@ import { SignatureBlock } from './SignatureBlock'
 
 /** On ne reaffiche jamais le numero en entier : la page est publique. */
 const maskPhone = (phone: string) => `${phone.slice(0, 2)} •• •• •• ${phone.slice(-2)}`
-
-/**
- * Les mentions legales sont nullables en base, mais un devis ne peut pas etre
- * emis sans elles : `hasLegalMentions` le bloque a la redaction.
- *
- * Ce garde-fou existe pour le cas ou cette invariante serait rompue en amont.
- * Il echoue bruyamment plutot que d'afficher un devis silencieusement non
- * conforme — l'article L243-2 expose l'artisan a 3 000 EUR d'amende, 15 000 EUR
- * pour une societe, par infraction constatee. Un incident visible coute moins
- * cher qu'une amende invisible.
- */
-function mention(value: string | null | undefined, field: string): string {
-  if (!value) {
-    throw new Error(`Mention légale absente sur un devis émis : ${field}`)
-  }
-  return value
-}
 
 /**
  * Vue publique d'un devis, accessible sans compte.

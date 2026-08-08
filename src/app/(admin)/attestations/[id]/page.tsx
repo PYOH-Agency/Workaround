@@ -1,12 +1,16 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { activity, insuranceCertificate } from '@/db/schema'
-import { currentStaff } from '@/lib/staff-session'
 import { SessionError } from '@/lib/session'
+import { currentStaff } from '@/lib/staff-session'
 import { createServiceSupabase } from '@/lib/supabase-server'
 import { CERTIFICATE_BUCKET } from '@/services/certificates'
+import { DateText } from '@/ui/atoms/date-text'
+import { Heading } from '@/ui/atoms/heading'
+import { Link } from '@/ui/atoms/link'
+import { Text } from '@/ui/atoms/text'
+import { AppShell } from '@/ui/shells/app-shell'
 import { ReviewForm } from './ReviewForm'
 
 const KINDS = { decennale: 'Garantie décennale', rc_pro: 'RC professionnelle' } as const
@@ -39,38 +43,41 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   ])
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-6 py-16">
-      <div>
-        <h1 className="text-2xl font-semibold">{certificate.company.legalName}</h1>
-        <p className="mt-1 text-sm opacity-70">
+    <AppShell>
+      <div className="flex flex-col gap-1">
+        <Heading level={1}>{certificate.company.legalName}</Heading>
+        <Text size="sm" tone="soft">
           {KINDS[certificate.kind]} · SIRET {certificate.company.siret} · déposée le{' '}
-          {certificate.uploadedAt.toLocaleDateString('fr-FR')}
-        </p>
+          <DateText value={certificate.uploadedAt} format="short" />
+        </Text>
       </div>
 
       {signed.data?.signedUrl && (
         <object
           data={signed.data.signedUrl}
           type="application/pdf"
-          className="h-[560px] w-full rounded-xl border border-black/10 dark:border-white/15"
+          className="h-[560px] w-full rounded-card border border-rule"
         >
-          <a href={signed.data.signedUrl} className="underline">
-            Ouvrir l’attestation
-          </a>
+          {/* Repli si le navigateur n'affiche pas le PDF en ligne. */}
+          <Link href={signed.data.signedUrl}>Ouvrir l’attestation</Link>
         </object>
       )}
 
       {certificate.status === 'pending' ? (
         <ReviewForm certificateId={certificate.id} options={referential} />
       ) : (
-        <p role="status" className="rounded-lg border border-black/15 p-4 text-sm dark:border-white/20">
-          Cette attestation a déjà été traitée : {certificate.status}.
-        </p>
+        <div role="status" className="rounded-card border border-rule bg-card px-5 py-4">
+          <Text size="sm" tone="soft">
+            Cette attestation a déjà été traitée : {certificate.status}.
+          </Text>
+        </div>
       )}
 
-      <Link href="/attestations" className="text-sm underline opacity-70">
-        Retour à la file
-      </Link>
-    </main>
+      <div className="mt-2">
+        <Link href="/attestations" tone="bare">
+          <span className="text-sm">Retour à la file</span>
+        </Link>
+      </div>
+    </AppShell>
   )
 }

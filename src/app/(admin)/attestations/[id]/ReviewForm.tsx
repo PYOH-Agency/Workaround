@@ -1,15 +1,29 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import { Button } from '@/ui/atoms/button'
+import { Heading } from '@/ui/atoms/heading'
+import { Input } from '@/ui/atoms/input'
+import { Select } from '@/ui/atoms/select'
+import { Field } from '@/ui/molecules/field'
 import { reject, validate, type ReviewState } from '../actions'
 
 const initialState: ReviewState = {}
 
-const field = 'rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20'
-
 export interface ActivityOption {
   code: string
   label: string
+}
+
+function FormError({ message }: { message: string }) {
+  return (
+    <div
+      role="alert"
+      className="w-full rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+    >
+      {message}
+    </div>
+  )
 }
 
 /**
@@ -31,70 +45,64 @@ export function ReviewForm({
 
   return (
     <div className="flex flex-col gap-6">
-      <form action={action} className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            Assureur
-            <input name="assureur" required className={field} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Numéro de police
-            <input name="police" required className={field} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Valide du
-            <input name="debut" type="date" required className={field} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Valide jusqu’au
-            <input name="fin" type="date" required className={field} />
-          </label>
+      <form action={action} className="flex flex-col gap-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Field label="Assureur" required>
+            {(p) => <Input {...p} name="assureur" />}
+          </Field>
+          <Field label="Numéro de police" required>
+            {(p) => <Input {...p} name="police" />}
+          </Field>
+          <Field label="Valide du" required>
+            {(p) => <Input {...p} name="debut" type="date" />}
+          </Field>
+          <Field label="Valide jusqu’au" required>
+            {(p) => <Input {...p} name="fin" type="date" />}
+          </Field>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-medium">Correspondances</h2>
+        <div className="flex flex-col gap-4">
+          <Heading level={3} as="h2">
+            Correspondances
+          </Heading>
+
           {rows.map((row) => (
-            <div key={row} className="flex flex-wrap gap-3">
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                Libellé lu sur l’attestation
-                <input name="libelle" className={field} />
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                Activité du référentiel
-                <select name="activite" defaultValue="" className={field}>
-                  <option value="">Aucune</option>
-                  {options.map((option) => (
-                    <option key={option.code} value={option.code}>
-                      {option.code} — {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <div key={row} className="grid gap-4 sm:grid-cols-2">
+              <Field label="Libellé lu sur l’attestation">
+                {(p) => <Input {...p} name="libelle" />}
+              </Field>
+              <Field label="Activité du référentiel">
+                {(p) => (
+                  <Select {...p} name="activite" defaultValue="">
+                    <option value="">Aucune</option>
+                    {options.map((option) => (
+                      <option key={option.code} value={option.code}>
+                        {option.code} — {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </Field>
             </div>
           ))}
 
-          <button
-            type="button"
-            onClick={() => setRows((current) => [...current, current.length])}
-            className="self-start text-sm underline opacity-70"
-          >
-            Ajouter une correspondance
-          </button>
+          <div className="self-start">
+            <Button
+              tone="ghost"
+              onClick={() => setRows((current) => [...current, current.length])}
+            >
+              Ajouter une correspondance
+            </Button>
+          </div>
         </div>
 
-        {state.error && (
-          <p role="alert" className="text-sm text-red-600">
-            {state.error}
-          </p>
-        )}
+        {state.error && <FormError message={state.error} />}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="self-start rounded-lg bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-50"
-        >
-          {pending ? 'Validation…' : 'Valider l’attestation'}
-        </button>
+        <div className="self-start">
+          <Button type="submit" size="lg" pending={pending}>
+            {pending ? 'Validation…' : 'Valider l’attestation'}
+          </Button>
+        </div>
       </form>
 
       <RejectForm certificateId={certificateId} />
@@ -107,25 +115,21 @@ function RejectForm({ certificateId }: { certificateId: string }) {
   const [state, action, pending] = useActionState(reject.bind(null, certificateId), initialState)
 
   return (
-    <form action={action} className="flex flex-wrap items-end gap-3 border-t border-black/10 pt-6 dark:border-white/15">
-      <label className="flex flex-1 flex-col gap-1 text-sm">
-        Motif de refus
-        <input name="motif" required className={field} />
-      </label>
+    <form
+      action={action}
+      className="flex flex-wrap items-end gap-3 border-t border-rule pt-6"
+    >
+      <div className="min-w-64 flex-1">
+        <Field label="Motif de refus" required>
+          {(p) => <Input {...p} name="motif" />}
+        </Field>
+      </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg border border-black/15 px-4 py-2 text-sm dark:border-white/20"
-      >
+      <Button type="submit" tone="danger" pending={pending}>
         Refuser
-      </button>
+      </Button>
 
-      {state.error && (
-        <p role="alert" className="w-full text-sm text-red-600">
-          {state.error}
-        </p>
-      )}
+      {state.error && <FormError message={state.error} />}
     </form>
   )
 }
