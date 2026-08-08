@@ -2,6 +2,13 @@
 
 import { useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
+import { Button } from '@/ui/atoms/button'
+import { Heading } from '@/ui/atoms/heading'
+import { IconCheck } from '@/ui/atoms/icon'
+import { Input } from '@/ui/atoms/input'
+import { Text } from '@/ui/atoms/text'
+import { Field } from '@/ui/molecules/field'
+import { PublicShell } from '@/ui/shells/public-shell'
 
 /**
  * Connexion par lien magique, sans mot de passe.
@@ -33,50 +40,53 @@ export default function SignInPage() {
     else setSent(true)
   }
 
-  const field = 'rounded-lg border border-black/15 px-3 py-2 dark:border-white/20'
-
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 px-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Se connecter</h1>
-        <p className="mt-2 text-sm opacity-70">Pas de mot de passe : on vous envoie un lien.</p>
+    <PublicShell variant="plain">
+      <div className="flex flex-col gap-2">
+        <Heading level={1}>Se connecter</Heading>
+        <Text size="sm" tone="soft">
+          Pas de mot de passe : on vous envoie un lien.
+        </Text>
       </div>
 
       {sent ? (
-        <p role="status" className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-4">
-          Lien envoyé à <strong>{email}</strong>. Ouvrez-le depuis votre téléphone.
-        </p>
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-card border border-verified bg-verified-bg px-5 py-4 text-verified"
+        >
+          <IconCheck />
+          <Text as="span">
+            Lien envoyé à <strong>{email}</strong>. Ouvrez-le depuis votre téléphone.
+          </Text>
+        </div>
       ) : (
-        <form onSubmit={submit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="text-sm font-medium">
-              E-mail
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={field}
-            />
-          </div>
+        <form onSubmit={submit} className="flex flex-col gap-5">
+          <Field label="E-mail" required>
+            {(p) => (
+              <Input
+                {...p}
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            )}
+          </Field>
 
           {error && (
-            <p role="alert" className="text-sm text-red-600">
+            <div
+              role="alert"
+              className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+            >
               {error}
-            </p>
+            </div>
           )}
 
-          <button
-            type="submit"
-            className="rounded-lg bg-foreground px-4 py-2 font-medium text-background"
-          >
+          <Button type="submit" size="lg">
             Recevoir le lien
-          </button>
+          </Button>
         </form>
       )}
-    </main>
+    </PublicShell>
   )
 }
