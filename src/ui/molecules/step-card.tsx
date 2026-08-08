@@ -5,18 +5,21 @@ import { Card } from '@/ui/molecules/card'
 /**
  * Une etape numerotee.
  *
- * Le numero est en `aria-hidden` : il ordonne visuellement, mais la liste qui
- * l'entoure porte deja l'ordre pour un lecteur d'ecran. L'annoncer deux fois
- * ne renseigne personne.
+ * Le numero est decoratif : `Stagger`, seul enrobage prevu pour ces cartes,
+ * les place dans de simples `div`, pas dans une `<ol>`. Aucune liste
+ * semantique ne porte donc l'ordre pour un lecteur d'ecran — un texte
+ * `sr-only` le fait a sa place, juste apres le chiffre.
  */
 export function StepCard({
   step,
   title,
   children,
+  as = 'h3',
 }: {
   step: number
-  title: string
+  title: React.ReactNode
   children: React.ReactNode
+  as?: 'h1' | 'h2' | 'h3' | 'h4'
 }) {
   return (
     <Card elevation="e1">
@@ -27,10 +30,11 @@ export function StepCard({
         >
           {step}
         </span>
-        <Heading level={3} as="h3">
+        <span className="sr-only">Étape {step}</span>
+        <Heading level={3} as={as}>
           {title}
         </Heading>
-        <Text size="sm" tone="soft">
+        <Text as="div" size="sm" tone="soft">
           {children}
         </Text>
       </div>
