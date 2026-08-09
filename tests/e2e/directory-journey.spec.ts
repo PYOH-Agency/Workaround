@@ -53,6 +53,44 @@ test('de la recherche a la demande recue', async ({ browser }) => {
     await expect(demandeur.getByRole('status')).toContainText('répondra directement')
   })
 
+  await test.step('la fiche reste lisible sous preference systeme sombre', async () => {
+    /*
+      Le defaut que cette etape ferme : `PublicShell` force le clair sur une
+      `div`, mais le `text-ink` du `<body>` — au-dessus de cette div — se
+      resolvait, lui, avec les variables sombres. Tout element sans classe de
+      couleur heritait donc d'une encre claire, et le libelle d'activite
+      s'affichait en #F5F1E8 sur #F5F1E8. Invisible, et vu comme « visible » par
+      Playwright, qui juge la mise en page et non le contraste.
+    */
+    const dark = await browser.newContext({ colorScheme: 'dark' })
+    const reader = await dark.newPage()
+    await reader.goto(`/artisan/${company.slug}`)
+
+    const ratio = await reader.locator('[data-testid^="activite-"]').first().evaluate((el) => {
+      const relative = (color: string) => {
+        const [r, g, b] = color.match(/\d+(\.\d+)?/g)!.slice(0, 3).map((v) => {
+          const c = Number(v) / 255
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+        })
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+      }
+
+      let node: HTMLElement | null = el as HTMLElement
+      let background = 'rgba(0, 0, 0, 0)'
+      while (node && background === 'rgba(0, 0, 0, 0)') {
+        background = getComputedStyle(node).backgroundColor
+        node = node.parentElement
+      }
+
+      const text = relative(getComputedStyle(el).color)
+      const surface = relative(background)
+      return (Math.max(text, surface) + 0.05) / (Math.min(text, surface) + 0.05)
+    })
+
+    expect(ratio).toBeGreaterThanOrEqual(4.5)
+    await dark.close()
+  })
+
   // Le numero et l'adresse ci-dessus n'existent nulle part ailleurs dans le jeu
   // de donnees : c'est ce qui rend le balayage de l'etape suivante sans
   // ambiguite. Un temoin partage avec les fixtures obligerait a interpreter.

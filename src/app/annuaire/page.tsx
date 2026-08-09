@@ -44,7 +44,7 @@ export default async function DirectoryPage({
     chosen && zone ? await searchDirectory({ activityCode: chosen.activityCode, zone }, new Date()) : []
 
   return (
-    <PublicShell variant="plain">
+    <PublicShell variant="page">
       <div className="flex flex-col gap-2">
         <Heading level={1}>Trouver un artisan</Heading>
         <Text tone="soft">

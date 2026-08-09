@@ -12,7 +12,10 @@ import { Lockup } from '@/ui/brand/lockup'
  *
  * Comme lui, il force le mode clair : une page d'accroche doit avoir la meme
  * tete pour tout le monde, et sa capture d'ecran doit ressembler a ce qu'on
- * voit.
+ * voit. Et comme lui il repose `text-ink` sous l'attribut de theme — voir
+ * `PublicShell` pour la raison : sans cela, tout element qui ne porte pas sa
+ * propre classe de couleur herite de l'encre resolue par le `<body>`, donc
+ * claire sur clair quand le systeme est en sombre.
  *
  * Le lien croise apparait en haut et en bas : pas d'ecran de choix a l'entree,
  * qui ajouterait un clic a tout le monde pour n'aider personne.
@@ -41,7 +44,7 @@ export function LandingShell({
       : { question: 'Vous êtes artisan ?', label: 'Créer mon compte', href: '/' }
 
   return (
-    <div data-theme="light" className="flex min-h-full flex-1 flex-col bg-surface">
+    <div data-theme="light" className="flex min-h-full flex-1 flex-col bg-surface text-ink">
       <header className="border-b border-rule bg-card">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-4 px-6 py-4">
           <Lockup size="sm" />

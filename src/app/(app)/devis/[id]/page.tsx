@@ -8,6 +8,7 @@ import { remainingToInvoice } from '@/domain/invoice-balance'
 import { currentCompany, SessionError } from '@/lib/session'
 import { issuedAgainstQuote } from '@/services/invoices'
 import { TYPE_LABELS } from '@/pdf/invoice-pdf'
+import { DateText } from '@/ui/atoms/date-text'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
@@ -39,9 +40,13 @@ import { StatementForm } from './StatementForm'
  * dans les deux cas : la mesure initiale s'applique. Les distinguer supposerait
  * de publier la reponse du client, qui ne lui a rien promis.
  */
-const DISPUTE_MESSAGES: Record<string, (expiresAt: Date) => string> = {
-  under_review: (expiresAt) =>
-    `Contestation en cours — votre client a jusqu’au ${expiresAt.toLocaleDateString('fr-FR')} pour répondre. Ce chantier ne compte pas dans votre taux de délai pendant ce temps.`,
+const DISPUTE_MESSAGES: Record<string, (expiresAt: Date) => React.ReactNode> = {
+  under_review: (expiresAt) => (
+    <>
+      Contestation en cours — votre client a jusqu’au <DateText value={expiresAt} format="short" />{' '}
+      pour répondre. Ce chantier ne compte pas dans votre taux de délai pendant ce temps.
+    </>
+  ),
   upheld: () =>
     'Votre client a confirmé : ce retard ne vous est pas imputable. Ce chantier ne compte plus dans votre taux de délai.',
   settled: () => 'La mesure initiale s’applique : ce chantier compte dans votre taux de délai.',
@@ -170,7 +175,7 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
 
       {found.completedAt !== null && (
         <Text size="sm" tone="soft">
-          Chantier terminé le {found.completedAt.toLocaleDateString('fr-FR')}
+          Chantier terminé le <DateText value={found.completedAt} format="short" />
           {found.completionSource === 'invoiced' ? ' (facture de solde émise)' : ' (déclaré)'}.
         </Text>
       )}

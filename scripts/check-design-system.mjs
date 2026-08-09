@@ -132,6 +132,41 @@ for (const { file, source } of screens) {
   }
 }
 
+/**
+ * 1 bis. Les couleurs viennent des jetons, jamais de la palette Tailwind ni
+ * d'une opacite.
+ *
+ * `text-emerald-600` sur la fiche publique donnait 3,38:1 — sous le 4,5:1 exige
+ * — et personne ne pouvait le savoir : un test de contraste ne sait verifier que
+ * ce qui est nomme. Meme raison pour `opacity-60` sur du texte, qui baisse le
+ * contraste d'une quantite qu'aucun jeton ne connait.
+ *
+ * `divide-black/10` est du meme ordre : le jeton `rule` existe, et lui suit le
+ * theme.
+ */
+const PALETTE =
+  'gray|slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose'
+
+const OFF_TOKEN = [
+  {
+    pattern: new RegExp(`\\b(?:text|bg|border|ring|divide|fill|stroke)-(?:${PALETTE})-\\d{2,3}\\b`, 'g'),
+    fix: 'passer par un jeton semantique de tokens.ts',
+  },
+  {
+    pattern: /\b(?:text|bg|border|divide)-(?:black|white)\/\d{1,3}\b/g,
+    fix: 'passer par un jeton semantique — « rule » pour un filet',
+  },
+  { pattern: /\bopacity-\d{1,3}\b/g, fix: 'porter le ton par « Text », dont le contraste est calcule' },
+]
+
+for (const { file, source } of screens) {
+  for (const { pattern, fix } of OFF_TOKEN) {
+    for (const match of source.matchAll(pattern)) {
+      violations.push(`${file}:${lineAt(source, match.index)} — « ${match[0]} » : ${fix}`)
+    }
+  }
+}
+
 // 2. Un composant pose a la racine de src/ui echapperait a tout : la racine ne
 //    porte que tokens, cn et fonts, qui ne contiennent aucun JSX (spec §6.1).
 for (const { file } of sources) {
