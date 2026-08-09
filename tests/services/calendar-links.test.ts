@@ -141,29 +141,48 @@ describe('les creneaux occupes', () => {
       { from: new Date('2026-09-01T09:00:00Z'), to: new Date('2026-09-01T10:00:00Z') },
     ])
 
-    const before = await rowTotals()
+    const before = await rowTotalsFor(companyId)
+
+    // Sinon un recensement devenu vide passerait sans rien mesurer.
+    expect(before).toContain('calendar_connection')
+    expect(before).toContain('appointment')
+
     await busyFor(companyId, FROM, TO)
 
-    expect(await rowTotals()).toBe(before)
+    expect(await rowTotalsFor(companyId)).toBe(before)
 
     vi.restoreAllMocks()
   })
 })
 
 /**
- * Le nombre exact de lignes de chaque table.
+ * Le nombre exact de lignes rattachees a UNE entreprise, table par table.
+ *
+ * Le recensement reste automatique — toute table portant `company_id`, y
+ * compris celles a venir, entre dans le compte sans qu'on la nomme ici. Mais
+ * il s'arrete au perimetre de l'entreprise du test : vitest lance les fichiers
+ * en parallele contre la meme base, et un recensement global se faisait
+ * casser par les insertions des autres suites, pas par un ecrit de l'agenda.
  *
  * `pg_stat_user_tables` serait approximatif et differe : on compte pour de
  * vrai, sinon le test passerait sur une statistique en retard.
  */
-async function rowTotals(): Promise<string> {
+async function rowTotalsFor(companyId: string): Promise<string> {
   const rows = await db.execute<{ name: string; total: number }>(sql`
     SELECT c.relname AS name,
            (xpath('/row/c/text()',
-                  query_to_xml(format('SELECT count(*) AS c FROM %I.%I', n.nspname, c.relname),
+                  query_to_xml(format('SELECT count(*) AS c FROM %I.%I WHERE company_id = %L',
+                                      -- Le cast est requis : format() prend
+                                      -- « any » en variadique, et sans type le
+                                      -- parametre ne s'analyse pas.
+                                      n.nspname, c.relname, ${companyId}::text),
                                false, true, '')))[1]::text::int AS total
     FROM pg_class c
     JOIN pg_namespace n ON n.oid = c.relnamespace
+    JOIN pg_attribute a ON a.attrelid = c.oid
+                       AND a.attname = 'company_id'
+                       AND a.attnum > 0
+                       AND NOT a.attisdropped
     WHERE c.relkind = 'r' AND n.nspname = 'public'
     ORDER BY c.relname
   `)
