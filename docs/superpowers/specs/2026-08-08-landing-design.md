@@ -111,7 +111,11 @@ Seuls les devis dont le statut autorise déjà la vue publique sont concernés �
 
 > **Point ouvert, à trancher au plan.** Ce formulaire déclenche un envoi d'e-mail depuis une page publique : il lui faut une **limitation de débit**, sans quoi il devient un vecteur d'envoi en masse. Le mécanisme reste à choisir.
 
-**RGPD :** aucun traitement nouveau. L'adresse est déjà dans `customer`, l'envoi est le même que l'envoi initial, et la finalité est identique. Rien à ajouter au registre.
+**RGPD :** l'envoi lui-même n'ajoute rien — l'adresse est déjà dans `customer`,
+la finalité est identique à l'envoi initial. **La limitation de débit, elle, est
+un traitement nouveau**, si minuscule soit-il : finalité **lutte contre l'abus**,
+base **intérêt légitime**, rétention **24 heures**, purge à chaque écriture. À
+reporter au registre.
 
 ## 7. Le design system
 
