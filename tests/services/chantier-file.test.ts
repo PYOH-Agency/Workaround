@@ -40,6 +40,17 @@ async function chantier() {
   const projectId = await createProject(companyId)
   const row = await signFor(companyId, projectId, me.id)
 
+  // Une date de signature FIXE et passee.
+  //
+  // `signedQuote` signe avec l'horloge de Node, tandis qu'une publication est
+  // datee par `now()` de PostgreSQL : deux horloges qui ne sont pas les memes.
+  // A quelques millisecondes pres, la publication se rangeait avant la
+  // signature — un ordre faux, et un test qui aurait clignote en integration.
+  await db
+    .update(quote)
+    .set({ signedAt: new Date('2026-03-02T09:00:00Z') })
+    .where(eq(quote.id, row.id))
+
   return { me, companyId, quoteId: row.id }
 }
 

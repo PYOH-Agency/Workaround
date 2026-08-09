@@ -91,9 +91,9 @@ export async function signedPhotoUrls(paths: string[]): Promise<Record<string, s
     .from('chantier-photos')
     .createSignedUrls(paths, SIGNED_URL_SECONDS)
 
-  return Object.fromEntries(
-    (data ?? [])
-      .filter((entry) => entry.path && entry.signedUrl)
-      .map((entry) => [entry.path!, entry.signedUrl]),
+  const usable = (data ?? []).flatMap((entry) =>
+    entry.path && entry.signedUrl ? [[entry.path, entry.signedUrl] as const] : [],
   )
+
+  return Object.fromEntries(usable)
 }

@@ -68,13 +68,15 @@ export default async function MyPropertiesPage() {
                 <ul className="flex flex-col gap-2">
                   {item.chantiers.map((chantier) => (
                     <li key={chantier.quoteId}>
-                      <Text size="sm" tone="soft" as="span">
-                        <strong>{chantier.companyName}</strong> · devis {chantier.number} · signé
-                        le {chantier.signedAt.toLocaleDateString('fr-FR')}
-                        {chantier.completedAt
-                          ? ` · terminé le ${chantier.completedAt.toLocaleDateString('fr-FR')}`
-                          : ' · en cours'}
-                      </Text>
+                      <Link href={`/mes-chantiers/${chantier.quoteId}`} tone="bare">
+                        <Text size="sm" tone="soft" as="span">
+                          <strong>{chantier.companyName}</strong> · devis {chantier.number} · signé
+                          le {chantier.signedAt.toLocaleDateString('fr-FR')}
+                          {chantier.completedAt
+                            ? ` · terminé le ${chantier.completedAt.toLocaleDateString('fr-FR')}`
+                            : ' · en cours'}
+                        </Text>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -84,14 +86,8 @@ export default async function MyPropertiesPage() {
         </div>
       )}
 
-      {/*
-        Honnetete de perimetre, pas excuse : le dossier complet — fil
-        d'avancement, documents, garanties — arrive au plan B. Laisser croire
-        qu'il est deja la ferait chercher une page qui n'existe pas.
-      */}
       <Text size="sm" tone="muted">
-        Vos devis et vos factures restent accessibles par les liens que vos entreprises vous ont
-        envoyés.{' '}
+        Ouvrez un chantier pour son suivi, ses documents et vos garanties.{' '}
         <Link href="/confidentialite" newTab>
           Comment vos données sont utilisées
         </Link>
