@@ -30,8 +30,20 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
   // Deux activites declarees : plomberie et electricite. Une seule sera couverte.
   const company = await companyWithActivities(ARTISAN, ['30', '34'])
 
-  await test.step('aucune activité n’est visible avant vérification', async () => {
-    await page.goto('/verification')
+  await test.step('la vérification s’atteint depuis la navigation', async () => {
+    // Et non par `goto` : une URL en dur passerait meme si aucun ecran ne menait
+    // ici — c'est exactement le defaut que cette navigation corrige.
+    await page.goto('/devis')
+
+    const nav = page.getByRole('navigation', { name: 'Navigation principale' })
+    await nav.getByRole('link', { name: 'Vérification' }).click()
+
+    await expect(page).toHaveURL(/\/verification$/)
+    await expect(nav.getByRole('link', { name: 'Vérification' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+
     await expect(page.getByTestId('statut-30')).toHaveText('Attestation manquante')
     await expect(page.getByTestId('statut-34')).toHaveText('Attestation manquante')
   })
@@ -97,9 +109,26 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
     await anonymous.close()
   })
 
-  await test.step('le relecteur voit la file de supervision', async () => {
+  await test.step('le passeport mène à la fiche publique', async () => {
+    // L'entreprise est couverte depuis l'etape precedente : le lien doit exister
+    // et pointer vers `/artisan/`, jamais vers `/p/` qui compterait la visite.
+    await page.goto('/mon-passeport')
+    await expect(page.getByTestId('voir-fiche-publique')).toHaveAttribute(
+      'href',
+      `/artisan/${company.slug}`,
+    )
+  })
+
+  await test.step('le relecteur voit la file de supervision, sans la nav artisan', async () => {
     await reviewer.goto('/supervision')
     await expect(reviewer.getByRole('heading', { name: 'Supervision' })).toBeVisible()
+
+    // Le backoffice partage `AppShell`, donc l'en-tete. Les liens « Devis » ou
+    // « Passeport » n'y ont rien a faire : ils menent a l'entreprise du
+    // relecteur, pas a celle qu'il examine.
+    await expect(
+      reviewer.getByRole('navigation', { name: 'Navigation principale' }),
+    ).toHaveCount(0)
   })
 
   await test.step('un artisan n’accède pas à la supervision', async () => {
