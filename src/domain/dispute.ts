@@ -25,6 +25,12 @@ export const DISPUTE_WINDOW_DAYS = 14
 /** Le motif est lu par un particulier, a cote d'une seule question. */
 export const MAX_REASON_LENGTH = 500
 
+/**
+ * La declaration complementaire est publiee **a cote** d'un chiffre, pas a la
+ * place. Au-dela, ce n'est plus un contexte, c'est une reponse.
+ */
+export const MAX_STATEMENT_LENGTH = 500
+
 export interface Dispute {
   expiresAt: Date
   /**

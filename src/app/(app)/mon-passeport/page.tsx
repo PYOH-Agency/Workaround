@@ -1,11 +1,13 @@
 import { redirect } from 'next/navigation'
 import { currentCompany, SessionError } from '@/lib/session'
 import { companyMetrics } from '@/services/passport-metrics'
+import { disputesInReview } from '@/services/disputes'
 import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { AppShell } from '@/ui/shells/app-shell'
 import { MetricCard } from './MetricCard'
+import { DisputeList } from './DisputeList'
 
 /**
  * Le passeport, vu par l'artisan.
@@ -27,7 +29,9 @@ export default async function PassportPage() {
     throw e
   }
 
-  const metrics = await companyMetrics(session.companyId, new Date())
+  const now = new Date()
+  const metrics = await companyMetrics(session.companyId, now)
+  const disputes = await disputesInReview(session.companyId, now)
 
   return (
     <AppShell>
@@ -40,6 +44,8 @@ export default async function PassportPage() {
           </Text>
         </Card>
       </div>
+
+      <DisputeList disputes={disputes} />
 
       <div className="flex flex-col gap-3">
         <MetricCard

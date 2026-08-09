@@ -1,6 +1,7 @@
 import { describe, it, expect, afterAll } from 'vitest'
 import { connection } from '@/db/client'
-import { MAX_STATEMENT_LENGTH, saveStatement, statementFor } from '@/services/statements'
+import { saveStatement, statementFor } from '@/services/statements'
+import { MAX_STATEMENT_LENGTH } from '@/domain/dispute'
 import { companyMetrics } from '@/services/passport-metrics'
 import { lateChantier } from './dispute-fixtures'
 

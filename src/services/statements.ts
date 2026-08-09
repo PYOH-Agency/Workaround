@@ -1,14 +1,9 @@
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { metricStatement, quote } from '@/db/schema'
+import { MAX_STATEMENT_LENGTH } from '@/domain/dispute'
 import { rootQuoteId } from '@/services/amendments'
 import { recordEvent } from '@/services/events'
-
-/**
- * Elle est publiee **a cote** d'un chiffre, pas a la place. Au-dela, ce n'est
- * plus un contexte, c'est une reponse.
- */
-export const MAX_STATEMENT_LENGTH = 500
 
 /**
  * La declaration complementaire — article 16.

@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache'
 import { currentCompany } from '@/lib/session'
 import { createAmendment } from '@/services/amendments'
 import { declareCompleted } from '@/services/completion'
+import { openDispute } from '@/services/disputes'
+import { saveStatement } from '@/services/statements'
 
 export interface AmendState {
   error?: string
@@ -59,4 +61,54 @@ export async function completeChantier(
 
   revalidatePath(`/devis/${quoteId}`)
   return {}
+}
+
+export interface DisputeState {
+  error?: string
+}
+
+/**
+ * L'artisan conteste la mesure de son delai.
+ *
+ * Le chantier sort du calcul immediatement — article 18 — et y revient de
+ * lui-meme au bout de quatorze jours si le client ne repond pas.
+ */
+export async function disputeLeadTime(
+  quoteId: string,
+  _state: DisputeState,
+  form: FormData,
+): Promise<DisputeState> {
+  const { companyId } = await currentCompany()
+
+  try {
+    await openDispute(companyId, quoteId, String(form.get('reason') ?? ''), new Date())
+  } catch (e) {
+    return { error: (e as Error).message }
+  }
+
+  revalidatePath(`/devis/${quoteId}`)
+  return {}
+}
+
+export interface StatementState {
+  error?: string
+  saved?: boolean
+}
+
+/** La declaration complementaire — article 16. Elle ne change aucun chiffre. */
+export async function writeStatement(
+  quoteId: string,
+  _state: StatementState,
+  form: FormData,
+): Promise<StatementState> {
+  const { companyId } = await currentCompany()
+
+  try {
+    await saveStatement(companyId, quoteId, String(form.get('body') ?? ''))
+  } catch (e) {
+    return { error: (e as Error).message }
+  }
+
+  revalidatePath(`/devis/${quoteId}`)
+  return { saved: true }
 }
