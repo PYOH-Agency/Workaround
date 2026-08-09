@@ -3,7 +3,6 @@
 import { useState, useTransition } from 'react'
 import { issueBalance, issueDeposit, issueProgress, type InvoiceFormState } from '@/actions/invoices'
 import { Button } from '@/ui/atoms/button'
-import { Heading } from '@/ui/atoms/heading'
 import { Input } from '@/ui/atoms/input'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
@@ -27,20 +26,20 @@ export function InvoiceActions({ quoteId, remaining }: { quoteId: string; remain
   const invalidShare = !Number.isFinite(share) || share <= 0 || share > 100
 
   return (
-    <section className="flex flex-col gap-4 rounded-card border border-rule bg-card p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <Heading level={3} as="h2">
-          Facturer
-        </Heading>
-        {/*
-          `remaining` arrive deja formate par la page : le `data-testid` ne porte
-          donc que le nombre, et le symbole reste a l'exterieur — un test l'affirme
-          en correspondance exacte.
-        */}
-        <Text size="sm" tone="soft" as="span">
-          Reste à facturer : <span data-testid="reste-a-facturer">{remaining}</span> €
-        </Text>
-      </div>
+    /*
+      Plus de titre « Facturer » ici : la section « Facturation » de la fiche le
+      porte desormais, et les deux cote a cote se repetaient. Ce bloc n'est plus
+      une section — c'est le panneau d'action d'une section qui en a une.
+    */
+    <div className="flex flex-col gap-4 rounded-card border border-rule bg-card p-5">
+      {/*
+        `remaining` arrive deja formate par la page : le `data-testid` ne porte
+        donc que le nombre, et le symbole reste a l'exterieur — un test l'affirme
+        en correspondance exacte.
+      */}
+      <Text size="sm" tone="soft">
+        Reste à facturer : <span data-testid="reste-a-facturer">{remaining}</span> €
+      </Text>
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="w-28">
@@ -84,6 +83,6 @@ export function InvoiceActions({ quoteId, remaining }: { quoteId: string; remain
           {state.error}
         </div>
       )}
-    </section>
+    </div>
   )
 }

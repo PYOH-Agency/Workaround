@@ -41,7 +41,7 @@ const METRICS = [
 
 export default function DefinitionsPage() {
   return (
-    <PublicShell variant="plain">
+    <PublicShell variant="page">
       <div className="flex flex-col gap-3">
         <Heading level={1}>Comment ces chiffres sont calculés</Heading>
         <Text tone="soft">

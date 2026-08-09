@@ -45,6 +45,14 @@ export const company = pgTable('company', {
   coveredActivities: text('covered_activities'),
   coverageArea: text('coverage_area'),
 
+  /**
+   * L'adresse d'abonnement iCalendar. `null` tant qu'elle n'a pas ete demandee.
+   *
+   * **Ce jeton EST l'autorisation** — il n'y a pas de session derriere une
+   * adresse collee dans Google. Il doit donc pouvoir etre regenere, ce qui
+   * revoque l'ancienne du meme geste.
+   */
+  agendaFeedToken: text('agenda_feed_token').unique(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 

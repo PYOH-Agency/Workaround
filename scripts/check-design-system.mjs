@@ -16,6 +16,17 @@ const DS_DIR = 'src/ui/'
  * - `QuoteLinesTable` — distinct de `QuoteLineEditor` : l'un lit, l'autre
  *   saisit, et ils n'ont ni les memes contraintes ni les memes balises.
  *
+ * Huit entrees supplementaires pour la landing (spec landing §7.1) :
+ *
+ * - `SectionHeader`, `StepCard` — repetes onze fois sur les deux pages.
+ * - `Reveal`, `Stagger` — les deux gestes de marque encapsules. Sans eux,
+ *   chaque section reimplemente l'animation et oublie prefers-reduced-motion.
+ *   `RevealTick` les accompagne : le carre qui se pose dans un `Reveal`.
+ * - `SiretLookup`, `QuoteLinkForm` — les deux actions publiques.
+ * - `PrinciplePanel` — les engagements du §12 du socle.
+ * - `LandingShell` — navigation a lien croise. `PublicShell` est un gabarit de
+ *   document : lui greffer une navigation commerciale le denaturerait.
+ *
  * Toute autre addition doit passer par la spec avant d'arriver ici.
  */
 const INVENTORY = {
@@ -27,16 +38,18 @@ const INVENTORY = {
   molecules: [
     'Field', 'Card', 'StatusBadge', 'SealBadge', 'LogoLockup', 'EmptyState',
     'Toast', 'Tooltip', 'ButtonGroup', 'SummaryLine', 'Dialog', 'ThemeToggle',
+    'SectionHeader', 'StepCard', 'Reveal', 'Stagger', 'RevealTick',
   ],
   organisms: [
     'AppHeader', 'QuoteTable', 'QuoteLineEditor', 'QuoteLinesTable', 'TotalsPanel',
     'VatBreakdown', 'LegalMentionsPanel', 'PaymentTimeline', 'SignaturePanel',
+    'SiretLookup', 'QuoteLinkForm', 'PrinciplePanel',
     // Ajoute en M6·B : le client et l'entreprise lisent la MEME chronologie.
     // La loger dans l'un des deux ecrans obligerait l'autre a importer une
     // fonctionnalite voisine, ce que l'autonomie des fonctionnalites interdit.
     'ChantierTimeline',
   ],
-  shells: ['AppShell', 'PublicShell', 'PdfShell', 'SpaceShell'],
+  shells: ['AppShell', 'PublicShell', 'PdfShell', 'LandingShell', 'SpaceShell'],
   brand: ['Mark', 'Seal', 'Lockup'],
 }
 
@@ -119,6 +132,41 @@ for (const { file, source } of screens) {
     for (const match of source.matchAll(pattern)) {
       if (tag === 'input' && isHiddenInput(source, match.index)) continue
       violations.push(`${file}:${lineAt(source, match.index)} — <${tag}> : passer par ${component}`)
+    }
+  }
+}
+
+/**
+ * 1 bis. Les couleurs viennent des jetons, jamais de la palette Tailwind ni
+ * d'une opacite.
+ *
+ * `text-emerald-600` sur la fiche publique donnait 3,38:1 — sous le 4,5:1 exige
+ * — et personne ne pouvait le savoir : un test de contraste ne sait verifier que
+ * ce qui est nomme. Meme raison pour `opacity-60` sur du texte, qui baisse le
+ * contraste d'une quantite qu'aucun jeton ne connait.
+ *
+ * `divide-black/10` est du meme ordre : le jeton `rule` existe, et lui suit le
+ * theme.
+ */
+const PALETTE =
+  'gray|slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose'
+
+const OFF_TOKEN = [
+  {
+    pattern: new RegExp(`\\b(?:text|bg|border|ring|divide|fill|stroke)-(?:${PALETTE})-\\d{2,3}\\b`, 'g'),
+    fix: 'passer par un jeton semantique de tokens.ts',
+  },
+  {
+    pattern: /\b(?:text|bg|border|divide)-(?:black|white)\/\d{1,3}\b/g,
+    fix: 'passer par un jeton semantique — « rule » pour un filet',
+  },
+  { pattern: /\bopacity-\d{1,3}\b/g, fix: 'porter le ton par « Text », dont le contraste est calcule' },
+]
+
+for (const { file, source } of screens) {
+  for (const { pattern, fix } of OFF_TOKEN) {
+    for (const match of source.matchAll(pattern)) {
+      violations.push(`${file}:${lineAt(source, match.index)} — « ${match[0]} » : ${fix}`)
     }
   }
 }

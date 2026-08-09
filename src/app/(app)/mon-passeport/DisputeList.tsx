@@ -1,3 +1,4 @@
+import { DateText } from '@/ui/atoms/date-text'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
@@ -35,7 +36,7 @@ export function DisputeList({ disputes }: { disputes: DisputeInReview[] }) {
             <li key={dispute.quoteId}>
               <Text size="sm" tone="soft" as="span">
                 <Link href={`/devis/${dispute.quoteId}`}>Devis {dispute.quoteNumber}</Link> —
-                réponse attendue avant le {dispute.expiresAt.toLocaleDateString('fr-FR')}
+                réponse attendue avant le <DateText value={dispute.expiresAt} format="short" />
               </Text>
             </li>
           ))}

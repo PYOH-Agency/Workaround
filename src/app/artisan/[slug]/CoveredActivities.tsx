@@ -25,14 +25,16 @@ const COVER = {
  */
 export function CoveredActivities({ activities }: { activities: PublicActivity[] }) {
   return (
-    <ul className="flex flex-col divide-y divide-black/10 dark:divide-white/10">
+    <ul className="flex flex-col divide-y divide-rule">
       {activities.map((item) => (
         <li key={item.code} className="flex flex-col gap-1 py-3 text-sm">
           <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <span data-testid={`activite-${item.code}`} className="flex-1">
+            <span data-testid={`activite-${item.code}`} className="flex-1 text-ink">
               {item.label}
             </span>
-            <span className="text-emerald-600">{COVER[item.coveredBy]}</span>
+            {/* `verified` et non `emerald-600` : ce dernier ne donnait que 3,38:1
+                sur la surface claire, sous le 4,5:1 exige pour du texte de 14 px. */}
+            <span className="text-verified">{COVER[item.coveredBy]}</span>
           </div>
           <span className="text-xs text-ink-muted">
             Attestation valable jusqu’au <DateText value={item.coveredUntil} format="short" />

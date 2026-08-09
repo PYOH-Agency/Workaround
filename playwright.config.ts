@@ -1,4 +1,16 @@
 import { defineConfig, devices } from '@playwright/test'
+import { config } from 'dotenv'
+
+/**
+ * `.env.test` est lu ici, et pas seulement par les fixtures.
+ *
+ * Ce fichier est evalue avant tout test, donc avant que quoi que ce soit
+ * n'importe `fixtures-db`. Sans cette ligne, `APP_URL` restait indefini et
+ * `baseURL` retombait sur 3000 — le port du worktree principal. Les parcours
+ * s'executaient alors contre l'application d'un autre arbre de travail,
+ * branchee sur une autre base, et repondaient 200 a tout.
+ */
+config({ path: '.env.test', quiet: true })
 
 const APP_URL = process.env.APP_URL ?? 'http://localhost:3000'
 

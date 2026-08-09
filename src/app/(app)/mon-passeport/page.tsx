@@ -64,10 +64,13 @@ export default async function PassportPage() {
 
         <Card elevation="e1">
           <div className="flex flex-col gap-1" data-testid="volume-chantiers">
-            <Text size="label" tone="muted">
+            {/* Meme partage qu'en `MetricCard` : le nom titre, le chiffre est la valeur. */}
+            <Text size="label" tone="muted" as="h2">
               Chantiers terminés
             </Text>
-            <Heading level={2}>{metrics.completed.window}</Heading>
+            <Heading level={2} as="p">
+              {metrics.completed.window}
+            </Heading>
             <Text size="sm" tone="soft">
               sur douze mois · {metrics.completed.total} depuis le début
             </Text>

@@ -1,36 +1,28 @@
 import { notFound, redirect } from 'next/navigation'
-import { and, eq } from 'drizzle-orm'
-import { db } from '@/db/client'
-import { invoice, quote } from '@/db/schema'
-import { computeTotals } from '@/domain/quote-totals'
 import { format } from '@/domain/money'
-import { remainingToInvoice } from '@/domain/invoice-balance'
+import { disputeStanding } from '@/domain/dispute'
 import { currentCompany, SessionError } from '@/lib/session'
-import { issuedAgainstQuote } from '@/services/invoices'
-import { TYPE_LABELS } from '@/pdf/invoice-pdf'
+import { quoteDetail } from '@/services/quote-detail'
+import { DateText } from '@/ui/atoms/date-text'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
-import { Money } from '@/ui/atoms/money'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { StatusBadge } from '@/ui/molecules/status-badge'
 import { QuoteLinesTable } from '@/ui/organisms/quote-lines-table'
 import { TotalsPanel } from '@/ui/organisms/totals-panel'
 import { AppShell } from '@/ui/shells/app-shell'
-import { engagedTotal, referenceVersion } from '@/domain/quote-versions'
-import { assertDisputable, disputeStanding } from '@/domain/dispute'
-import { businessDaysSince } from '@/domain/business-days'
-import { quoteVersions } from '@/services/amendments'
-import { disputeFor } from '@/services/disputes'
-import { statementFor } from '@/services/statements'
 import { SendButton } from './SendButton'
 import { InvoiceActions } from './InvoiceActions'
 import { AmendButton } from './AmendButton'
 import { CompleteButton } from './CompleteButton'
+import { BookWorkForm } from './BookWorkForm'
 import { QuoteVersions } from './QuoteVersions'
 import { DisputeButton } from './DisputeButton'
 import { StatementForm } from './StatementForm'
+import { InvoiceList } from './InvoiceList'
+import { Section } from './Section'
 
 /**
  * Ce que l'artisan lit selon l'etat de sa contestation.
@@ -39,14 +31,31 @@ import { StatementForm } from './StatementForm'
  * dans les deux cas : la mesure initiale s'applique. Les distinguer supposerait
  * de publier la reponse du client, qui ne lui a rien promis.
  */
-const DISPUTE_MESSAGES: Record<string, (expiresAt: Date) => string> = {
-  under_review: (expiresAt) =>
-    `Contestation en cours — votre client a jusqu’au ${expiresAt.toLocaleDateString('fr-FR')} pour répondre. Ce chantier ne compte pas dans votre taux de délai pendant ce temps.`,
+const DISPUTE_MESSAGES: Record<string, (expiresAt: Date) => React.ReactNode> = {
+  under_review: (expiresAt) => (
+    <>
+      Contestation en cours — votre client a jusqu’au <DateText value={expiresAt} format="short" />{' '}
+      pour répondre. Ce chantier ne compte pas dans votre taux de délai pendant ce temps.
+    </>
+  ),
   upheld: () =>
     'Votre client a confirmé : ce retard ne vous est pas imputable. Ce chantier ne compte plus dans votre taux de délai.',
   settled: () => 'La mesure initiale s’applique : ce chantier compte dans votre taux de délai.',
 }
 
+/**
+ * La fiche d'un devis, en quatre temps.
+ *
+ * Elle avait fini en pile : pour un devis signe puis termine, sept blocs freres
+ * se suivaient sans titre ni hierarchie — le delai engage, le lien du client,
+ * la facturation, la fin de chantier, la contestation, la declaration,
+ * l'avenant. Chacun avait sa raison d'etre la, aucun ne disait ou il etait.
+ *
+ * L'ordre suit desormais la vie du devis : ce qu'il dit, sa signature, sa
+ * facturation, son chantier, ses versions. Une section absente ne decale pas
+ * les autres — leur **place** ne change jamais, seule leur presence varie. Un
+ * artisan qui ouvre sa dixieme fiche sait ou regarder sans lire.
+ */
 export default async function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
@@ -58,178 +67,136 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
     throw e
   }
 
-  // Restreint a l'entreprise de la session : l'autorisation vit dans le code,
-  // ou elle est lisible et testable.
-  const found = await db.query.quote.findFirst({
-    where: and(eq(quote.id, id), eq(quote.companyId, session.companyId)),
-    with: { lines: true, project: { with: { customer: true, property: true } } },
-  })
+  const detail = await quoteDetail(id, session.companyId, new Date())
+  if (!detail) notFound()
 
-  if (!found) notFound()
+  const { quote, lines, totals, versions, dispute, statement, invoices } = detail
+  const { project, completedAt } = quote
 
-  const totals = computeTotals(found.lines)
-  const lines = [...found.lines].sort((a, b) => a.position - b.position)
-
-  const versions = await quoteVersions(found.id)
-  const reference = referenceVersion(versions)
-  const amendable = versions.length > 0 && reference !== null && !versions.some((v) => v.status === 'draft' || v.status === 'sent')
-
-  const now = new Date()
-  const dispute = await disputeFor(found.id)
-  const statement = await statementFor(found.id)
-
-  // La MEME fonction que le service : l'ecran ne peut pas proposer ce que le
-  // service refusera, ni le cacher quand il l'accepterait.
-  let disputable = true
-  try {
-    assertDisputable({
-      completedAt: found.completedAt,
-      committedLeadTimeDays: found.committedLeadTimeDays,
-      businessDaysUsed:
-        found.signedAt && found.completedAt
-          ? businessDaysSince(found.signedAt, found.completedAt)
-          : 0,
-      existing: dispute,
-      reason: 'placeholder',
-    })
-  } catch {
-    disputable = false
-  }
-
-  const issued = await issuedAgainstQuote(found.id)
-  const invoices = await db
-    .select({
-      id: invoice.id,
-      number: invoice.number,
-      type: invoice.type,
-      totalInclTax: invoice.totalInclTax,
-    })
-    .from(invoice)
-    .where(eq(invoice.quoteId, found.id))
-    .orderBy(invoice.number)
+  // La fin de chantier se declare des qu'une version signee fait foi — et non
+  // au statut du devis ouvert, qui peut etre un brouillon d'avenant.
+  const declarable = detail.reference !== null && completedAt === null
 
   return (
     <AppShell>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <Heading level={1}>Devis {found.number}</Heading>
+          <Heading level={1}>Devis {quote.number}</Heading>
           <Text size="sm" tone="soft">
-            {found.project.label} · {found.project.customer.name}
+            {project.label} · {project.customer.name}
           </Text>
           <Text size="sm" tone="muted">
-            {found.project.property.addressLine1}, {found.project.property.postalCode}{' '}
-            {found.project.property.city}
+            {project.property.addressLine1}, {project.property.postalCode} {project.property.city}
           </Text>
         </div>
-        {/*
-          La correspondance statut -> couleur vit desormais dans StatusBadge :
-          le STATUS_LABELS local qui la dupliquait a disparu.
-        */}
-        <StatusBadge kind="quote" status={found.status} testId="statut-devis" />
+        <StatusBadge kind="quote" status={quote.status} testId="statut-devis" />
       </div>
 
+      {/* Sans titre : c'est le devis lui-meme, pas une de ses etapes. */}
       <Card elevation="e1">
         <QuoteLinesTable lines={lines} />
         <div className="mt-6">
           <TotalsPanel totals={totals} />
         </div>
+        {quote.committedLeadTimeDays !== null && (
+          <div className="mt-6">
+            <Text size="sm" tone="soft">
+              Délai d’exécution engagé : {quote.committedLeadTimeDays} jours ouvrés.
+            </Text>
+          </div>
+        )}
       </Card>
 
-      {found.committedLeadTimeDays !== null && (
-        <Text size="sm" tone="soft">
-          Délai d’exécution engagé : {found.committedLeadTimeDays} jours ouvrés.
-        </Text>
-      )}
-
-      {found.status === 'draft' ? (
-        <div className="flex flex-wrap items-center gap-4">
-          <SendButton quoteId={found.id} />
-          <Link href={`/devis/${found.id}/modifier`} tone="bare">
-            <span className="text-sm">Modifier</span>
-          </Link>
-        </div>
-      ) : (
-        <Text size="sm" tone="soft">
-          Lien du client :{' '}
-          <Link href={`/d/${found.publicToken}`} testId="lien-public">
-            /d/{found.publicToken}
-          </Link>
-        </Text>
-      )}
-
-      {found.status === 'signed' && (
-        <InvoiceActions
-          quoteId={found.id}
-          remaining={format(remainingToInvoice(engagedTotal(versions), issued))}
-        />
-      )}
-
-      {reference !== null && found.completedAt === null && (
-        <CompleteButton quoteId={found.id} today={new Date().toISOString().slice(0, 10)} />
-      )}
-
-      {reference !== null && (
-        <Text size="sm" tone="soft">
-          <Link href={`/devis/${found.id}/chantier`}>Suivi de chantier</Link> — ce que voit votre
-          client.
-        </Text>
-      )}
-
-      {found.completedAt !== null && (
-        <Text size="sm" tone="soft">
-          Chantier terminé le {found.completedAt.toLocaleDateString('fr-FR')}
-          {found.completionSource === 'invoiced' ? ' (facture de solde émise)' : ' (déclaré)'}.
-        </Text>
-      )}
-
-      {found.completedAt !== null && (
-        <>
-          {disputable && <DisputeButton quoteId={found.id} />}
-          {dispute !== null && (
+      <Section title="Envoi et signature">
+        {quote.status === 'draft' ? (
+          <div className="flex flex-wrap items-center gap-4">
+            <SendButton quoteId={quote.id} />
+            <Link href={`/devis/${quote.id}/modifier`} tone="bare">
+              <span className="text-sm">Modifier</span>
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* La section porte « signature » : elle doit en dire la date des
+                qu'elle existe, sans obliger a deduire du badge de statut. */}
+            {quote.signedAt !== null && (
+              <Text size="sm" tone="soft">
+                Signé par {project.customer.name} le{' '}
+                <DateText value={quote.signedAt} format="short" />.
+              </Text>
+            )}
             <Text size="sm" tone="soft">
-              {DISPUTE_MESSAGES[disputeStanding(dispute, now)](dispute.expiresAt)}
+              Lien du client :{' '}
+              <Link href={`/d/${quote.publicToken}`} testId="lien-public">
+                /d/{quote.publicToken}
+              </Link>
+            </Text>
+          </>
+        )}
+      </Section>
+
+      {(quote.status === 'signed' || invoices.length > 0) && (
+        <Section title="Facturation">
+          {quote.status === 'signed' && (
+            <InvoiceActions quoteId={quote.id} remaining={format(detail.remaining)} />
+          )}
+          {invoices.length > 0 && <InvoiceList invoices={invoices} />}
+        </Section>
+      )}
+
+      {(completedAt !== null || declarable) && (
+        <Section title="Chantier">
+          {/*
+            Venu de M6·B, et loge ici plutot qu'entre deux blocs orphelins : le
+            fil de chantier est la premiere chose a ouvrir quand on vient voir
+            ou en est le chantier. Sa condition est celle d'origine —
+            `reference !== null` — et elle est comprise dans celle de la
+            section, si bien que le lien s'affiche exactement quand il
+            s'affichait avant.
+          */}
+          {detail.reference !== null && (
+            <Text size="sm" tone="soft">
+              <Link href={`/devis/${quote.id}/chantier`}>Suivi de chantier</Link> — ce que voit
+              votre client.
             </Text>
           )}
-          <StatementForm quoteId={found.id} existing={statement?.body ?? ''} />
-        </>
+
+          {/*
+            On n'intervient pas sur un devis qui n'engage personne : le
+            rendez-vous d'intervention suppose une signature.
+          */}
+          {detail.reference !== null && completedAt === null && (
+            <BookWorkForm quoteId={quote.id} />
+          )}
+
+          {completedAt !== null ? (
+            <Text size="sm" tone="soft">
+              Chantier terminé le <DateText value={completedAt} format="short" />
+              {quote.completionSource === 'invoiced' ? ' (facture de solde émise)' : ' (déclaré)'}.
+            </Text>
+          ) : (
+            <CompleteButton quoteId={quote.id} today={detail.now.toISOString().slice(0, 10)} />
+          )}
+
+          {completedAt !== null && (
+            <>
+              {detail.disputable && <DisputeButton quoteId={quote.id} />}
+              {dispute !== null && (
+                <Text size="sm" tone="soft">
+                  {DISPUTE_MESSAGES[disputeStanding(dispute, detail.now)](dispute.expiresAt)}
+                </Text>
+              )}
+              <StatementForm quoteId={quote.id} existing={statement?.body ?? ''} />
+            </>
+          )}
+        </Section>
       )}
 
-      {amendable && <AmendButton quoteId={found.id} />}
-
-      {versions.length > 1 && (
-        <section className="flex flex-col gap-3">
-          <Heading level={3} as="h2">
-            Versions de ce devis
-          </Heading>
-          <QuoteVersions versions={versions} currentId={found.id} />
-        </section>
-      )}
-
-      {invoices.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <Heading level={3} as="h2">
-            Factures émises
-          </Heading>
-          <ul className="flex flex-col gap-3">
-            {invoices.map((row) => (
-              <li key={row.id}>
-                <Link href={`/factures/${row.id}`} tone="bare">
-                  <Card elevation="e1">
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                      <Text size="sm" tone="muted" as="span">
-                        {row.number}
-                      </Text>
-                      <Text as="span">{TYPE_LABELS[row.type]}</Text>
-                      <span className="ml-auto">
-                        <Money cents={row.totalInclTax} emphasis="strong" />
-                      </span>
-                    </div>
-                  </Card>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {(detail.amendable || versions.length > 1) && (
+        <Section title="Versions">
+          {detail.amendable && <AmendButton quoteId={quote.id} />}
+          {versions.length > 1 && <QuoteVersions versions={versions} currentId={quote.id} />}
+        </Section>
       )}
 
       <div className="mt-2">

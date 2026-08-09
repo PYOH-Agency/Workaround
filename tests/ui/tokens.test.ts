@@ -51,8 +51,16 @@ function readBlock(selector: string): Record<string, string> {
   return out
 }
 
+/**
+ * Les blocs dont les valeurs doivent correspondre a `roles`.
+ *
+ * Le bloc clair est designe par `:root,` et non par `[data-theme='light'] {` :
+ * ce dernier apparait deux fois depuis que `color-scheme` a le sien, et
+ * `readBlock` prend la premiere correspondance. Viser le selecteur qui n'existe
+ * qu'une fois retire la dependance a l'ordre des regles.
+ */
 const BLOCKS: Record<Theme, string[]> = {
-  light: ["[data-theme='light'] {"],
+  light: [':root,'],
   dark: ["[data-theme='dark'] {", '@media (prefers-color-scheme: dark)'],
 }
 

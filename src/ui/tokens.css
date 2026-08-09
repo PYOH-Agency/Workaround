@@ -8,10 +8,10 @@
  * ce qui rend la bascule de theme instantanee sans dupliquer les utilitaires.
  *
  * Six roles sont volontairement identiques dans les deux blocs — voir
- * `THEME_INDEPENDENT` dans `tokens.ts`. La duplication entre
- * `[data-theme='dark']` et `prefers-color-scheme` est assumee :
- * `tests/ui/tokens.test.ts` verifie que les deux blocs restent identiques a
- * `roles.dark`.
+ * `THEME_INDEPENDENT` dans `tokens.ts`. La duplication entre le bloc pose sur
+ * l'attribut data-theme sombre et celui pose sur la preference systeme est
+ * assumee : `tests/ui/tokens.test.ts` verifie que les deux restent identiques
+ * a `roles.dark`.
  *
  * Les selecteurs ne sont volontairement pas ancres a `:root` : `PublicShell`
  * pose `data-theme="light"` sur un conteneur pour qu'un document ait la meme

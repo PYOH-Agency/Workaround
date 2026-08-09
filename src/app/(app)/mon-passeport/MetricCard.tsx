@@ -28,14 +28,24 @@ export function MetricCard({
   return (
     <Card elevation="e1">
       <div className="flex flex-col gap-1" data-testid={testId}>
-        <Text size="label" tone="muted">
+        {/*
+          Le titre de la carte est le **nom** de la metrique, pas son chiffre.
+          L'inverse — un `h2` portant « 87 % » — donnait un plan de document ou
+          la navigation par titres d'un lecteur d'ecran n'annoncait qu'une suite
+          de nombres nus. `Text as="h2"` garde l'apparence d'etiquette et rend la
+          semantique ; `Heading as="p"` garde la taille du chiffre sans en faire
+          un titre.
+        */}
+        <Text size="label" tone="muted" as="h2">
           {label}
         </Text>
 
         {rate.value === null ? (
           <Text tone="muted">Pas encore assez de données</Text>
         ) : (
-          <Heading level={2}>{rate.value} %</Heading>
+          <Heading level={2} as="p">
+            {rate.value} %
+          </Heading>
         )}
 
         {/* Toujours rendu, y compris sous le seuil. */}

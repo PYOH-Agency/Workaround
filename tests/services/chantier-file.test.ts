@@ -2,7 +2,7 @@ import { describe, it, expect, afterAll } from 'vitest'
 import { randomUUID } from 'node:crypto'
 import { eq } from 'drizzle-orm'
 import { db, connection } from '@/db/client'
-import { chantierPost, quote, signature } from '@/db/schema'
+import { appointment, chantierPost, quote, signature } from '@/db/schema'
 import { chantierFileFor, companyChantierFile } from '@/services/chantier-file'
 import { requesterFromSignature } from '@/services/requesters'
 import { createCompany, createProject, depositLines, signedQuote } from './invoice-fixtures'
@@ -133,5 +133,44 @@ describe('le meme dossier, cote entreprise', () => {
     const rival = await createCompany()
 
     expect(await companyChantierFile(rival, quoteId)).toBeNull()
+  })
+})
+
+describe('les rendez-vous du chantier', () => {
+  it('s inscrivent dans la chronologie que lit le client', async () => {
+    const { me, companyId, quoteId } = await chantier()
+    const [row] = await db.select().from(quote).where(eq(quote.id, quoteId))
+
+    await db.insert(appointment).values({
+      projectId: row.projectId,
+      companyId,
+      kind: 'work',
+      startsAt: new Date('2026-03-10T08:00:00Z'),
+      endsAt: new Date('2026-03-10T10:00:00Z'),
+    })
+
+    const file = await chantierFileFor(me.id, quoteId)
+
+    expect(file!.timeline.map((e) => e.kind)).toEqual(['quote_signed', 'appointment'])
+  })
+
+  it('n inscrivent PAS un rendez-vous annule', async () => {
+    // Le client ne doit pas voir promise une visite qui n'aura pas lieu.
+    const { me, companyId, quoteId } = await chantier()
+    const [row] = await db.select().from(quote).where(eq(quote.id, quoteId))
+
+    await db.insert(appointment).values({
+      projectId: row.projectId,
+      companyId,
+      kind: 'work',
+      startsAt: new Date('2026-03-10T08:00:00Z'),
+      endsAt: new Date('2026-03-10T10:00:00Z'),
+      status: 'cancelled',
+      cancelledAt: new Date(),
+    })
+
+    const file = await chantierFileFor(me.id, quoteId)
+
+    expect(file!.timeline.map((e) => e.kind)).toEqual(['quote_signed'])
   })
 })

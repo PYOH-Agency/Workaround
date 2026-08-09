@@ -31,6 +31,7 @@ export type TimelineKind =
   | 'invoice_balance'
   | 'invoice_credit_note'
   | 'payment'
+  | 'appointment'
   | 'completed'
   | 'post'
 
@@ -54,6 +55,8 @@ export interface ChantierFacts {
   }[]
   payments: { receivedAt: Date; amount: Cents }[]
   posts: { createdAt: Date; body: string; photoPaths: string[] }[]
+  /** Les rendez-vous EN COURS : un rendez-vous annule ne se promet pas. */
+  appointments: { at: Date }[]
 }
 
 const INVOICE_KINDS = {
@@ -75,6 +78,8 @@ const RANK: Record<TimelineKind, number> = {
   invoice_progress: 2,
   invoice_balance: 2,
   invoice_credit_note: 2,
+  // Un rendez-vous se prend avant qu'une facture ne parte.
+  appointment: 1,
   payment: 3,
   post: 4,
   completed: 5,
@@ -106,6 +111,10 @@ export function buildTimeline(facts: ChantierFacts): TimelineEntry[] {
       body: post.body,
       photoPaths: post.photoPaths,
     })
+  }
+
+  for (const meeting of facts.appointments) {
+    entries.push({ at: meeting.at, kind: 'appointment' })
   }
 
   if (facts.completedAt) entries.push({ at: facts.completedAt, kind: 'completed' })

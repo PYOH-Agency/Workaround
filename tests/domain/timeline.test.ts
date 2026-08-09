@@ -10,6 +10,7 @@ const bare = (overrides: Partial<ChantierFacts> = {}): ChantierFacts => ({
   invoices: [],
   payments: [],
   posts: [],
+  appointments: [],
   ...overrides,
 })
 
@@ -119,5 +120,24 @@ describe('ce que l artisan publie', () => {
       buildTimeline(facts).map((e) => e.kind),
     )
     expect(buildTimeline(facts).at(-1)!.kind).toBe('completed')
+  })
+})
+
+describe('les rendez-vous', () => {
+  it('s inscrivent a leur date', () => {
+    const entries = buildTimeline(
+      bare({
+        appointments: [{ at: d('2026-03-10T08:00:00Z') }],
+        completedAt: d('2026-04-20T17:00:00Z'),
+      }),
+    )
+
+    expect(entries.map((e) => e.kind)).toEqual(['quote_signed', 'appointment', 'completed'])
+  })
+
+  it('n inscrivent RIEN quand il n y en a pas', () => {
+    // Le service ne rend que les rendez-vous en cours : la chronologie du
+    // client ne doit pas lui promettre une visite qui n'aura pas lieu.
+    expect(buildTimeline(bare()).map((e) => e.kind)).toEqual(['quote_signed'])
   })
 })

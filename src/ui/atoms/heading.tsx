@@ -1,6 +1,15 @@
 import { cn } from '@/ui/cn'
 
 const LEVELS = {
+  /**
+   * Reserve a l'accroche d'une page d'acquisition, jamais a un ecran de travail.
+   *
+   * `display` est calibre pour un titre de document a 40 px : sur une page dont
+   * le seul travail est de convaincre, il a la taille d'un titre de formulaire.
+   * D'ou une variante plutot qu'un `unsafeClassName` — le systeme prevoit qu'on
+   * lui ajoute des variantes, pas qu'on le contourne.
+   */
+  hero: 'font-display font-extrabold text-[clamp(2.75rem,7vw,4.5rem)] leading-[0.95] tracking-[-0.035em]',
   display: 'font-display font-extrabold text-[2.5rem] leading-[2.75rem] tracking-[-0.03em]',
   1: 'font-display font-extrabold text-[2rem] leading-[2.375rem] tracking-[-0.025em]',
   2: 'font-display font-bold text-2xl leading-[1.875rem] tracking-[-0.02em]',
@@ -30,6 +39,7 @@ export function Heading({
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p'
   children: React.ReactNode
 }) {
-  const Tag = as ?? (level === 'display' ? 'h1' : (`h${level}` as 'h1' | 'h2' | 'h3'))
+  const Tag =
+    as ?? (level === 'hero' || level === 'display' ? 'h1' : (`h${level}` as 'h1' | 'h2' | 'h3'))
   return <Tag className={cn('text-ink', LEVELS[level])}>{children}</Tag>
 }

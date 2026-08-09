@@ -7,6 +7,10 @@ import { createAmendment } from '@/services/amendments'
 import { declareCompleted } from '@/services/completion'
 import { openDispute } from '@/services/disputes'
 import { saveStatement } from '@/services/statements'
+import { bookAppointment, conflictingAppointments } from '@/services/appointments'
+import { db } from '@/db/client'
+import { quote } from '@/db/schema'
+import { and, eq } from 'drizzle-orm'
 
 export interface AmendState {
   error?: string
@@ -111,4 +115,66 @@ export async function writeStatement(
 
   revalidatePath(`/devis/${quoteId}`)
   return { saved: true }
+}
+
+export interface BookWorkState {
+  error?: string
+  /** Les rendez-vous que celui-ci chevauche. On avertit, on n'interdit pas. */
+  conflicts?: { startsAt: string; endsAt: string; customerName: string }[]
+  booked?: boolean
+}
+
+/**
+ * Prend un rendez-vous d'intervention sur ce devis.
+ *
+ * Le chevauchement est **signale, jamais bloquant** : un artisan peut
+ * legitimement poser deux rendez-vous qui se croisent — un compagnon prend
+ * l'un, il passe en coup de vent sur l'autre. Bloquer le ferait mentir sur ses
+ * horaires, ou repartir vers son telephone.
+ */
+export async function bookWork(
+  quoteId: string,
+  _state: BookWorkState,
+  form: FormData,
+): Promise<BookWorkState> {
+  const { companyId } = await currentCompany()
+
+  try {
+    const startsAt = new Date(String(form.get('debut')))
+    const endsAt = new Date(String(form.get('fin')))
+    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
+      return { error: 'Créneau invalide.' }
+    }
+
+    const [found] = await db
+      .select({ projectId: quote.projectId })
+      .from(quote)
+      .where(and(eq(quote.id, quoteId), eq(quote.companyId, companyId)))
+    if (!found) return { error: 'Devis introuvable.' }
+
+    // Lus AVANT l'ecriture : apres, le rendez-vous se chevaucherait lui-meme.
+    const crossing = await conflictingAppointments(companyId, { startsAt, endsAt })
+
+    await bookAppointment({
+      companyId,
+      projectId: found.projectId,
+      kind: 'work',
+      startsAt,
+      endsAt,
+      note: String(form.get('note') ?? ''),
+    })
+
+    revalidatePath(`/devis/${quoteId}`)
+
+    return {
+      booked: true,
+      conflicts: crossing.map((item) => ({
+        startsAt: item.startsAt.toISOString(),
+        endsAt: item.endsAt.toISOString(),
+        customerName: item.customerName,
+      })),
+    }
+  } catch (e) {
+    return { error: (e as Error).message }
+  }
 }
