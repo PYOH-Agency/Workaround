@@ -8,10 +8,10 @@
  * ce qui rend la bascule de theme instantanee sans dupliquer les utilitaires.
  *
  * Six roles sont volontairement identiques dans les deux blocs — voir
- * `THEME_INDEPENDENT` dans `tokens.ts`. La duplication entre
- * `[data-theme='dark']` et `prefers-color-scheme` est assumee :
- * `tests/ui/tokens.test.ts` verifie que les deux blocs restent identiques a
- * `roles.dark`.
+ * `THEME_INDEPENDENT` dans `tokens.ts`. La duplication entre le bloc pose sur
+ * l'attribut data-theme sombre et celui pose sur la preference systeme est
+ * assumee : `tests/ui/tokens.test.ts` verifie que les deux restent identiques
+ * a `roles.dark`.
  */
 
 :root {
@@ -40,7 +40,46 @@
   --dq-on-danger: #FFFFFF;
 }
 
-:root[data-theme='dark'] {
+/**
+ * Le mode clair force sur un conteneur, et pas seulement sur la racine.
+ *
+ * `PublicShell` et `LandingShell` posent `data-theme="light"` sur une `div` :
+ * un document doit avoir la meme tete pour tout le monde et ressembler au PDF
+ * qu'il accompagne. Sans ce bloc, l'attribut ne correspond a aucun selecteur et
+ * la page suit la preference systeme — la promesse etait fausse.
+ */
+[data-theme='light'] {
+  --dq-surface: #F5F1E8;
+  --dq-card: #FDFCF8;
+  --dq-raised: #FFFFFF;
+  --dq-ink: #1C1714;
+  --dq-ink-soft: #4A4239;
+  --dq-ink-muted: #6B6357;
+  --dq-link: #9E3E14;
+  --dq-brand: #E2652B;
+  --dq-rule: #DCD4C4;
+  --dq-field: #8C8375;
+  --dq-ring: #C4501C;
+  --dq-primary: #1C1714;
+  --dq-on-primary: #F5F1E8;
+  --dq-conversion: #C4501C;
+  --dq-on-conversion: #FFFFFF;
+  --dq-verified: #3B5229;
+  --dq-verified-bg: #EDF1E4;
+  --dq-warning: #7A5C16;
+  --dq-warning-bg: #FBF3DF;
+  --dq-danger: #8E1B15;
+  --dq-danger-bg: #FBEAE8;
+  --dq-danger-solid: #9B1C1C;
+  --dq-on-danger: #FFFFFF;
+}
+
+/**
+ * Symetrique au bloc ci-dessus : un conteneur peut aussi forcer le sombre,
+ * pas seulement `:root`. Meme raison — un conteneur qui force un theme doit
+ * pouvoir le faire, ou qu'il vive dans l'arbre.
+ */
+[data-theme='dark'] {
   --dq-surface: #14110E;
   --dq-card: #1F1A16;
   --dq-raised: #2A2320;

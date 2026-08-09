@@ -44,8 +44,8 @@ function readBlock(selector: string): Record<string, string> {
 }
 
 const BLOCKS: Record<Theme, string[]> = {
-  light: [':root {'],
-  dark: [":root[data-theme='dark']", '@media (prefers-color-scheme: dark)'],
+  light: [':root {', "[data-theme='light']"],
+  dark: ["[data-theme='dark']", '@media (prefers-color-scheme: dark)'],
 }
 
 describe('parite tokens.ts <-> tokens.css', () => {

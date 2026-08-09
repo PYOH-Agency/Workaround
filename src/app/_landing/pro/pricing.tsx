@@ -6,7 +6,8 @@ export function Pricing() {
   return (
     <section className="border-y border-rule bg-card">
       <div className="mx-auto w-full max-w-5xl px-6 py-16">
-        <div className="flex flex-col gap-6">
+        {/* Meme reglage qu'a l'accroche : pleine largeur sur telephone, ajuste ensuite. */}
+        <div className="flex flex-col gap-6 sm:items-start">
           <SectionHeader
             label="Ce que ça coûte"
             title="L’outil est gratuit. Pour toujours."

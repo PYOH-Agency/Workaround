@@ -21,7 +21,12 @@ export function Hero() {
               minutes. Et une page publique qui prouve que votre assurance est à jour.
             </Text>
           </div>
-          <div className="flex flex-col gap-2">
+          {/*
+            `sm:items-start` : pleine largeur sur telephone, ou un bouton qui
+            barre l'ecran se vise sans regarder ; ajuste a son texte des qu'il y
+            a de la place, un appel a l'action de 1 200 px ne ressemblant a rien.
+          */}
+          <div className="flex flex-col gap-2 sm:items-start">
             <ButtonLink href={ONBOARDING_HREF} size="lg">
               Commencer
             </ButtonLink>
