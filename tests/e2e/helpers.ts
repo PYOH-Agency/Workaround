@@ -70,3 +70,18 @@ export async function smsCodeFor(phone: string): Promise<string> {
   )
   return extract(body, /\b(\d{6})\b/, 'le code à six chiffres')
 }
+
+/**
+ * Le lien d'arbitrage adresse au client.
+ *
+ * Il ne rend que le chemin : le message porte l'adresse de production, et le
+ * parcours peut tourner sur un autre port. Naviguer sur l'hote du message
+ * testerait l'application d'a cote — le piege s'est deja referme une fois.
+ */
+export async function disputePathFor(email: string): Promise<string> {
+  const body = await waitForMail(
+    (mail) => mail.To.some((to) => to.Address === email) && /Une question sur/.test(mail.Subject),
+    `demande d'arbitrage pour ${email}`,
+  )
+  return `/c/${extract(body, /\/c\/([A-Za-z0-9_-]+)/, 'le jeton d’arbitrage')}`
+}
