@@ -1,9 +1,15 @@
+import { eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
+import { db } from '@/db/client'
+import { company } from '@/db/schema'
+import { companySlug } from '@/domain/slug'
 import { currentCompany, SessionError } from '@/lib/session'
 import { companyMetrics } from '@/services/passport-metrics'
 import { companyQuoteLeadTime } from '@/services/quote-lead-time'
 import { disputesInReview } from '@/services/disputes'
+import { companyCoverage } from '@/services/visibility'
 import { Heading } from '@/ui/atoms/heading'
+import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { AppShell } from '@/ui/shells/app-shell'
@@ -32,9 +38,24 @@ export default async function PassportPage() {
   }
 
   const now = new Date()
-  const metrics = await companyMetrics(session.companyId, now)
-  const disputes = await disputesInReview(session.companyId, now)
-  const quoteLeadTime = await companyQuoteLeadTime(session.companyId, now)
+  const [metrics, disputes, quoteLeadTime, coverage, [profile]] = await Promise.all([
+    companyMetrics(session.companyId, now),
+    disputesInReview(session.companyId, now),
+    companyQuoteLeadTime(session.companyId, now),
+    companyCoverage(session.companyId, now),
+    db
+      .select({ legalName: company.legalName, siret: company.siret })
+      .from(company)
+      .where(eq(company.id, session.companyId))
+      .limit(1),
+  ])
+
+  // `/artisan/` et non `passportUrl()`, qui rend l'adresse `/p/` : ce detour
+  // existe pour **compter** une consultation. L'artisan qui relit sa propre
+  // fiche gonflerait la metrique qu'il est justement venu verifier.
+  const publicUrl = coverage.isPublic
+    ? `/artisan/${companySlug(profile.legalName, profile.siret)}`
+    : null
 
   return (
     <AppShell>
@@ -45,6 +66,30 @@ export default async function PassportPage() {
             <strong>Il n’est pas encore public.</strong> Vous le voyez avant tout le monde, pour
             pouvoir le vérifier — et nous dire s’il vous semble faux.
           </Text>
+        </Card>
+        <Card elevation="flat">
+          <div className="flex flex-col gap-2" data-testid="fiche-publique">
+            {publicUrl ? (
+              <>
+                <Text size="sm" tone="soft">
+                  Votre fiche est visible dans l’annuaire. Voici ce qu’un client y voit.
+                </Text>
+                <Link href={publicUrl} newTab testId="voir-fiche-publique">
+                  Voir ma fiche publique
+                </Link>
+              </>
+            ) : (
+              <>
+                <Text size="sm" tone="soft">
+                  Aucune de vos activités n’est couverte : vous n’apparaissez pas encore dans
+                  l’annuaire.
+                </Text>
+                <Link href="/verification" testId="completer-verification">
+                  Voir ce qu’il manque
+                </Link>
+              </>
+            )}
+          </div>
         </Card>
       </div>
 
