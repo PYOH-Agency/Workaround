@@ -17,6 +17,7 @@ import { SendButton } from './SendButton'
 import { InvoiceActions } from './InvoiceActions'
 import { AmendButton } from './AmendButton'
 import { CompleteButton } from './CompleteButton'
+import { BookWorkForm } from './BookWorkForm'
 import { QuoteVersions } from './QuoteVersions'
 import { DisputeButton } from './DisputeButton'
 import { StatementForm } from './StatementForm'
@@ -158,6 +159,14 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
               <Link href={`/devis/${quote.id}/chantier`}>Suivi de chantier</Link> — ce que voit
               votre client.
             </Text>
+          )}
+
+          {/*
+            On n'intervient pas sur un devis qui n'engage personne : le
+            rendez-vous d'intervention suppose une signature.
+          */}
+          {detail.reference !== null && completedAt === null && (
+            <BookWorkForm quoteId={quote.id} />
           )}
 
           {completedAt !== null ? (
