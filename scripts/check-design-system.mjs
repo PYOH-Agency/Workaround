@@ -39,6 +39,11 @@ const INVENTORY = {
     'Field', 'Card', 'StatusBadge', 'SealBadge', 'LogoLockup', 'EmptyState',
     'Toast', 'Tooltip', 'ButtonGroup', 'SummaryLine', 'Dialog', 'ThemeToggle',
     'SectionHeader', 'StepCard', 'Reveal', 'Stagger', 'RevealTick',
+    // La navigation doit connaitre la page courante, et un composant serveur ne
+    // peut pas lire l'URL. L'isoler garde `AppHeader` cote serveur au lieu d'y
+    // verser `Lockup` et `Text` pour un seul `usePathname()`. Molecule et non
+    // organisme : elle ne compose que des atomes.
+    'AppNav',
   ],
   organisms: [
     'AppHeader', 'QuoteTable', 'QuoteLineEditor', 'QuoteLinesTable', 'TotalsPanel',
