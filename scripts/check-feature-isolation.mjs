@@ -19,13 +19,23 @@ const IMPORT = /\b(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g
 
 /**
  * La fonctionnalite a laquelle appartient un chemin : le premier segment sous
- * `src/app` qui ne soit pas un groupe de routes. `src/app/layout.tsx` n'en a
- * aucune, `src/app/(app)/devis/[id]/page.tsx` appartient a `devis`.
+ * `src/app` qui ne soit ni un groupe de routes, ni un dossier prive.
+ *
+ * `src/app/layout.tsx` n'en a aucune, `src/app/(app)/devis/[id]/page.tsx`
+ * appartient a `devis`.
+ *
+ * Les dossiers prives — prefixe `_`, convention Next pour du code colocalise
+ * non routable — sont ignores au meme titre que les groupes de routes : ils ne
+ * sont pas des routes, donc ne definissent aucune frontiere. Sans cela,
+ * `src/app/verifier/page.tsx` important `src/app/_landing/verifier/hero.tsx`
+ * paraissait franchir une frontiere alors que les deux decrivent le meme ecran.
  */
+const NOT_A_FEATURE = /^[(_]/
+
 function featureOf(modulePath) {
   if (!modulePath.startsWith(APP)) return null
   const directories = modulePath.slice(APP.length).split('/').slice(0, -1)
-  const [feature] = directories.filter((segment) => !/^\(.*\)$/.test(segment))
+  const [feature] = directories.filter((segment) => !NOT_A_FEATURE.test(segment))
   return feature ?? null
 }
 
