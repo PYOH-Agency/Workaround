@@ -120,15 +120,19 @@ La boucle **vérification → visibilité** se ferme : l'artisan voit ce qui lui
 
 ## 6. Tests
 
+Vitest tourne en environnement `node`, sans jsdom : `tests/ui/status-badge.test.ts` le constate déjà — *« Le rendu n'est pas testable en environnement `node`, mais la table de correspondance l'est — et c'est elle qui porte le risque. »* La logique de navigation vit donc dans un `.ts` sans import React, testable sans ajouter de dépendance.
+
 | Ce qui est vérifié | Où |
 |---|---|
-| Cinq entrées, `aria-current` sur la bonne | Test de rendu `AppNav` |
-| `/devis/42/chantier` allume Devis | Test de rendu `AppNav` |
-| Rien ne rend sous `/supervision` | Test de rendu `AppNav` |
-| `/verification` s'atteint **par la navigation**, non par une URL en dur | `tests/e2e/verification-journey.spec.ts` |
+| Cinq entrées, dans l'ordre, sans préfixe recouvrant | `tests/ui/app-nav.test.ts` |
+| `/devis/42/chantier` allume Devis, `/devis-types` non | `tests/ui/app-nav.test.ts` |
+| `showsNav` est faux sous `/supervision` et `/attestations` | `tests/ui/app-nav.test.ts` |
+| `/verification` s'atteint **par la navigation**, avec `aria-current` | `tests/e2e/verification-journey.spec.ts` |
+| Le backoffice n'affiche aucune navigation d'artisan | `tests/e2e/verification-journey.spec.ts` |
+| Le passeport pointe vers `/artisan/`, jamais vers `/p/` | `tests/e2e/verification-journey.spec.ts` |
 | L'inventaire accepte `AppNav` | `pnpm check:ds`, dans `pnpm validate` |
 
-Le parcours e2e est le garde-fou qui compte. Un test de rendu prouve que le lien existe ; seul un parcours qui **navigue** prouve que l'écran est atteignable — et c'est la propriété dont l'absence a produit ce défaut.
+Le parcours e2e est le garde-fou qui compte. Un test unitaire prouve que la règle est juste ; seul un parcours qui **navigue** prouve que l'écran est atteignable — et c'est la propriété dont l'absence a produit ce défaut.
 
 ## 7. Ce que cette spec ne fait pas
 
