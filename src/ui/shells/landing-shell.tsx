@@ -30,10 +30,15 @@ export function LandingShell({
   audience: 'pro' | 'demandeur'
   children: React.ReactNode
 }) {
+  /**
+   * Espace insecable avant le point d'interrogation — l'usage francais, et ici
+   * une necessite de mise en page : a 375 px la question tient sur deux lignes
+   * et le « ? » se retrouvait seul sur la seconde, en haut de la page.
+   */
   const cross =
     audience === 'pro'
-      ? { question: 'Vous êtes un particulier ?', label: 'Vérifier un artisan', href: '/verifier' }
-      : { question: 'Vous êtes artisan ?', label: 'Créer mon compte', href: '/' }
+      ? { question: 'Vous êtes un particulier ?', label: 'Vérifier un artisan', href: '/verifier' }
+      : { question: 'Vous êtes artisan ?', label: 'Créer mon compte', href: '/' }
 
   return (
     <div data-theme="light" className="flex min-h-full flex-1 flex-col bg-surface">

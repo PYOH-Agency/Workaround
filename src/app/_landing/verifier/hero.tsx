@@ -22,7 +22,7 @@ export function Hero() {
           </div>
           <SiretLookup
             tone="conversion"
-            label="SIRET de l'entreprise"
+            label="SIRET de l’entreprise"
             cta="Vérifier"
             hint="Gratuit, sans compte. Le SIRET figure sur son devis."
           />
