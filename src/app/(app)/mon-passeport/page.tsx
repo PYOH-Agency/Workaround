@@ -53,9 +53,15 @@ export default async function PassportPage() {
   // `/artisan/` et non `passportUrl()`, qui rend l'adresse `/p/` : ce detour
   // existe pour **compter** une consultation. L'artisan qui relit sa propre
   // fiche gonflerait la metrique qu'il est justement venu verifier.
-  const publicUrl = coverage.isPublic
-    ? `/artisan/${companySlug(profile.legalName, profile.siret)}`
-    : null
+  //
+  // `profile` est garanti par la cle etrangere que `member` porte vers
+  // `company`, mais tous les `.limit(1)` du depot gardent ce cas — et ici le
+  // repli est gratuit : sans ligne, pas de lien, et l'artisan lit a la place
+  // ce qui lui manque pour etre visible.
+  const publicUrl =
+    coverage.isPublic && profile
+      ? `/artisan/${companySlug(profile.legalName, profile.siret)}`
+      : null
 
   return (
     <AppShell>
