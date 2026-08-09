@@ -168,6 +168,13 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
         <CompleteButton quoteId={found.id} today={new Date().toISOString().slice(0, 10)} />
       )}
 
+      {reference !== null && (
+        <Text size="sm" tone="soft">
+          <Link href={`/devis/${found.id}/chantier`}>Suivi de chantier</Link> — ce que voit votre
+          client.
+        </Text>
+      )}
+
       {found.completedAt !== null && (
         <Text size="sm" tone="soft">
           Chantier terminé le {found.completedAt.toLocaleDateString('fr-FR')}

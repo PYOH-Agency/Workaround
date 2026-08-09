@@ -31,6 +31,10 @@ const INVENTORY = {
   organisms: [
     'AppHeader', 'QuoteTable', 'QuoteLineEditor', 'QuoteLinesTable', 'TotalsPanel',
     'VatBreakdown', 'LegalMentionsPanel', 'PaymentTimeline', 'SignaturePanel',
+    // Ajoute en M6·B : le client et l'entreprise lisent la MEME chronologie.
+    // La loger dans l'un des deux ecrans obligerait l'autre a importer une
+    // fonctionnalite voisine, ce que l'autonomie des fonctionnalites interdit.
+    'ChantierTimeline',
   ],
   shells: ['AppShell', 'PublicShell', 'PdfShell', 'SpaceShell'],
   brand: ['Mark', 'Seal', 'Lockup'],

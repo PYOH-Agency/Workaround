@@ -3,12 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { eq } from 'drizzle-orm'
 import { db, connection } from '@/db/client'
 import { chantierPhoto, quote } from '@/db/schema'
-import {
-  MAX_PHOTOS,
-  MAX_POST_LENGTH,
-  publishPost,
-  signedPhotoUrls,
-} from '@/services/chantier-posts'
+import { MAX_PHOTOS, MAX_POST_LENGTH } from '@/domain/timeline'
+import { publishPost, signedPhotoUrls } from '@/services/chantier-posts'
 import { lateChantier } from './dispute-fixtures'
 
 afterAll(async () => {

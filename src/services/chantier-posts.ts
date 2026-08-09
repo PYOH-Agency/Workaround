@@ -1,20 +1,10 @@
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { chantierPhoto, chantierPost, quote } from '@/db/schema'
+import { MAX_PHOTOS, MAX_POST_LENGTH } from '@/domain/timeline'
 import { rootQuoteId } from '@/services/amendments'
 import { recordEvent } from '@/services/events'
 import { createServiceSupabase } from '@/lib/supabase-server'
-
-/** Un message de chantier, lu par un particulier. Au-dela, c'est un rapport. */
-export const MAX_POST_LENGTH = 500
-
-/**
- * Quatre photos par publication.
- *
- * La borne n'est pas technique : sans elle le fil devient un album, c'est-a-dire
- * un autre produit — avec sa conservation, sa moderation et ses attentes.
- */
-export const MAX_PHOTOS = 4
 
 const SIGNED_URL_SECONDS = 300
 

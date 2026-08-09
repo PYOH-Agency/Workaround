@@ -4,6 +4,14 @@ import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 
 /**
+ * La chronologie d'un chantier, rendue a l'identique des DEUX cotes.
+ *
+ * Elle vit dans le design system et non dans l'un des deux ecrans : le client
+ * et l'entreprise doivent lire la meme chose, et un composant loge d'un cote
+ * obligerait l'autre a importer une fonctionnalite voisine — ce que
+ * l'autonomie des fonctionnalites interdit, a raison : deux copies
+ * divergeraient.
+ *
  * Le domaine rend un `kind` ; l'ecran le traduit.
  *
  * Le francais vit ici parce que le libelle s'accompagne d'un montant formate,
@@ -22,7 +30,7 @@ const LABELS: Record<TimelineKind, string> = {
   post: '',
 }
 
-export function Timeline({
+export function ChantierTimeline({
   entries,
   photoUrls,
 }: {

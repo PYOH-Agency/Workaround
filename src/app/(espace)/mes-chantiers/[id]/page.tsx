@@ -8,7 +8,7 @@ import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { SpaceShell } from '@/ui/shells/space-shell'
-import { Timeline } from './Timeline'
+import { ChantierTimeline } from '@/ui/organisms/chantier-timeline'
 import { Guarantees } from './Guarantees'
 
 /**
@@ -50,7 +50,7 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
         <Heading level={3} as="h2">
           Suivi
         </Heading>
-        <Timeline entries={file.timeline} photoUrls={photoUrls} />
+        <ChantierTimeline entries={file.timeline} photoUrls={photoUrls} />
       </section>
 
       <Guarantees

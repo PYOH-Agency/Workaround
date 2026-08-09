@@ -12,6 +12,17 @@ import type { Cents } from './money'
  * Rien n'est stocke : la chronologie se recalcule a chaque lecture, comme la
  * visibilite de M3, le classement de M4 et les metriques de M5.
  */
+/** Un message de chantier, lu par un particulier. Au-dela, c'est un rapport. */
+export const MAX_POST_LENGTH = 500
+
+/**
+ * Quatre photos par publication.
+ *
+ * La borne n'est pas technique : sans elle le fil devient un album, c'est-a-dire
+ * un autre produit — avec sa conservation, sa moderation et ses attentes.
+ */
+export const MAX_PHOTOS = 4
+
 export type TimelineKind =
   | 'quote_signed'
   | 'amendment_signed'
