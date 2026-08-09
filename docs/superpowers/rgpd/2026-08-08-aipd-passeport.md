@@ -360,7 +360,7 @@ La dernière ligne est celle qu'on oublie. Une métrique dont la définition n'e
 
 | # | Chantier | Échéance |
 |---|---|---|
-| 1 | Information du client sur son rôle de témoin (`/confidentialite` + écran de signature) | **Avant M5** |
+| 1 | Information du client sur son rôle de témoin (`/confidentialite` + écran de signature) | ~~Avant M5~~ — **fait le 2026-08-09 (M6·A)**, avec retard : le passeport a été calculé en M5 avant que le client ne soit informé |
 | 2 | Avis des premiers artisans inscrits, consigné ici | **Avant la première publication** |
 | 3 | Préavis, explication et recours humain sur toute suspension de visibilité | **M3** |
 | 4 | Contestation d'événement, événement rectificatif, déclaration complémentaire | **M5** |

@@ -32,7 +32,7 @@ const INVENTORY = {
     'AppHeader', 'QuoteTable', 'QuoteLineEditor', 'QuoteLinesTable', 'TotalsPanel',
     'VatBreakdown', 'LegalMentionsPanel', 'PaymentTimeline', 'SignaturePanel',
   ],
-  shells: ['AppShell', 'PublicShell', 'PdfShell'],
+  shells: ['AppShell', 'PublicShell', 'PdfShell', 'SpaceShell'],
   brand: ['Mark', 'Seal', 'Lockup'],
 }
 

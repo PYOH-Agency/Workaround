@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 const sendMail = vi.hoisted(() => vi.fn())
 vi.mock('nodemailer', () => ({ createTransport: () => ({ sendMail }) }))
 
-const { sendQuoteLink } = await import('@/services/email')
+const { sendQuoteLink, sendSignatureReceipt } = await import('@/services/email')
 
 afterEach(() => vi.clearAllMocks())
 
@@ -44,5 +44,24 @@ describe('courriel de devis', () => {
     expect(mail.html).not.toContain('Vérifier les assurances')
     // Le devis, lui, part toujours.
     expect(mail.text).toContain(QUOTE.link)
+  })
+})
+
+describe('confirmation de signature', () => {
+  it('mene au dossier, sans annoncer d’etape supplementaire', async () => {
+    // Le compte a ete cree par la signature : proposer d'en creer un ici
+    // laisserait croire qu'il reste quelque chose a faire.
+    await sendSignatureReceipt({
+      to: 'paul@client.test',
+      customerName: 'Paul Martin',
+      companyName: 'GARANCE PLOMBERIE',
+      quoteNumber: 'D2026-0001',
+      spaceUrl: 'https://dequerre.test/mes-logements',
+    })
+
+    const mail = sent()
+    expect(mail.text).toContain('https://dequerre.test/mes-logements')
+    expect(mail.html).toContain('href="https://dequerre.test/mes-logements"')
+    expect(mail.text).not.toMatch(/(choisir|créer|définir) (un |votre )?mot de passe/i)
   })
 })

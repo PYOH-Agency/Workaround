@@ -19,6 +19,7 @@ import { requestTimestamp } from '@/services/timestamp'
 import { sendSms } from '@/services/sms'
 import { recordEvent } from '@/services/events'
 import { requesterFromSignature } from '@/services/requesters'
+import { sendSignatureReceipt } from '@/services/email'
 import { createServiceSupabase } from '@/lib/supabase-server'
 
 export interface SignState {
@@ -155,6 +156,23 @@ export async function signQuote(token: string, _state: SignState, form: FormData
     actorId: found.customer.id,
     payload: { documentHash: hash, timestamped: timestampToken !== null },
   })
+
+  // Hors du chemin critique, et c'est pourquoi le `try/catch` est justifie ici
+  // alors qu'il ne l'etait pas a la creation du compte : la signature est DEJA
+  // ecrite, archivee et horodatee. L'annuler pour un defaut de messagerie
+  // detruirait une preuve pour rien — et le compte existe de toute facon, la
+  // personne peut se connecter seule.
+  try {
+    await sendSignatureReceipt({
+      to: proof.signerEmail,
+      customerName: proof.signerName,
+      companyName: found.company.legalName,
+      quoteNumber: found.number,
+      spaceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/mes-logements`,
+    })
+  } catch {
+    // Sans consequence : le dossier reste accessible par la connexion.
+  }
 
   revalidatePath(`/d/${token}`)
   return { signed: true }
