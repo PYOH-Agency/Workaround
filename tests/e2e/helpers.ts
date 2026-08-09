@@ -100,3 +100,11 @@ export async function disputePathFor(email: string): Promise<string> {
   )
   return `/c/${extract(body, /\/c\/([A-Za-z0-9_-]+)/, 'le jeton d’arbitrage')}`
 }
+
+/** Attend la confirmation de signature adressee au client. */
+export async function signatureReceiptFor(email: string): Promise<string> {
+  return waitForMail(
+    (mail) => mail.To.some((to) => to.Address === email) && /est signé/.test(mail.Subject),
+    `confirmation de signature pour ${email}`,
+  )
+}

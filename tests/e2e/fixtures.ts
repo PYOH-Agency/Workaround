@@ -15,7 +15,7 @@ import { load, userIdFor } from './fixtures-db'
  * Le devis porte deux taux de TVA : un acompte sur devis mono-taux ne
  * revelerait jamais une erreur de ventilation.
  */
-export async function signedQuoteFor(email: string) {
+export async function quoteFor(email: string, status: 'draft' | 'signed' = 'signed') {
   const { db, schema } = await load()
   const { company, customer, member, project, property, quote, quoteLine } = schema
 
@@ -56,7 +56,14 @@ export async function signedQuoteFor(email: string) {
 
   const [customerRow] = await db
     .insert(customer)
-    .values({ companyId: companyRow.id, name: 'Paul Martin', email: 'client-m2@test.local' })
+    .values({
+      companyId: companyRow.id,
+      name: 'Paul Martin',
+      email: 'client-m2@test.local',
+      // Obligatoire a l'envoi : il porte l'identification du signataire par SMS.
+      // Son absence rendait ce raccourci inutilisable pour un devis a envoyer.
+      phone: '0612345678',
+    })
     .returning()
 
   const [propertyRow] = await db
@@ -86,14 +93,17 @@ export async function signedQuoteFor(email: string) {
       projectId: projectRow.id,
       companyId: companyRow.id,
       number: 'D2026-0001',
-      status: 'signed',
+      status,
       committedLeadTimeDays: 5,
       totalExclTax: 91000,
       totalTax: 9700,
       totalInclTax: 100700,
       publicToken: randomUUID(),
-      sentAt: new Date(),
-      signedAt: new Date(),
+      // Un brouillon n'a ete ni envoye ni signe : c'est l'etat depuis lequel
+      // l'artisan peut encore adresser le devis a son client, et donc le seul
+      // depuis lequel la signature passe reellement par l'ecran.
+      sentAt: status === 'signed' ? new Date() : null,
+      signedAt: status === 'signed' ? new Date() : null,
     })
     .returning()
 
@@ -119,6 +129,8 @@ export async function signedQuoteFor(email: string) {
   return quoteRow
 }
 
+/** L'etat de depart des parcours de M2 et M5, ou la signature est deja acquise. */
+export const signedQuoteFor = (email: string) => quoteFor(email, 'signed')
 
 /**
  * Cree l'entreprise de l'artisan connecte et lui declare des activites.
