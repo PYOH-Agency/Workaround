@@ -16,6 +16,7 @@ const kept = (overrides: Partial<CompletedChantier> = {}): CompletedChantier => 
   committedLeadTimeDays: 10,
   initialTotalInclTax: 100000,
   invoicedInclTax: 100000,
+  dispute: null,
   ...overrides,
 })
 
@@ -119,5 +120,80 @@ describe('fenetre glissante', () => {
 
     expect(metrics.completed.window).toBe(10)
     expect(metrics.completed.total).toBe(11)
+  })
+})
+
+describe('contestation du delai', () => {
+  const openUntil = (days: number) => ({
+    expiresAt: new Date(NOW.getTime() + days * 86_400_000),
+    verdict: null,
+  })
+
+  const late = (overrides: Partial<CompletedChantier> = {}) =>
+    kept({ signedAt: daysAgo(40), completedAt: daysAgo(1), committedLeadTimeDays: 5, ...overrides })
+
+  it('sort du taux le chantier en cours d instruction', () => {
+    // Article 18 : pendant l'instruction, le chiffre dispute ne s'affiche pas.
+    const chantiers = [...many(10), late({ dispute: openUntil(7) })]
+    const metrics = computeMetrics(chantiers, NOW)
+
+    expect(metrics.leadTimeRespect.volume).toBe(10)
+    expect(metrics.leadTimeRespect.value).toBe(100)
+  })
+
+  it('y ramene le chantier quand le delai passe sans reponse', () => {
+    // La meme contestation, quinze jours plus tard : le silence n'a rien gagne.
+    const chantiers = [...many(10), late({ dispute: openUntil(-1) })]
+    const metrics = computeMetrics(chantiers, NOW)
+
+    expect(metrics.leadTimeRespect.volume).toBe(11)
+    expect(metrics.leadTimeRespect.value).toBe(91)
+  })
+
+  it('sort du taux le chantier dont la contestation est retenue', () => {
+    const chantiers = [...many(10), late({ dispute: { expiresAt: daysAgo(1), verdict: 'upheld' } })]
+
+    expect(computeMetrics(chantiers, NOW).leadTimeRespect.volume).toBe(10)
+  })
+
+  it('ne compte JAMAIS un chantier retenu comme respecte', () => {
+    // Le client a dit que le retard n'etait pas imputable a l'artisan. Il n'a
+    // pas dit qu'il etait dans les temps : le compter comme tenu inventerait
+    // un fait.
+    const chantiers = [...many(9), late({ dispute: { expiresAt: daysAgo(1), verdict: 'upheld' } })]
+    const metrics = computeMetrics(chantiers, NOW)
+
+    // Neuf chantiers seulement : sous le seuil, donc aucun taux.
+    expect(metrics.leadTimeRespect.volume).toBe(9)
+    expect(metrics.leadTimeRespect.value).toBeNull()
+  })
+
+  it('garde le chantier dans le taux quand le client donne tort', () => {
+    const chantiers = [
+      ...many(10),
+      late({ dispute: { expiresAt: daysAgo(1), verdict: 'rejected' } }),
+    ]
+
+    expect(computeMetrics(chantiers, NOW).leadTimeRespect.volume).toBe(11)
+  })
+
+  it('n a AUCUN effet sur l ecart devis vers facture', () => {
+    // La correction n° 1 du plan, verifiee : une contestation du delai ne doit
+    // rien pouvoir changer a une soustraction entre deux montants signes.
+    const overrun = late({ invoicedInclTax: 200000, dispute: openUntil(7) })
+    const metrics = computeMetrics([...many(9), overrun], NOW)
+
+    expect(metrics.quoteToInvoiceGap.volume).toBe(10)
+    expect(metrics.quoteToInvoiceGap.value).toBe(90)
+  })
+
+  it('laisse le chantier conteste dans le volume de chantiers termines', () => {
+    // Ce qui rend le mecanisme auto-limitant : le compteur ne bouge pas, seul
+    // le volume du taux baisse. Contester beaucoup se VOIT.
+    const chantiers = [...many(10), late({ dispute: openUntil(7) })]
+    const metrics = computeMetrics(chantiers, NOW)
+
+    expect(metrics.completed.window).toBe(11)
+    expect(metrics.leadTimeRespect.volume).toBe(10)
   })
 })

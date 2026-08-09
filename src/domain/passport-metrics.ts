@@ -1,5 +1,6 @@
 import type { Cents } from './money'
 import { businessDaysSince } from './business-days'
+import { disputeStanding, type Dispute } from './dispute'
 
 /**
  * Les metriques du passeport.
@@ -26,6 +27,15 @@ export interface CompletedChantier {
   initialTotalInclTax: Cents
   /** Le total facture, avoirs deduits, avenants compris. */
   invoicedInclTax: Cents
+  /**
+   * La contestation du delai, ou `null`.
+   *
+   * **Elle ne porte que sur le delai.** L'ecart devis → facture est une
+   * soustraction entre deux montants tous deux signes par le client : aucun
+   * arbitrage ne peut la deplacer, et le laisser contester ramenerait le taux
+   * a 100 % pour quiconque a fait signer un avenant.
+   */
+  dispute: Dispute | null
 }
 
 /**
@@ -66,6 +76,29 @@ function withinWindow(chantier: CompletedChantier, now: Date): boolean {
   return chantier.completedAt >= start
 }
 
+/**
+ * Le delai de ce chantier est-il mesurable ?
+ *
+ * Trois cas le rendent immesurable, et tous trois pour la meme raison — rien
+ * ne permet d'affirmer que l'artisan etait dans les temps :
+ *
+ *   - aucun delai engage : il n'y a rien a comparer ;
+ *   - contestation en instruction : la mesure est suspendue (article 18) ;
+ *   - contestation retenue : le client a dit que le retard n'etait pas
+ *     imputable a l'artisan — pas qu'il avait tenu son delai.
+ *
+ * Le chantier sort donc du taux, numerateur ET denominateur. Il reste compte
+ * dans le volume de chantiers termines : c'est ce qui rend la contestation
+ * auto-limitante, puisque contester beaucoup fait decrocher le volume du taux
+ * de celui des chantiers, a la vue de tous.
+ */
+function leadTimeMeasured(chantier: CompletedChantier, now: Date): boolean {
+  if (chantier.committedLeadTimeDays === null) return false
+  if (chantier.dispute === null) return true
+
+  return disputeStanding(chantier.dispute, now) === 'settled'
+}
+
 export function computeMetrics(chantiers: CompletedChantier[], now: Date): Metrics {
   // La fenetre est appliquee ICI, dans le calcul. Les evenements vivent dix ans
   // au titre de l'obligation comptable ; les lire au-dela serait une faute que
@@ -74,9 +107,7 @@ export function computeMetrics(chantiers: CompletedChantier[], now: Date): Metri
 
   const onBudget = recent.filter((c) => c.invoicedInclTax <= c.initialTotalInclTax)
 
-  // Sans engagement declare, il n'y a rien a comparer : compter le chantier
-  // comme tenu flatterait, le compter comme manque punirait.
-  const withCommitment = recent.filter((c) => c.committedLeadTimeDays !== null)
+  const withCommitment = recent.filter((c) => leadTimeMeasured(c, now))
   const onTime = withCommitment.filter(
     (c) => businessDaysSince(c.signedAt, c.completedAt) <= c.committedLeadTimeDays!,
   )
