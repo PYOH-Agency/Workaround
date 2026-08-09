@@ -90,6 +90,20 @@ test('de l’acompte au solde réglé', async ({ page }) => {
     await expect(page.getByTestId('version-2')).toContainText('Avenant n° 1')
   })
 
+  await test.step('le solde a marqué le chantier terminé', async () => {
+    // L'emission du solde constate la reception des travaux : aucune saisie
+    // supplementaire n'est demandee a l'artisan.
+    await page.goto('/mon-passeport')
+    await expect(page.getByTestId('volume-chantiers')).toContainText('1')
+  })
+
+  await test.step('aucun taux sous le seuil, mais le volume est là', async () => {
+    // La reponse au biais de selection, vue de l'artisan : on ne lui cache pas
+    // sur quoi le calcul porte, meme quand il ne porte presque sur rien.
+    await expect(page.getByTestId('taux-ecart')).toContainText('Pas encore assez de données')
+    await expect(page.getByTestId('taux-ecart')).toContainText('1 chantier')
+  })
+
   await test.step('le client consulte sa facture sans compte', async () => {
     await page.goto('/factures')
     await page.getByText('F2026-0001').click()
