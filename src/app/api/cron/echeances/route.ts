@@ -1,6 +1,6 @@
-import { and, eq, isNotNull } from 'drizzle-orm'
+import { and, eq, isNotNull, lt } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { company, event, insuranceCertificate, staff } from '@/db/schema'
+import { company, contactThrottle, event, insuranceCertificate, staff } from '@/db/schema'
 import { noticesDue } from '@/domain/expiry'
 import { recordEvent } from '@/services/events'
 import { currentAnomalies } from '@/services/anomalies'
@@ -82,6 +82,13 @@ export async function GET(request: Request) {
     reviewers.map((r) => r.email),
   )
 
+  // Les empreintes d'adresse sont une mesure anti-abus de courte duree : les
+  // garder au-dela serait conserver une donnee personnelle sans finalite.
+  const purged = await db
+    .delete(contactThrottle)
+    .where(lt(contactThrottle.createdAt, new Date(now.getTime() - 24 * 3_600_000)))
+    .returning({ id: contactThrottle.id })
+
   return Response.json({
     checked: certificates.length,
     sent,
@@ -89,5 +96,6 @@ export async function GET(request: Request) {
     companies: companies.length,
     anomalies: anomalies.length,
     alerted,
+    throttlePurged: purged.length,
   })
 }

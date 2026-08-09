@@ -3,6 +3,7 @@ import { db } from '@/db/client'
 import { invoice } from '@/db/schema'
 import { computeTotals, type Totals } from '@/domain/quote-totals'
 import { outstanding, paymentStatus, type PaymentStatus } from '@/domain/payment-status'
+import { passportUrl } from '@/services/passport'
 import type { InvoiceType } from '@/domain/invoice-balance'
 import type { CompanyLegalDetails } from '@/domain/legal-mentions'
 
@@ -20,7 +21,14 @@ export interface PublicInvoice {
   type: InvoiceType
   issuedOn: string
   dueOn: string
-  company: { legalName: string; siret: string; address: string; legal: CompanyLegalDetails }
+  company: {
+    legalName: string
+    siret: string
+    address: string
+    legal: CompanyLegalDetails
+    /** Adresse du passeport, ou `null` : toute entreprise n'a pas de page publique. */
+    passportUrl: string | null
+  }
   customer: { name: string; siret: string | null; isIndividual: boolean; propertyAddress: string }
   lines: InvoiceLineView[]
   totals: Totals
@@ -78,6 +86,7 @@ export async function loadInvoiceByToken(token: string): Promise<PublicInvoice |
         coveredActivities: company.coveredActivities,
         coverageArea: company.coverageArea,
       },
+      passportUrl: await passportUrl(company, new Date()),
     },
     customer: {
       name: customer.name,

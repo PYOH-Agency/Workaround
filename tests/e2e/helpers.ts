@@ -19,6 +19,20 @@ export async function clearMailbox(): Promise<void> {
   await fetch(`${MAILBOX}/api/v1/messages`, { method: 'DELETE' })
 }
 
+/**
+ * Les sujets presents dans le collecteur.
+ *
+ * Existe pour qu'aucun parcours n'ecrive l'adresse du collecteur a la main :
+ * celui de `directory-journey` la codait en dur sur 54324 et interrogeait donc
+ * la pile d'un autre worktree — il passait tant que les deux n'en faisaient
+ * qu'une, et devenait faux des qu'elles se sont separees.
+ */
+export async function mailSubjects(limit = 20): Promise<string[]> {
+  const response = await fetch(`${MAILBOX}/api/v1/messages?limit=${limit}`)
+  const { messages = [] } = (await response.json()) as { messages?: MailSummary[] }
+  return messages.map((mail) => mail.Subject)
+}
+
 /** Attend un message correspondant au predicat, puis renvoie son corps texte. */
 async function waitForMail(
   matches: (mail: MailSummary) => boolean,
@@ -47,12 +61,27 @@ function extract(body: string, pattern: RegExp, what: string): string {
   return match[1]
 }
 
+/**
+ * Le chemin seul, jamais l'hote du message.
+ *
+ * Les liens des courriels portent `NEXT_PUBLIC_APP_URL`, fige a
+ * `localhost:3000`. Les suivre tels quels fait sortir le parcours du serveur
+ * qu'il est cense eprouver — et comme les cookies ignorent le port, la session
+ * suit et rien ne se voit. Le test passe alors sur l'application d'a cote.
+ *
+ * Rendre le chemin laisse Playwright le resoudre sur sa `baseURL`.
+ */
+function pathOf(url: string): string {
+  const parsed = new URL(url)
+  return `${parsed.pathname}${parsed.search}`
+}
+
 export async function magicLinkFor(email: string): Promise<string> {
   const body = await waitForMail(
     (mail) => mail.To.some((to) => to.Address === email) && /connexion/i.test(mail.Subject),
     `lien de connexion pour ${email}`,
   )
-  return extract(body, /(https?:\/\/[^\s"<]+auth\/confirm[^\s"<]*)/, 'le lien de connexion')
+  return pathOf(extract(body, /(https?:\/\/[^\s"<]+auth\/confirm[^\s"<]*)/, 'le lien de connexion'))
 }
 
 export async function quoteLinkFor(email: string): Promise<string> {
@@ -60,7 +89,7 @@ export async function quoteLinkFor(email: string): Promise<string> {
     (mail) => mail.To.some((to) => to.Address === email) && /devis/i.test(mail.Subject),
     `lien de devis pour ${email}`,
   )
-  return extract(body, /(https?:\/\/[^\s"<]+\/d\/[A-Za-z0-9_-]+)/, 'le lien du devis')
+  return pathOf(extract(body, /(https?:\/\/[^\s"<]+\/d\/[A-Za-z0-9_-]+)/, 'le lien du devis'))
 }
 
 export async function smsCodeFor(phone: string): Promise<string> {
@@ -69,4 +98,48 @@ export async function smsCodeFor(phone: string): Promise<string> {
     `code SMS pour ${phone}`,
   )
   return extract(body, /\b(\d{6})\b/, 'le code à six chiffres')
+}
+
+/**
+ * Le lien d'arbitrage adresse au client.
+ *
+ * Il ne rend que le chemin : le message porte l'adresse de production, et le
+ * parcours peut tourner sur un autre port. Naviguer sur l'hote du message
+ * testerait l'application d'a cote — le piege s'est deja referme une fois.
+ */
+export async function disputePathFor(email: string): Promise<string> {
+  const body = await waitForMail(
+    (mail) => mail.To.some((to) => to.Address === email) && /Une question sur/.test(mail.Subject),
+    `demande d'arbitrage pour ${email}`,
+  )
+  return `/c/${extract(body, /\/c\/([A-Za-z0-9_-]+)/, 'le jeton d’arbitrage')}`
+}
+
+/** Attend la confirmation de signature adressee au client. */
+export async function signatureReceiptFor(email: string): Promise<string> {
+  return waitForMail(
+    (mail) => mail.To.some((to) => to.Address === email) && /est signé/.test(mail.Subject),
+    `confirmation de signature pour ${email}`,
+  )
+}
+
+/**
+ * Vrai si un message du collecteur porte ce texte dans son sujet.
+ *
+ * **Ne patiente pas**, contrairement a `waitForMail` : elle sert a verifier une
+ * ABSENCE, et attendre dix secondes pour conclure qu'il n'y a rien allongerait
+ * le parcours sans rien prouver de plus.
+ */
+export async function mailboxHas(needle: string): Promise<boolean> {
+  const response = await fetch(`${MAILBOX}/api/v1/messages?limit=50`)
+  const { messages = [] } = (await response.json()) as { messages?: MailSummary[] }
+  return messages.some((mail) => mail.Subject.includes(needle))
+}
+
+/** La demande relayee a une entreprise. */
+export async function contactMailFor(email: string): Promise<string> {
+  return waitForMail(
+    (mail) => mail.To.some((to) => to.Address === email) && /Demande reçue/.test(mail.Subject),
+    `demande relayée à ${email}`,
+  )
 }

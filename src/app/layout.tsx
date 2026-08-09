@@ -9,18 +9,13 @@ export const metadata: Metadata = {
 }
 
 /**
- * Pose `data-theme` avant le premier rendu.
+ * Amorce du document : le theme, et l'activation du mouvement.
  *
- * Sans ca, un utilisateur ayant choisi le mode clair sur un systeme en mode
- * sombre verrait un eclair sombre a chaque navigation. Le script est
- * volontairement minuscule et synchrone : c'est le seul endroit du produit ou
- * bloquer le rendu est le bon choix.
- *
- * Ecrit ici plutot que dans `src/ui/` : ce n'est pas un composant du design
- * system mais une amorce du document, et un `.tsx` a la racine de `src/ui/`
- * echapperait au controle des couches.
+ * `dq-motion` conditionne l'etat initial masque des elements animes. Sans
+ * JavaScript la classe n'est jamais posee, donc rien n'est masque — une
+ * animation qui ne se declenche pas ne doit pas effacer une page.
  */
-const THEME_BOOTSTRAP = `try{var t=localStorage.getItem('dq-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}`
+const BOOTSTRAP = `try{var d=document.documentElement;var t=localStorage.getItem('dq-theme');if(t==='dark'||t==='light')d.dataset.theme=t;d.classList.add('dq-motion')}catch(e){}`
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
@@ -31,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+        <script dangerouslySetInnerHTML={{ __html: BOOTSTRAP }} />
       </head>
       <body className="min-h-full flex flex-col bg-surface text-ink">{children}</body>
     </html>

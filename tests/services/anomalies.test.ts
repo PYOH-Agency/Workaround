@@ -76,3 +76,40 @@ describe('file d anomalies', () => {
     expect(after[0].fingerprint).not.toBe(target.fingerprint)
   })
 })
+
+describe('divergence entre fin declaree et solde', () => {
+  it('retrouve la date declaree dans le journal, apres que le solde l a ecrasee', async () => {
+    const { createCompany, createProject, depositLines, signedQuote } = await import(
+      './invoice-fixtures'
+    )
+    const { declareCompleted } = await import('@/services/completion')
+    const { issueInvoice } = await import('@/services/invoices')
+    const { quote } = await import('@/db/schema')
+
+    const firm = await createCompany()
+    const site = await createProject(firm)
+    const source = await signedQuote(firm, site, 'signed')
+
+    // Declare termine il y a trente jours, solde aujourd'hui : l'ecart depasse
+    // largement les sept jours du seuil.
+    await declareCompleted(firm, source.id, new Date(Date.now() - 30 * 86_400_000))
+    await issueInvoice({
+      companyId: firm,
+      quoteId: source.id,
+      type: 'balance',
+      dueInDays: 30,
+      lines: depositLines(100),
+    })
+
+    // Le devis ne porte plus que la date authentifiee.
+    const [row] = await db.select().from(quote).where(eq(quote.id, source.id))
+    expect(row.completionSource).toBe('invoiced')
+
+    // Et pourtant l'anomalie est detectee : la declaration survit au journal.
+    const found = (await currentAnomalies(new Date())).filter((a) => a.subjectId === source.id)
+
+    expect(found).toHaveLength(1)
+    expect(found[0].type).toBe('completion_drift')
+    expect(found[0].detail).toContain('30 jours avant')
+  })
+})

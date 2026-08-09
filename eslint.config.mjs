@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // La pile Supabase d'un worktree : la CLI y depose des fichiers temporaires
+    // — du JavaScript minifie du runtime edge — que rien n'oblige a nos regles.
+    ".supabase-local/**",
   ]),
 ]);
 

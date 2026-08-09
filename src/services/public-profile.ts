@@ -13,12 +13,21 @@ export interface PublicActivity {
   label: string
   /** L'assurance qui la couvre : c'est elle que le demandeur vient verifier. */
   coveredBy: InsuranceKind
+  /** Echeance de l'attestation qui la couvre. */
+  coveredUntil: Date
+  /** Date de la revue humaine de cette attestation. */
+  checkedOn: Date | null
 }
 
 export interface PublicProfile {
+  /** Necessaire au formulaire de contact : il s'adresse a UNE entreprise. */
+  companyId: string
   slug: string
   legalName: string
   siret: string
+  /** Deja mention obligatoire sur chaque devis : rien de confidentiel. */
+  phone: string | null
+  email: string | null
   city: string | null
   foundedOn: Date | null
   insurer: { name: string | null; policyNumber: string | null; validUntil: Date | null }
@@ -53,19 +62,16 @@ export async function publicProfile(siren: string, now: Date): Promise<PublicPro
   // Quelle attestation couvre quoi : le demandeur vient verifier cela, pas un
   // badge « assure » indifferencie.
   const certificates = await validatedCertificates(found.id)
-  const coveredBy = new Map<string, InsuranceKind>()
-  for (const certificate of certificates) {
-    for (const link of certificate.activities) {
-      if (!coveredBy.has(link.activityCode)) coveredBy.set(link.activityCode, certificate.kind)
-    }
-  }
 
   const current = certificates.find((c) => c.validUntil && c.validUntil >= now)
 
   return {
+    companyId: found.id,
     slug: companySlug(found.legalName, found.siret),
     legalName: found.legalName,
     siret: found.siret,
+    phone: found.phone,
+    email: found.email,
     city: found.city,
     foundedOn: found.foundedOn,
     insurer: {
@@ -75,9 +81,64 @@ export async function publicProfile(siren: string, now: Date): Promise<PublicPro
     },
     activities: coverage.activities
       .filter((a) => a.visible)
-      .map((a) => ({ code: a.code, label: a.label, coveredBy: coveredBy.get(a.code) ?? 'rc_pro' })),
+      .flatMap((a) => {
+        const cited = citedCertificate(certificates, a.code, now)
+        // `visible` garantit une attestation en cours. Si elle manque ici, les
+        // deux calculs ont diverge : on se tait plutot que d'affirmer une
+        // couverture qu'on ne sait pas dater.
+        if (!cited) return []
+        return [
+          {
+            code: a.code,
+            label: a.label,
+            coveredBy: cited.kind,
+            coveredUntil: cited.validUntil!,
+            checkedOn: cited.reviewedAt,
+          },
+        ]
+      }),
     qualifications: await safeQualifications(found.siret, now),
   }
+}
+
+type ValidatedCertificate = Awaited<ReturnType<typeof validatedCertificates>>[number]
+
+/**
+ * L'attestation a citer pour une activite.
+ *
+ * Trois regles, dans cet ordre : elle doit etre **en cours** a la date
+ * consideree, la decennale prime sur la RC Pro puisqu'elle couvre plus large,
+ * et a egalite la plus lointaine echeance gagne.
+ *
+ * La premiere corrige un defaut qui n'apparaissait pas tant qu'aucune date
+ * n'etait affichee : retenir la premiere attestation qui nomme l'activite
+ * pouvait afficher « Garantie decennale » d'apres un document perime, alors
+ * que la visibilite venait d'une RC Pro encore en cours. Le libelle aurait
+ * alors contredit l'echeance imprimee juste a cote.
+ */
+function citedCertificate(
+  certificates: ValidatedCertificate[],
+  code: string,
+  now: Date,
+): ValidatedCertificate | null {
+  const inForce = certificates.filter(
+    (c) =>
+      c.validFrom !== null &&
+      c.validUntil !== null &&
+      now >= c.validFrom &&
+      now <= c.validUntil &&
+      c.activities.some((link) => link.activityCode === code),
+  )
+
+  const ranked = [...inForce].sort((a, b) =>
+    a.kind === b.kind
+      ? b.validUntil!.getTime() - a.validUntil!.getTime()
+      : a.kind === 'decennale'
+        ? -1
+        : 1,
+  )
+
+  return ranked[0] ?? null
 }
 
 /**

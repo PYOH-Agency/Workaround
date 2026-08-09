@@ -71,6 +71,39 @@ test('de l’acompte au solde réglé', async ({ page }) => {
     await expect(page.getByText('Ce devis est déjà intégralement facturé.')).toBeVisible()
   })
 
+  await test.step('un avenant rouvre la facturation d’un devis soldé', async () => {
+    // Ce que ce jalon debloque : sans avenant, l'artisan dont le chantier
+    // grossit ne pouvait ni facturer plus, ni creer l'avenant que le message
+    // d'erreur lui recommandait. Il sortait son complement de l'outil.
+    await page.getByRole('button', { name: 'Créer un avenant' }).click()
+    await page.getByRole('button', { name: 'Confirmer l’avenant' }).click()
+
+    // On arrive sur le brouillon de la version 2, lignes reprises et modifiables.
+    await expect(page.getByRole('heading', { name: /Modifier D/ })).toBeVisible()
+    await expect(page.getByLabel('Désignation').first()).toHaveValue(/Chauffe-eau/)
+  })
+
+  await test.step('l’historique des versions reste consultable', async () => {
+    await page.getByRole('button', { name: 'Enregistrer les modifications' }).click()
+
+    await expect(page.getByTestId('version-1')).toContainText('Devis initial')
+    await expect(page.getByTestId('version-2')).toContainText('Avenant n° 1')
+  })
+
+  await test.step('le solde a marqué le chantier terminé', async () => {
+    // L'emission du solde constate la reception des travaux : aucune saisie
+    // supplementaire n'est demandee a l'artisan.
+    await page.goto('/mon-passeport')
+    await expect(page.getByTestId('volume-chantiers')).toContainText('1')
+  })
+
+  await test.step('aucun taux sous le seuil, mais le volume est là', async () => {
+    // La reponse au biais de selection, vue de l'artisan : on ne lui cache pas
+    // sur quoi le calcul porte, meme quand il ne porte presque sur rien.
+    await expect(page.getByTestId('taux-ecart')).toContainText('Pas encore assez de données')
+    await expect(page.getByTestId('taux-ecart')).toContainText('1 chantier')
+  })
+
   await test.step('le client consulte sa facture sans compte', async () => {
     await page.goto('/factures')
     await page.getByText('F2026-0001').click()

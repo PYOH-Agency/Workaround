@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isValidSiret, normalizeSiret } from '@/domain/siret'
+import { isValidSiret, normalizeSiret, parseSiretInput } from '@/domain/siret'
 
 describe('siret', () => {
   it('supprime espaces et ponctuation avant validation', () => {
@@ -17,5 +17,45 @@ describe('siret', () => {
   it('refuse une longueur incorrecte ou des caracteres non numeriques', () => {
     expect(isValidSiret('123')).toBe(false)
     expect(isValidSiret('5521005540002A')).toBe(false)
+  })
+})
+
+describe('parseSiretInput', () => {
+  it('accepte un SIRET avec des espaces et rend le SIREN', () => {
+    expect(parseSiretInput('507 698 207 00036')).toEqual({ siren: '507698207' })
+  })
+
+  it('accepte un SIRET colle', () => {
+    expect(parseSiretInput('50769820700036')).toEqual({ siren: '507698207' })
+  })
+
+  it('refuse une saisie trop courte', () => {
+    expect(parseSiretInput('5076982')).toEqual({
+      error: 'Ce SIRET est incomplet : il compte 14 chiffres.',
+    })
+  })
+
+  it('refuse une saisie vide', () => {
+    expect(parseSiretInput('   ')).toEqual({
+      error: 'Ce SIRET est incomplet : il compte 14 chiffres.',
+    })
+  })
+
+  it('refuse une saisie trop longue', () => {
+    expect(parseSiretInput('123456789012345')).toEqual({
+      error: 'Ce SIRET est trop long : il compte 14 chiffres.',
+    })
+  })
+
+  it('refuse une saisie sans chiffres', () => {
+    expect(parseSiretInput('abcdefghijklmn')).toEqual({
+      error: 'Ce SIRET ne doit contenir que des chiffres.',
+    })
+  })
+
+  it('refuse un SIRET dont la cle de Luhn est fausse', () => {
+    expect(parseSiretInput('50769820700037')).toEqual({
+      error: 'Ce SIRET n’existe pas : vérifiez les chiffres.',
+    })
   })
 })

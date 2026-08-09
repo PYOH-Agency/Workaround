@@ -1,30 +1,6 @@
-import { config } from 'dotenv'
 import { randomUUID } from 'node:crypto'
 import { sql } from 'drizzle-orm'
-
-// Meme garde que pour les tests unitaires : on n'attaque que la pile locale.
-config({ path: '.env.test' })
-
-/**
- * Chargement differe du client de base.
- *
- * `@/db/client` lit `DATABASE_URL` a l'evaluation du module. Un import statique
- * serait hisse au-dessus du `config()` ci-dessus et ouvrirait la connexion sur
- * une variable absente.
- */
-async function load() {
-  const [{ db }, imported] = await Promise.all([import('@/db/client'), import('@/db/schema')])
-
-  // Playwright transpile ses fichiers en CommonJS. Un module qui ne fait que
-  // reexporter (`export *`) ne laisse alors rien deviner statiquement, et ses
-  // exports se retrouvent sous `default` au lieu d'etre a plat.
-  // Le `default` n'existe qu'a l'execution sous CommonJS : le type du module,
-  // lui, ne le connait pas.
-  const wrapped = imported as { default?: unknown }
-  const schema = (wrapped.default ?? imported) as typeof import('@/db/schema')
-
-  return { db, schema }
-}
+import { load, userIdFor } from './fixtures-db'
 
 /**
  * Amene un artisan deja connecte a l'etat « devis signe », sans passer par
@@ -39,7 +15,7 @@ async function load() {
  * Le devis porte deux taux de TVA : un acompte sur devis mono-taux ne
  * revelerait jamais une erreur de ventilation.
  */
-export async function signedQuoteFor(email: string) {
+export async function quoteFor(email: string, status: 'draft' | 'signed' = 'signed') {
   const { db, schema } = await load()
   const { company, customer, member, project, property, quote, quoteLine } = schema
 
@@ -80,7 +56,14 @@ export async function signedQuoteFor(email: string) {
 
   const [customerRow] = await db
     .insert(customer)
-    .values({ companyId: companyRow.id, name: 'Paul Martin', email: 'client-m2@test.local' })
+    .values({
+      companyId: companyRow.id,
+      name: 'Paul Martin',
+      email: 'client-m2@test.local',
+      // Obligatoire a l'envoi : il porte l'identification du signataire par SMS.
+      // Son absence rendait ce raccourci inutilisable pour un devis a envoyer.
+      phone: '0612345678',
+    })
     .returning()
 
   const [propertyRow] = await db
@@ -110,14 +93,17 @@ export async function signedQuoteFor(email: string) {
       projectId: projectRow.id,
       companyId: companyRow.id,
       number: 'D2026-0001',
-      status: 'signed',
+      status,
       committedLeadTimeDays: 5,
       totalExclTax: 91000,
       totalTax: 9700,
       totalInclTax: 100700,
       publicToken: randomUUID(),
-      sentAt: new Date(),
-      signedAt: new Date(),
+      // Un brouillon n'a ete ni envoye ni signe : c'est l'etat depuis lequel
+      // l'artisan peut encore adresser le devis a son client, et donc le seul
+      // depuis lequel la signature passe reellement par l'ecran.
+      sentAt: status === 'signed' ? new Date() : null,
+      signedAt: status === 'signed' ? new Date() : null,
     })
     .returning()
 
@@ -143,15 +129,8 @@ export async function signedQuoteFor(email: string) {
   return quoteRow
 }
 
-/** L'identifiant Supabase d'un compte deja connecte. */
-async function userIdFor(email: string): Promise<string> {
-  const { db } = await load()
-  const [user] = await db.execute<{ id: string }>(
-    sql`SELECT id FROM auth.users WHERE email = ${email} LIMIT 1`,
-  )
-  if (!user) throw new Error(`Aucun compte Supabase pour ${email} — la connexion a-t-elle abouti ?`)
-  return user.id
-}
+/** L'etat de depart des parcours de M2 et M5, ou la signature est deja acquise. */
+export const signedQuoteFor = (email: string) => quoteFor(email, 'signed')
 
 /**
  * Cree l'entreprise de l'artisan connecte et lui declare des activites.

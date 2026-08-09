@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { read, report } from './lib/sources.mjs'
+import { ports, workdir, ROOT } from './lib/supabase-workdir.mjs'
 
 /**
  * Le build et les tests lisent l'environnement local. Sans lui, `next build`
@@ -26,6 +27,36 @@ for (const [file, keys] of Object.entries(REQUIRED)) {
   for (const key of keys) {
     if (!new RegExp(`^\\s*${key}\\s*=\\s*\\S`, 'm').test(source)) {
       violations.push(`${file} — ${key} est absent ou vide`)
+    }
+  }
+}
+
+/**
+ * Un worktree qui s'est donne sa propre pile mais dont l'environnement pointe
+ * encore sur celle du depot principal.
+ *
+ * C'est la panne que ce controle existe pour rendre lisible : la pile tourne,
+ * l'application se connecte — a la base du voisin. Les tests passent, puis
+ * echouent sans raison quand l'autre worktree se reinitialise.
+ */
+if (workdir() !== ROOT) {
+  const { api, db } = ports()
+
+  for (const file of ['.env.local', '.env.test']) {
+    if (!existsSync(file)) continue
+    const source = read(file)
+
+    for (const [key, expected] of [
+      ['NEXT_PUBLIC_SUPABASE_URL', api],
+      ['DATABASE_URL', db],
+    ]) {
+      const line = new RegExp(`^\\s*${key}\\s*=.*$`, 'm').exec(source)?.[0]
+      if (line && !line.includes(String(expected))) {
+        violations.push(
+          `${file} — ${key} ne vise pas le port ${expected} de la pile de ce worktree : ` +
+            'rejouer `pnpm db:worktree`',
+        )
+      }
     }
   }
 }

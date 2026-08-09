@@ -40,8 +40,14 @@ export function SealBadge(props: SealBadgeProps) {
         <Text size="sm" as="span">
           <strong>Entreprise vérifiée</strong>
         </Text>
+        {/*
+          « Attestations controlees » et non « assurance a jour » : nous avons
+          releve un document et sa date, nous ignorons l'etat du contrat qu'il
+          atteste. Le sceau ne peut pas affirmer plus que la page vers laquelle
+          il mene, sinon c'est lui qu'on opposera le jour d'un sinistre.
+        */}
         <Text size="sm" tone="muted" as="span">
-          Assurance à jour · {activities}
+          Attestations contrôlées · {activities}
         </Text>
         {format === 'block' && 'passportUrl' in props ? (
           <Text size="sm" tone="muted" as="span">
