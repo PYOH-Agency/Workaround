@@ -13,6 +13,14 @@ export interface ContactRequest {
   message: string
   /** Empreinte de l'adresse d'origine. Jamais l'adresse elle-meme. */
   ipHash: string
+  /**
+   * Le numero du devis deja signe chez cette entreprise, s'il y en a un.
+   *
+   * Ce n'est pas une decoration : il transforme un message froid en reprise de
+   * relation, et il dit a l'artisan qu'il s'agit de son propre client — donc du
+   * travail sans commission.
+   */
+  previousQuoteNumber?: string
 }
 
 /**
@@ -59,6 +67,12 @@ export async function relayContact(request: ContactRequest, now: Date): Promise<
     text: [
       `${request.name} vous a trouvé sur D’équerre et souhaite vous contacter.`,
       '',
+      ...(request.previousQuoteNumber
+        ? [
+            `Vous avez déjà travaillé pour cette personne — devis ${request.previousQuoteNumber}.`,
+            '',
+          ]
+        : []),
       request.message,
       '',
       `Répondre directement : ${request.email}${request.phone ? ` · ${request.phone}` : ''}`,
@@ -70,8 +84,11 @@ export async function relayContact(request: ContactRequest, now: Date): Promise<
   await db.insert(contactThrottle).values({ ipHash: request.ipHash })
 
   // Le fait, et rien d'autre : ni nom, ni adresse, ni message.
+  //
+  // Le TYPE, lui, distingue l'acquisition de la fidelisation : c'est la seule
+  // mesure que nous aurons de l'utilite du repertoire.
   await recordEvent({
-    type: 'directory.contact',
+    type: request.previousQuoteNumber ? 'address_book.contact' : 'directory.contact',
     subjectType: 'company',
     subjectId: request.companyId,
     companyId: request.companyId,

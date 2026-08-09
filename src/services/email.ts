@@ -74,3 +74,44 @@ export async function sendQuoteLink(input: {
     `,
   })
 }
+
+/**
+ * La confirmation de signature, adressee au client.
+ *
+ * **C'est le canal d'acces au dossier**, et le seul. Le compte a ete cree par
+ * la signature sans que rien ne soit demande a l'ecran : c'est ici que la
+ * personne apprend qu'il existe.
+ *
+ * Pas de mot de passe a choisir, pas de compte a activer — le dire serait
+ * inventer une etape qui n'existe pas, et chaque etape annoncee en coute une
+ * vraie.
+ */
+export async function sendSignatureReceipt(input: {
+  to: string
+  customerName: string
+  companyName: string
+  quoteNumber: string
+  spaceUrl: string
+}): Promise<void> {
+  await transport.sendMail({
+    from: FROM,
+    to: input.to,
+    subject: `Votre devis ${input.quoteNumber} est signé — ${input.companyName}`,
+    text: [
+      `Bonjour ${input.customerName},`,
+      '',
+      `Votre devis ${input.quoteNumber} est signé. ${input.companyName} en a été informée.`,
+      '',
+      `Vos chantiers sont réunis ici : ${input.spaceUrl}`,
+      'Aucun mot de passe : connectez-vous avec cette adresse, on vous enverra un lien.',
+    ].join('\n'),
+    html: `
+      <p>Bonjour ${input.customerName},</p>
+      <p>Votre devis <strong>${input.quoteNumber}</strong> est signé.
+         <strong>${input.companyName}</strong> en a été informée.</p>
+      <p><a href="${input.spaceUrl}">Retrouver vos chantiers</a></p>
+      <p style="color:#666;font-size:12px">Aucun mot de passe : connectez-vous avec cette adresse,
+         on vous enverra un lien.</p>
+    `,
+  })
+}

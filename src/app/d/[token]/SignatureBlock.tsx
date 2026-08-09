@@ -121,6 +121,23 @@ export function SignatureBlock({ token, phoneHint }: { token: string; phoneHint:
             .
           </Text>
 
+          {/*
+            Le verrou n° 1 de l'AIPD. AVANT la signature, pas apres : c'est la
+            fonction la plus structurante de son geste, et l'en informer ensuite
+            reviendrait a le prevenir d'un traitement auquel il a deja
+            contribue.
+          */}
+          <Text size="sm" tone="muted">
+            <strong>Votre signature sert aussi de témoignage.</strong> Elle atteste que ce chantier
+            a bien eu lieu, à cette date et à ce prix — ce qui rend vérifiables les chiffres publiés
+            sur cette entreprise, au lieu qu’elle les déclare elle-même. Rien de ce qui vous
+            identifie n’y figure.{' '}
+            <Link href="/passeport/definitions" newTab>
+              Ce que ces chiffres mesurent
+            </Link>
+            .
+          </Text>
+
           {/* La terre cuite en fond : seule action de la page, aucune action destructive alentour. */}
           <div className="self-start">
             <Button type="submit" tone="conversion" size="lg" pending={pending}>

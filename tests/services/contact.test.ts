@@ -113,3 +113,46 @@ describe('relais d une demande', () => {
     await expect(relayContact(flood, new Date())).rejects.toThrow('trop de demandes')
   })
 })
+
+describe('reprise de contact', () => {
+  const sent = () => sendRawMail.mock.calls[0][0] as { text: string }
+
+  it('dit a l entreprise qu il s agit de son propre client', async () => {
+    await relayContact(
+      { ...demande, ipHash: randomUUID(), previousQuoteNumber: 'D2026-0001' },
+      new Date(),
+    )
+
+    expect(sent().text).toContain('Vous avez déjà travaillé pour cette personne')
+    expect(sent().text).toContain('D2026-0001')
+  })
+
+  it('se distingue de la demande entrante dans le journal', async () => {
+    // La seule mesure que nous aurons de l'utilite du repertoire : sans deux
+    // types distincts, l'acquisition et la fidelisation se confondent.
+    await relayContact(
+      { ...demande, ipHash: randomUUID(), previousQuoteNumber: 'D2026-0001' },
+      new Date(),
+    )
+
+    const journal = await db.select().from(event).where(eq(event.subjectId, COMPANY))
+    expect(journal.some((e) => e.type === 'address_book.contact')).toBe(true)
+  })
+
+  it('n ecrit TOUJOURS rien de ce que le demandeur saisit', async () => {
+    // La regle de M4 tient sans exception : il ne doit exister aucune base de
+    // leads, et la reprise de contact n'en cree pas une.
+    await relayContact(
+      { ...demande, ipHash: randomUUID(), previousQuoteNumber: 'D2026-0001' },
+      new Date(),
+    )
+
+    const dumped = JSON.stringify(
+      await db.select().from(event).where(eq(event.subjectId, COMPANY)),
+    )
+
+    expect(dumped).not.toContain(demande.name)
+    expect(dumped).not.toContain(demande.email)
+    expect(dumped).not.toContain(demande.message)
+  })
+})

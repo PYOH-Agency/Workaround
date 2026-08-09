@@ -12,6 +12,13 @@ export interface QuoteVersion {
   version: number
   status: 'draft' | 'sent' | 'signed' | 'refused' | 'expired'
   totalInclTax: Cents
+  /**
+   * La date de signature de CETTE version.
+   *
+   * Sans elle, un avenant se daterait du devis d'origine — un mensonge dans la
+   * chronologie que le client lit.
+   */
+  signedAt: Date | null
 }
 
 /**

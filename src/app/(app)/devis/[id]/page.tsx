@@ -145,6 +145,21 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
 
       {(completedAt !== null || declarable) && (
         <Section title="Chantier">
+          {/*
+            Venu de M6·B, et loge ici plutot qu'entre deux blocs orphelins : le
+            fil de chantier est la premiere chose a ouvrir quand on vient voir
+            ou en est le chantier. Sa condition est celle d'origine —
+            `reference !== null` — et elle est comprise dans celle de la
+            section, si bien que le lien s'affiche exactement quand il
+            s'affichait avant.
+          */}
+          {detail.reference !== null && (
+            <Text size="sm" tone="soft">
+              <Link href={`/devis/${quote.id}/chantier`}>Suivi de chantier</Link> — ce que voit
+              votre client.
+            </Text>
+          )}
+
           {completedAt !== null ? (
             <Text size="sm" tone="soft">
               Chantier terminé le <DateText value={completedAt} format="short" />

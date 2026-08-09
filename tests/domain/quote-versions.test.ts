@@ -12,6 +12,7 @@ const version = (overrides: Partial<QuoteVersion> = {}): QuoteVersion => ({
   version: 1,
   status: 'signed',
   totalInclTax: 100000,
+  signedAt: new Date('2026-03-02T09:00:00Z'),
   ...overrides,
 })
 

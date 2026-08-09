@@ -47,6 +47,7 @@ export async function quoteVersions(anyVersionId: string): Promise<QuoteVersion[
       version: quote.version,
       status: quote.status,
       totalInclTax: quote.totalInclTax,
+      signedAt: quote.signedAt,
     })
     .from(quote)
     .where(and(eq(quote.companyId, root.companyId), eq(quote.number, root.number)))

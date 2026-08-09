@@ -12,6 +12,7 @@ import {
 import { relations } from 'drizzle-orm'
 import { project } from './project'
 import { company } from './company'
+import { requester } from './requester'
 
 export const quote = pgTable(
   'quote',
@@ -62,6 +63,17 @@ export const quote = pgTable(
      * toujours sur le declare.
      */
     completionSource: text('completion_source', { enum: ['declared', 'invoiced'] }),
+    /**
+     * La reception DECLAREE par le maitre d'ouvrage.
+     *
+     * Distincte de `completed_at` : celle-ci constate la fin des travaux,
+     * celle-la est un acte juridique qui fait courir les garanties legales.
+     * Nous ne l'etablissons pas — nous enregistrons une declaration, et nous la
+     * montrons **aux deux parties**, parce qu'un fait partage ne se consigne
+     * pas en secret.
+     */
+    receivedAt: timestamp('received_at', { withTimezone: true }),
+    receivedBy: uuid('received_by').references(() => requester.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -115,6 +127,15 @@ export const signature = pgTable('signature', {
   signerName: text('signer_name').notNull(),
   signerEmail: text('signer_email').notNull(),
   signerPhone: text('signer_phone').notNull(),
+  /**
+   * Le compte du signataire.
+   *
+   * Le lien se pose ICI et non sur `customer` : `customer.email` est ce que
+   * l'artisan a saisi, `signer_email` est ce que la personne a fourni en
+   * s'engageant. Seule la seconde est un acte de la personne — et la poser sur
+   * le client reunirait deux membres d'un meme foyer sous un seul compte.
+   */
+  requesterId: uuid('requester_id').references(() => requester.id),
   // Identification : horodatage de la validation du code SMS.
   codeValidatedAt: timestamp('code_validated_at', { withTimezone: true }).notNull(),
   ipAddress: text('ip_address').notNull(),

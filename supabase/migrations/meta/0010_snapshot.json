@@ -1,5 +1,5 @@
 {
-  "id": "23ed9f92-74db-4d4a-b1df-d9348677b411",
+  "id": "70059f8b-c588-4c79-a0ec-64fdfef0b02a",
   "prevId": "d5e494a7-0e0a-443c-a356-c9755e9dca27",
   "version": "7",
   "dialect": "postgresql",
@@ -1348,6 +1348,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "requester_id": {
+          "name": "requester_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "code_validated_at": {
           "name": "code_validated_at",
           "type": "timestamp with time zone",
@@ -1400,6 +1406,19 @@
           "tableTo": "quote",
           "columnsFrom": [
             "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "signature_requester_id_requester_id_fk": {
+          "name": "signature_requester_id_requester_id_fk",
+          "tableFrom": "signature",
+          "tableTo": "requester",
+          "columnsFrom": [
+            "requester_id"
           ],
           "columnsTo": [
             "id"
@@ -2385,8 +2404,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.quote_link_request": {
-      "name": "quote_link_request",
+    "public.requester": {
+      "name": "requester",
       "schema": "",
       "columns": {
         "id": {
@@ -2396,46 +2415,58 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "email": {
           "name": "email",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "requested_at": {
-          "name": "requested_at",
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'signature'"
+        },
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
-      "indexes": {
-        "quote_link_request_email_idx": {
-          "name": "quote_link_request_email_idx",
-          "columns": [
-            {
-              "expression": "email",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "requested_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "requester_user_id_unique": {
+          "name": "requester_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id"
+          ]
+        },
+        "requester_email_unique": {
+          "name": "requester_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

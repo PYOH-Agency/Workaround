@@ -94,6 +94,27 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
+      {/*
+        Le verrou n° 1 de l'AIPD : la page disait ce que nous faisons du nom, de
+        l'adresse et du telephone, jamais que la signature fait du client le
+        TEMOIN d'une mesure publiee sur un tiers.
+      */}
+      <section className="flex flex-col gap-2">
+        <Heading level={3} as="h2">Si vous avez signé un devis</Heading>
+        <Text size="sm" tone="soft">
+          Votre signature fait de vous le <strong>témoin</strong> d’un chantier. Elle atteste qu’il
+          a eu lieu, à cette date et à ce prix — et c’est ce qui permet de publier sur l’entreprise
+          des chiffres vérifiables plutôt que déclaratifs.{' '}
+          <strong>Rien de ce qui vous identifie n’est publié</strong> : ni votre nom, ni votre
+          adresse, ni le montant de vos travaux. Seuls des taux agrégés sur douze mois le sont, et
+          jamais en dessous de dix chantiers.
+        </Text>
+        <Text size="sm" tone="soft">
+          L’entreprise peut contester la façon dont son délai a été mesuré. Vous recevez alors une
+          question, et vous êtes libre de ne pas y répondre.
+        </Text>
+      </section>
+
       <section className="flex flex-col gap-2">
         <Heading level={3} as="h2">Qui d’autre y a accès</Heading>
         <Text size="sm" tone="soft">
