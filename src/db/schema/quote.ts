@@ -7,6 +7,7 @@ import {
   numeric,
   unique,
   index,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { project } from './project'
@@ -27,6 +28,13 @@ export const quote = pgTable(
       .references(() => company.id),
     number: text('number').notNull(),
     version: integer('version').notNull().default(1),
+    /**
+     * La version que celle-ci remplace. `null` sur le devis d'origine.
+     *
+     * Le chainage permet de remonter a la racine — a laquelle les factures
+     * restent attachees — sans avoir a deviner par le numero.
+     */
+    supersedesQuoteId: uuid('supersedes_quote_id').references((): AnyPgColumn => quote.id),
     status: text('status', { enum: ['draft', 'sent', 'signed', 'refused', 'expired'] })
       .notNull()
       .default('draft'),
@@ -42,6 +50,18 @@ export const quote = pgTable(
     publicToken: text('public_token').notNull().unique(),
     sentAt: timestamp('sent_at', { withTimezone: true }),
     signedAt: timestamp('signed_at', { withTimezone: true }),
+    /**
+     * Fin du chantier. Portee par la RACINE de la chaine de versions, comme les
+     * factures : un projet peut porter plusieurs devis, et n'aurait alors
+     * qu'une seule date pour des chantiers distincts.
+     */
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    /**
+     * D'ou vient cette date. `invoiced` — l'emission du solde — est un acte
+     * comptable ; `declared` est la parole de l'artisan. L'authentifie l'emporte
+     * toujours sur le declare.
+     */
+    completionSource: text('completion_source', { enum: ['declared', 'invoiced'] }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

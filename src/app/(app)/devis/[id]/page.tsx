@@ -18,8 +18,34 @@ import { StatusBadge } from '@/ui/molecules/status-badge'
 import { QuoteLinesTable } from '@/ui/organisms/quote-lines-table'
 import { TotalsPanel } from '@/ui/organisms/totals-panel'
 import { AppShell } from '@/ui/shells/app-shell'
+import { engagedTotal, referenceVersion } from '@/domain/quote-versions'
+import { assertDisputable, disputeStanding } from '@/domain/dispute'
+import { businessDaysSince } from '@/domain/business-days'
+import { quoteVersions } from '@/services/amendments'
+import { disputeFor } from '@/services/disputes'
+import { statementFor } from '@/services/statements'
 import { SendButton } from './SendButton'
 import { InvoiceActions } from './InvoiceActions'
+import { AmendButton } from './AmendButton'
+import { CompleteButton } from './CompleteButton'
+import { QuoteVersions } from './QuoteVersions'
+import { DisputeButton } from './DisputeButton'
+import { StatementForm } from './StatementForm'
+
+/**
+ * Ce que l'artisan lit selon l'etat de sa contestation.
+ *
+ * `settled` couvre deux causes — tort donne, ou silence — et dit la meme chose
+ * dans les deux cas : la mesure initiale s'applique. Les distinguer supposerait
+ * de publier la reponse du client, qui ne lui a rien promis.
+ */
+const DISPUTE_MESSAGES: Record<string, (expiresAt: Date) => string> = {
+  under_review: (expiresAt) =>
+    `Contestation en cours — votre client a jusqu’au ${expiresAt.toLocaleDateString('fr-FR')} pour répondre. Ce chantier ne compte pas dans votre taux de délai pendant ce temps.`,
+  upheld: () =>
+    'Votre client a confirmé : ce retard ne vous est pas imputable. Ce chantier ne compte plus dans votre taux de délai.',
+  settled: () => 'La mesure initiale s’applique : ce chantier compte dans votre taux de délai.',
+}
 
 export default async function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -43,6 +69,32 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
 
   const totals = computeTotals(found.lines)
   const lines = [...found.lines].sort((a, b) => a.position - b.position)
+
+  const versions = await quoteVersions(found.id)
+  const reference = referenceVersion(versions)
+  const amendable = versions.length > 0 && reference !== null && !versions.some((v) => v.status === 'draft' || v.status === 'sent')
+
+  const now = new Date()
+  const dispute = await disputeFor(found.id)
+  const statement = await statementFor(found.id)
+
+  // La MEME fonction que le service : l'ecran ne peut pas proposer ce que le
+  // service refusera, ni le cacher quand il l'accepterait.
+  let disputable = true
+  try {
+    assertDisputable({
+      completedAt: found.completedAt,
+      committedLeadTimeDays: found.committedLeadTimeDays,
+      businessDaysUsed:
+        found.signedAt && found.completedAt
+          ? businessDaysSince(found.signedAt, found.completedAt)
+          : 0,
+      existing: dispute,
+      reason: 'placeholder',
+    })
+  } catch {
+    disputable = false
+  }
 
   const issued = await issuedAgainstQuote(found.id)
   const invoices = await db
@@ -90,7 +142,12 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
       )}
 
       {found.status === 'draft' ? (
-        <SendButton quoteId={found.id} />
+        <div className="flex flex-wrap items-center gap-4">
+          <SendButton quoteId={found.id} />
+          <Link href={`/devis/${found.id}/modifier`} tone="bare">
+            <span className="text-sm">Modifier</span>
+          </Link>
+        </div>
       ) : (
         <Text size="sm" tone="soft">
           Lien du client :{' '}
@@ -103,8 +160,42 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
       {found.status === 'signed' && (
         <InvoiceActions
           quoteId={found.id}
-          remaining={format(remainingToInvoice(found.totalInclTax, issued))}
+          remaining={format(remainingToInvoice(engagedTotal(versions), issued))}
         />
+      )}
+
+      {reference !== null && found.completedAt === null && (
+        <CompleteButton quoteId={found.id} today={new Date().toISOString().slice(0, 10)} />
+      )}
+
+      {found.completedAt !== null && (
+        <Text size="sm" tone="soft">
+          Chantier terminé le {found.completedAt.toLocaleDateString('fr-FR')}
+          {found.completionSource === 'invoiced' ? ' (facture de solde émise)' : ' (déclaré)'}.
+        </Text>
+      )}
+
+      {found.completedAt !== null && (
+        <>
+          {disputable && <DisputeButton quoteId={found.id} />}
+          {dispute !== null && (
+            <Text size="sm" tone="soft">
+              {DISPUTE_MESSAGES[disputeStanding(dispute, now)](dispute.expiresAt)}
+            </Text>
+          )}
+          <StatementForm quoteId={found.id} existing={statement?.body ?? ''} />
+        </>
+      )}
+
+      {amendable && <AmendButton quoteId={found.id} />}
+
+      {versions.length > 1 && (
+        <section className="flex flex-col gap-3">
+          <Heading level={3} as="h2">
+            Versions de ce devis
+          </Heading>
+          <QuoteVersions versions={versions} currentId={found.id} />
+        </section>
       )}
 
       {invoices.length > 0 && (

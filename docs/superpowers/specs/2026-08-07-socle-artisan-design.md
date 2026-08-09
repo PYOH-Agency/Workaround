@@ -259,6 +259,28 @@ Sans cela, l'artisan saisit lui-même son devis et sa propre facture : les métr
 
 Les chantiers non signés existent dans l'outil mais ne comptent pas dans le passeport.
 
+### Le biais de sélection
+
+> **Le risque dominant de la mesure n'est pas la falsification, c'est le contournement.**
+
+La signature client empêche d'**inventer** un chantier. Elle n'empêche pas d'en **omettre** un.
+
+Un artisan qui comprend que l'*écart devis → facture* et le *respect du délai annoncé* le pénalisent sortira de l'outil les chantiers qu'il sait difficiles : l'appartement occupé, le client qui change d'avis en cours de route, le chantier à aléas. Ce n'est pas de la fraude — c'est un arbitrage rationnel, et il est **invisible par construction** : le backoffice (§12) ne voit que ce qui entre.
+
+Le capteur mesure alors les chantiers faciles. Le passeport reste exact ligne à ligne et devient faux dans ce qu'il laisse croire. C'est plus dangereux que la fraude du risque n° 2, parce que rien ne le signale : aucun événement suspect, aucune anomalie à instruire.
+
+Le biais découle directement de la règle « seul un devis signé compte », qui est par ailleurs indispensable. On ne peut donc pas le supprimer — seulement refuser de le masquer.
+
+> **Décision.** Le passeport affiche **le volume de chantiers signés dans l'outil** à côté de chaque taux, et jamais un taux seul.
+
+C'est la règle du seuil, étendue d'un cran. Le seuil empêche d'afficher un chiffre non significatif ; le volume affiché empêche de lire un chiffre significatif comme s'il était exhaustif.
+
+> **Décision.** La définition publique de chaque métrique énonce explicitement qu'elle porte sur **les chantiers passés par l'outil**, et non sur l'activité de l'entreprise.
+
+Ce que le produit peut promettre est *« voici ce qui s'est passé sur les chantiers que nous avons vus »*, jamais *« voici comment travaille cette entreprise »*. La seconde formulation serait invérifiable — et c'est celle que le lecteur suppose tant qu'on ne la corrige pas.
+
+**Ce qui reste ouvert.** Rendre la participation tout ou rien — une entreprise dont une part des chantiers échappe à l'outil perdrait son passeport — supprimerait le biais, mais est inapplicable : nous n'avons aucun moyen d'observer ce qui n'entre pas. La détection indirecte, par incohérence entre le volume déclaré et l'ancienneté ou l'effectif, est un travail de M5 et non une décision de spec.
+
 ### Portabilité
 
 Le passeport est exportable : widget pour le site de l'entreprise, bloc sur ses devis, QR code. Le label devient son argument commercial, donc il le défend et le diffuse gratuitement.
@@ -426,6 +448,8 @@ Le mécanisme existe déjà : l'**événement rectificatif** conçu par l'AIPD p
 | 11 | **La ligne de partage n'était tracée que pour le demandeur.** P1 crée délibérément chez lui une frustration qui deviendra la demande de P2. Rien d'équivalent n'existait côté artisan : entre la vérification et la marketplace, il gagne un outil sur un marché encombré et un passeport que personne ne cherche. **Un artisan qui ne reçoit aucun chantier part — et emporte la donnée**, donc le label, donc le produit | **L'annuaire consultable est avancé, avant les métriques** (§14). Ce n'est pas la marketplace : ni agrégation de demande, ni matching, ni lead vendu — donc aucun des trois interdits n'est franchi. Sans métriques, il dit déjà « tous ces artisans sont assurés pour ce qu'ils font », ce que personne d'autre ne peut dire |
 | 10 | **Promesse marketing plus générique** — « l'outil des plombiers bordelais » convertit mieux que « l'outil des artisans » | Problème de go-to-market, pas de produit : acquisition ciblée métier par métier sur un produit générique |
 
+| 14 | **Biais de sélection du capteur.** L'artisan qui comprend que l'écart devis → facture et le respect du délai le pénalisent sortira ses chantiers difficiles de l'outil. Ce n'est pas la fraude du risque n° 2 mais un arbitrage rationnel, **invisible** : le backoffice ne voit que ce qui entre. Le passeport reste exact et devient trompeur — et rien ne le signale | Traité au §9, *Le biais de sélection* : volume affiché à côté de chaque taux, jamais de taux seul ; la définition publique de chaque métrique précise qu'elle porte sur les chantiers passés par l'outil. **À trancher avant d'écrire M5** — après, c'est une migration |
+
 | 13 | **Mention d'assurance obligatoire sur les devis et factures.** L'article L243-2 du Code des assurances, renforcé par la loi Macron de 2015, impose de faire figurer sur tout devis et toute facture du bâtiment : la mention « Assurance professionnelle », le nom et l'adresse de l'assureur, la référence du contrat, les activités garanties et la zone géographique couverte. Amende administrative de 3 000 € pour un artisan individuel, 15 000 € pour une société, **par infraction constatée** | **Bloquant dès M1.** Un devis émis sans ces mentions expose l'artisan à une amende — inacceptable sur un produit dont l'argument central est la confiance. Ces données sont collectées **de façon déclarative dès l'inscription** ; M3 ne fait qu'y ajouter la vérification. La donnée déclarée en M1 devient exactement ce que M3 contrôle |
 
 ### Hypothèses ouvertes
@@ -443,7 +467,7 @@ P1 ne se construit pas d'un bloc. Chaque jalon doit produire un logiciel utilisa
 | **M2 — La facture** | Acompte, solde, avoir, PDF, suivi payé / impayé | Abandonner son outil actuel. Le capteur est complet. |
 | **M3 — Vérification et passeport** | Sirene + BODACC automatiques, dépôt d'attestation, extraction, revue humaine, référentiel d'activités minimal, page publique | Être trouvé sur Google avec ses vérifications à jour. **La différenciation apparaît ici.** |
 | **M4 — L'annuaire** | Recherche par activité et par zone sur les pages publiques de M3, point de contact direct, backoffice d'observation | **Être trouvé et recevoir des appels.** C'est ici que le passeport commence à rapporter. |
-| **M5 — Les métriques** | Journal d'événements, calcul des métriques, seuils de volume, contestation | Son passeport se remplit tout seul. |
+| **M5 — Les métriques** | Journal d'événements, calcul des métriques, seuils de volume, **volume affiché à côté de chaque taux** (§9), contestation | Son passeport se remplit tout seul. |
 | **M6 — L'espace demandeur** | Compte à la signature, carnet, suivi de chantier, répertoire, reprise de contact | Ses clients ont un espace. |
 | **M7 — Agenda et RDV** | Créneaux, synchronisation externe, rendez-vous de visite et d'intervention | Arrêter de gérer ses rendez-vous au téléphone. |
 | **M8 — L'offre payante** | Équipe et rôles, situations de travaux, relances d'impayés | Ce qui justifie l'abonnement Pro. |

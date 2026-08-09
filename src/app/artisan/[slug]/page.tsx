@@ -7,15 +7,19 @@ import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
 import { SealBadge } from '@/ui/molecules/seal-badge'
 import { PublicShell } from '@/ui/shells/public-shell'
+import { ContactForm } from './ContactForm'
 import { CoveredActivities } from './CoveredActivities'
 import { Qualifications } from './Qualifications'
 
 /**
  * La page publique d'une entreprise.
  *
- * Elle porte la phrase que personne d'autre en France ne peut prononcer :
- * chaque activite affichee ici est couverte par une assurance en cours de
- * validite, adaptee a cette activite precise.
+ * Elle porte la phrase que personne d'autre en France ne peut prononcer : pour
+ * chaque activite affichee ici, une attestation d'assurance adaptee a cette
+ * activite precise a ete relevee et controlee.
+ *
+ * L'affirmation est datee, jamais au present : nous connaissons l'echeance du
+ * document, pas l'etat du contrat. Voir `CoveredActivities`.
  *
  * Aucune metrique : elles arrivent avec le jalon des metriques.
  */
@@ -83,7 +87,8 @@ export default async function ArtisanPage({ params }: { params: Promise<{ slug: 
           Activités vérifiées
         </Heading>
         <Text size="sm" tone="soft">
-          Chacune est couverte par une assurance en cours de validité, adaptée à cette activité.
+          Pour chacune, nous avons relevé une attestation d’assurance adaptée à l’activité et nous
+          affichons son échéance. C’est ce que nous avons vérifié, et rien de plus.
         </Text>
         <CoveredActivities activities={profile.activities} />
       </section>
@@ -96,6 +101,13 @@ export default async function ArtisanPage({ params }: { params: Promise<{ slug: 
           <Qualifications qualifications={profile.qualifications} />
         </section>
       )}
+
+      <section className="flex flex-col gap-4">
+        <Heading level={3} as="h2">
+          Contacter cette entreprise
+        </Heading>
+        <ContactForm companyId={profile.companyId} legalName={profile.legalName} />
+      </section>
 
       {/* Mentions imposees par l'article L243-2 du Code des assurances. */}
       <section className="flex flex-col gap-0.5 border-t border-rule pt-5">

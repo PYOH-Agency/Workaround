@@ -4,10 +4,13 @@ import { db } from '@/db/client'
 import { invoice, invoiceLine, quote } from '@/db/schema'
 import { formatInvoiceNumber } from '@/domain/invoice-number'
 import { assertInvoiceable, type InvoiceType } from '@/domain/invoice-balance'
+import { engagedTotal, referenceVersion } from '@/domain/quote-versions'
+import { quoteVersions, rootQuoteId } from '@/services/amendments'
 import { computeTotals, type LineInput } from '@/domain/quote-totals'
 import { missingInvoiceMentions, LEGAL_RECOVERY_INDEMNITY_CENTS } from '@/domain/legal-mentions'
 import { multiply } from '@/domain/money'
 import { recordEvent } from '@/services/events'
+import { recordInvoicedCompletion } from '@/services/completion'
 
 /**
  * Ce dont ce module a besoin pour ecrire : la base, ou une transaction ouverte
@@ -67,7 +70,18 @@ export async function issueInvoice(input: IssueInvoiceInput) {
   })
 
   if (!source) throw new Error('Devis introuvable')
-  if (source.status !== 'signed') throw new Error('Seul un devis signe peut etre facture')
+
+  // Une facture s'attache toujours a la RACINE de la chaine de versions : le
+  // chantier est identifie par son devis d'origine, quel que soit le nombre
+  // d'avenants signes depuis. Sans cela, un avenant n'aurait aucune facture
+  // rattachee, le plafond se reinitialiserait, et tout serait refacturable.
+  const root = await rootQuoteId(input.quoteId)
+  const versions = await quoteVersions(root)
+
+  // La condition porte sur l'existence d'une version signee, pas sur le statut
+  // de celle qu'on passe : un brouillon d'avenant ne doit pas ouvrir la
+  // facturation, et un devis signe puis amende doit continuer de la permettre.
+  if (!referenceVersion(versions)) throw new Error('Seul un devis signe peut etre facture')
 
   const company = source.project.company
   const missing = missingInvoiceMentions(company)
@@ -80,14 +94,16 @@ export async function issueInvoice(input: IssueInvoiceInput) {
   const issued = await db
     .select({ type: invoice.type, totalInclTax: invoice.totalInclTax })
     .from(invoice)
-    .where(eq(invoice.quoteId, input.quoteId))
+    .where(eq(invoice.quoteId, root))
 
   const totals = computeTotals(input.lines)
 
   // Un avoir reduit la facturation : lui appliquer le plafond de depassement
   // empecherait de corriger une erreur.
   if (input.type !== 'credit_note') {
-    assertInvoiceable(source.totalInclTax, issued, totals.totalInclTax)
+    // Le plafond est celui de la DERNIERE version signee, pas du devis
+    // d'origine : c'est ce qui debloque l'artisan dont le chantier a grossi.
+    assertInvoiceable(engagedTotal(versions), issued, totals.totalInclTax)
   }
 
   const now = new Date()
@@ -100,7 +116,7 @@ export async function issueInvoice(input: IssueInvoiceInput) {
       .values({
         companyId: input.companyId,
         projectId: source.projectId,
-        quoteId: source.id,
+        quoteId: root,
         number,
         type: input.type,
         correctsInvoiceId: input.correctsInvoiceId ?? null,
@@ -131,6 +147,13 @@ export async function issueInvoice(input: IssueInvoiceInput) {
 
     return row
   })
+
+  // Le solde constate la reception des travaux. L'appel est isole : une panne
+  // ici ne doit jamais empecher l'emission d'une facture, qui est une
+  // obligation legale.
+  if (input.type === 'balance') {
+    await recordInvoicedCompletion(root, now).catch(() => null)
+  }
 
   await recordEvent({
     type: 'invoice.issued',

@@ -97,6 +97,18 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
     await anonymous.close()
   })
 
+  await test.step('le relecteur voit la file de supervision', async () => {
+    await reviewer.goto('/supervision')
+    await expect(reviewer.getByRole('heading', { name: 'Supervision' })).toBeVisible()
+  })
+
+  await test.step('un artisan n’accède pas à la supervision', async () => {
+    // Meme garde que la file d'attestations : l'existence de l'ecran ne le
+    // regarde pas.
+    const forbidden = await page.goto('/supervision')
+    expect(forbidden?.status()).toBe(404)
+  })
+
   await test.step('un artisan ne peut pas valider sa propre attestation', async () => {
     // Confondre `member` et `staff` donnerait a l'artisan le pouvoir de se
     // verifier lui-meme, ce qui reduirait a neant la valeur du label.

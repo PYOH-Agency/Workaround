@@ -1,8 +1,10 @@
-import { and, eq, isNotNull } from 'drizzle-orm'
+import { and, eq, isNotNull, lt } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { company, event, insuranceCertificate } from '@/db/schema'
+import { company, contactThrottle, event, insuranceCertificate, staff } from '@/db/schema'
 import { noticesDue } from '@/domain/expiry'
 import { recordEvent } from '@/services/events'
+import { currentAnomalies } from '@/services/anomalies'
+import { sendAnomalyDigest } from '@/services/anomaly-digest'
 import { runLegalChecks } from '@/services/legal-checks'
 import { sendExpiryNotice } from '@/services/expiry-notice'
 
@@ -30,6 +32,9 @@ export async function GET(request: Request) {
   })
 
   let sent = 0
+  // Une entreprise sans adresse ne peut pas etre prevenue. On la compte pour
+  // que le suivi la voie : sans preavis, la suspension serait irreguliere.
+  let unreachable = 0
 
   for (const certificate of certificates) {
     const history = await db
@@ -41,7 +46,14 @@ export async function GET(request: Request) {
     const [day] = noticesDue(certificate.validUntil!, now, alreadySent)
     if (day === undefined) continue
 
-    await sendExpiryNotice({ certificate, day })
+    // L'evenement n'est ecrit QUE si le preavis est parti. Le journal est la
+    // preuve du preavis exige par l'article 22.3 : y inscrire un avertissement
+    // qui n'a jamais quitte le serveur fabriquerait une fausse preuve, et
+    // l'artisan suspendu sans avoir rien recu se verrait opposer notre journal.
+    if (!(await sendExpiryNotice({ certificate, day }))) {
+      unreachable++
+      continue
+    }
 
     await recordEvent({
       type: 'certificate.expiring',
@@ -60,5 +72,30 @@ export async function GET(request: Request) {
   const companies = await db.select({ id: company.id, siret: company.siret }).from(company)
   for (const row of companies) await runLegalChecks(row.id, row.siret)
 
-  return Response.json({ checked: certificates.length, sent, companies: companies.length })
+  // Apres les controles : ils viennent d'ecrire les constats que le detecteur
+  // de silence lit. Calculer avant produirait une alerte sur une source qu'on
+  // vient d'interroger avec succes.
+  const anomalies = await currentAnomalies(now)
+  const reviewers = await db.select({ email: staff.email }).from(staff)
+  const alerted = await sendAnomalyDigest(
+    anomalies,
+    reviewers.map((r) => r.email),
+  )
+
+  // Les empreintes d'adresse sont une mesure anti-abus de courte duree : les
+  // garder au-dela serait conserver une donnee personnelle sans finalite.
+  const purged = await db
+    .delete(contactThrottle)
+    .where(lt(contactThrottle.createdAt, new Date(now.getTime() - 24 * 3_600_000)))
+    .returning({ id: contactThrottle.id })
+
+  return Response.json({
+    checked: certificates.length,
+    sent,
+    unreachable,
+    companies: companies.length,
+    anomalies: anomalies.length,
+    alerted,
+    throttlePurged: purged.length,
+  })
 }
