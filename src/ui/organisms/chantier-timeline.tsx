@@ -26,6 +26,7 @@ const LABELS: Record<TimelineKind, string> = {
   invoice_balance: 'Solde demandé',
   invoice_credit_note: 'Avoir émis',
   payment: 'Paiement reçu',
+  appointment: 'Rendez-vous',
   completed: 'Chantier terminé',
   post: '',
 }

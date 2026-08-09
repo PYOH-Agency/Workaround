@@ -1,11 +1,13 @@
 import { and, asc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/db/client'
 import {
+  appointment,
   chantierPhoto,
   chantierPost,
   company,
   invoice,
   payment,
+  project,
   quote,
   signature,
 } from '@/db/schema'
@@ -132,6 +134,23 @@ async function assemble(head: Head): Promise<ChantierFile | null> {
     .innerJoin(invoice, eq(invoice.id, payment.invoiceId))
     .where(eq(invoice.quoteId, head.id))
 
+  /*
+    Le devis porte le chantier, le rendez-vous porte le PROJET. Un projet
+    pouvant porter plusieurs devis, un rendez-vous apparaitrait alors dans deux
+    dossiers ; en P1 un projet n'a qu'une chaine de versions. Le corriger
+    supposerait de poser le rendez-vous sur le devis, ce qui le rendrait
+    impossible avant le premier devis — c'est-a-dire pour une visite.
+
+    `scheduled` seulement : la chronologie du client ne lui promet pas une
+    visite qui n'aura pas lieu.
+  */
+  const meetings = await db
+    .select({ at: appointment.startsAt })
+    .from(appointment)
+    .innerJoin(project, eq(project.id, appointment.projectId))
+    .innerJoin(quote, eq(quote.projectId, project.id))
+    .where(and(eq(quote.id, head.id), eq(appointment.status, 'scheduled')))
+
   const timeline = buildTimeline({
     signedAt: head.signedAt,
     completedAt: head.completedAt,
@@ -146,6 +165,7 @@ async function assemble(head: Head): Promise<ChantierFile | null> {
       body: post.body,
       photoPaths: photos.filter((p) => p.postId === post.id).map((p) => p.storagePath),
     })),
+    appointments: meetings,
   })
 
   return {
