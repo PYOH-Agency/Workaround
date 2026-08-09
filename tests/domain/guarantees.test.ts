@@ -56,6 +56,27 @@ describe('recevabilite d une declaration de reception', () => {
     expect(() => assertReceivable({ ...base, completedAt: null })).toThrow(/terminé/)
   })
 
+  it('accepte une reception le JOUR MEME de la signature', () => {
+    // Une reception est un jour, pas un instant : le client saisit une date,
+    // qui vaut minuit. Comparee a un horodatage de l'apres-midi, elle serait
+    // refusee — alors que signer le matin et recevoir le soir est ordinaire
+    // sur un petit chantier.
+    expect(() =>
+      assertReceivable({
+        signedAt: d('2026-08-09T14:30:00Z'),
+        completedAt: d('2026-08-09T18:00:00Z'),
+        declaredAt: d('2026-08-09T00:00:00Z'),
+        now: d('2026-08-09T19:00:00Z'),
+      }),
+    ).not.toThrow()
+  })
+
+  it('accepte une reception declaree aujourd hui', () => {
+    expect(() =>
+      assertReceivable({ ...base, declaredAt: d('2026-05-01T00:00:00Z'), now: d('2026-05-01T09:00:00Z') }),
+    ).not.toThrow()
+  })
+
   it('refuse une date anterieure a la signature', () => {
     expect(() => assertReceivable({ ...base, declaredAt: d('2026-01-01T00:00:00Z') })).toThrow(
       /antérieure à la signature/,

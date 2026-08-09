@@ -47,6 +47,19 @@ export function guaranteeDeadlines(receivedAt: Date | null): Deadline[] | null {
   }))
 }
 
+/**
+ * Minuit UTC du jour d'une date.
+ *
+ * Une reception est un JOUR, pas un instant : le client saisit une date, qui
+ * vaut minuit. Comparee telle quelle a l'horodatage d'une signature de
+ * l'apres-midi, une reception le jour meme serait refusee — alors que signer le
+ * matin et recevoir le soir est un cas parfaitement ordinaire sur un petit
+ * chantier.
+ */
+function startOfDay(date: Date): number {
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+}
+
 export interface ReceivableInput {
   signedAt: Date
   completedAt: Date | null
@@ -58,10 +71,10 @@ export function assertReceivable(input: ReceivableInput): void {
   if (input.completedAt === null) {
     throw new Error('Ce chantier n’est pas encore terminé')
   }
-  if (input.declaredAt.getTime() < input.signedAt.getTime()) {
+  if (startOfDay(input.declaredAt) < startOfDay(input.signedAt)) {
     throw new Error('Une réception ne peut pas être antérieure à la signature du devis')
   }
-  if (input.declaredAt.getTime() > input.now.getTime()) {
+  if (startOfDay(input.declaredAt) > startOfDay(input.now)) {
     // Une reception a venir ouvrirait des garanties qui n'ont pas commence.
     throw new Error('Une réception à venir ne peut pas être déclarée')
   }

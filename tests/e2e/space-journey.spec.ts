@@ -10,34 +10,42 @@ import {
 import { quoteFor } from './fixtures'
 
 /**
- * Le parcours de M6·A : de la signature d'un devis a l'arrivee du client chez
- * lui, sans qu'aucun compte ne lui ait jamais ete demande.
+ * Le parcours de M6 : de la signature d'un devis au dossier du client, puis du
+ * fil derive a la reception declaree.
  *
- * Artisan et client neufs a chaque lancement : le parcours compte des
- * chantiers, et des comptes reutilises feraient s'accumuler ceux des lancements
- * precedents.
+ * **Deux contextes, deux sessions.** L'artisan garde la sienne d'un bout a
+ * l'autre : le verificateur PKCE du lien magique vit dans les cookies du
+ * contexte qui l'a demande, et une seconde connexion depuis un autre contexte
+ * echoue. C'est aussi plus fidele — le client et l'artisan ne partagent pas un
+ * navigateur.
+ *
+ * Comptes neufs a chaque lancement : le parcours compte des chantiers, et des
+ * comptes reutilises feraient s'accumuler ceux des lancements precedents.
  */
-const ARTISAN = `artisan-m6a-${randomUUID().slice(0, 8)}@test.local`
-const CLIENT = `client-m6a-${randomUUID().slice(0, 8)}@test.local`
+const ARTISAN = `artisan-m6-${randomUUID().slice(0, 8)}@test.local`
+const CLIENT = `client-m6-${randomUUID().slice(0, 8)}@test.local`
 
-test('de la signature du devis au dossier du client', async ({ page }) => {
+test('de la signature du devis à la réception déclarée', async ({ page, browser }) => {
   await clearMailbox()
 
+  const shop = await browser.newContext()
+  const artisan = await shop.newPage()
+
   await test.step('connexion de l’artisan', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(ARTISAN)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(ARTISAN))
+    await artisan.goto('/connexion')
+    await artisan.getByLabel('E-mail').fill(ARTISAN)
+    await artisan.getByRole('button', { name: 'Recevoir le lien' }).click()
+    await artisan.goto(await magicLinkFor(ARTISAN))
   })
 
-  // Brouillon, pas signe : la signature doit passer par l'ecran du client, sinon
-  // rien de ce que ce jalon construit ne serait exerce.
+  // Brouillon, pas signe : la signature doit passer par l'ecran du client,
+  // sinon rien de ce que ce jalon construit ne serait exerce.
   const quote = await quoteFor(ARTISAN, 'draft')
 
   await test.step('l’artisan envoie le devis à son client', async () => {
-    await page.goto(`/devis/${quote.id}`)
-    await page.getByRole('button', { name: 'Envoyer au client' }).click()
-    await expect(page.getByTestId('statut-devis')).toHaveText('Envoyé')
+    await artisan.goto(`/devis/${quote.id}`)
+    await artisan.getByRole('button', { name: 'Envoyer au client' }).click()
+    await expect(artisan.getByTestId('statut-devis')).toHaveText('Envoyé')
   })
 
   await test.step('le client apprend son rôle de témoin AVANT de signer', async () => {
@@ -63,7 +71,6 @@ test('de la signature du devis au dossier du client', async ({ page }) => {
   })
 
   await test.step('il se connecte et arrive chez lui, pas sur l’inscription artisan', async () => {
-    await page.context().clearCookies()
     await page.goto('/connexion')
     await page.getByLabel('E-mail').fill(CLIENT)
     await page.getByRole('button', { name: 'Recevoir le lien' }).click()
@@ -77,4 +84,56 @@ test('de la signature du devis au dossier du client', async ({ page }) => {
     await expect(page.getByText('PLOMBERIE DU PARCOURS')).toBeVisible()
     await expect(page.getByText('12 rue Fondaudège')).toBeVisible()
   })
+
+  await test.step('le dossier affiche une chronologie sans aucune publication', async () => {
+    // La decision qui porte M6·B : le fil est derive avant d'etre enrichi.
+    await page.goto(`/mes-chantiers/${quote.id}`)
+
+    await expect(page.getByTestId('fil')).toContainText('Devis signé')
+  })
+
+  await test.step('aucune date de garantie n’est affirmée', async () => {
+    // La reception tacite exige deux criteres cumulatifs et nous n'en
+    // connaissons qu'un : imprimer une date ferait manquer un delai.
+    await expect(page.getByTestId('garanties')).toContainText('réception des travaux')
+    await expect(page.getByTestId('garanties')).not.toContainText('2036')
+  })
+
+  await test.step('ses documents renvoient aux PDF déjà émis', async () => {
+    await expect(page.getByTestId('documents')).toContainText('Devis D2026-0001')
+  })
+
+  await test.step('l’artisan publie, et son client le voit', async () => {
+    await artisan.goto(`/devis/${quote.id}/chantier`)
+    await artisan.getByTestId('message-chantier').fill('Dépose terminée, pose demain.')
+    await artisan.getByRole('button', { name: 'Publier' }).click()
+    await expect(artisan.getByTestId('fil')).toContainText('Dépose terminée')
+
+    await page.reload()
+    await expect(page.getByTestId('fil')).toContainText('Dépose terminée')
+  })
+
+  await test.step('l’artisan marque le chantier terminé', async () => {
+    // La reception ne se declare pas sur des travaux inacheves.
+    await artisan.goto(`/devis/${quote.id}`)
+    await artisan.getByRole('button', { name: 'Marquer terminé' }).click()
+    await expect(artisan.getByText('Chantier terminé le')).toBeVisible()
+  })
+
+  await test.step('le client déclare sa réception, et ses garanties s’ouvrent', async () => {
+    await page.reload()
+    await page.getByTestId('date-reception').fill('2026-08-09')
+    await page.getByRole('button', { name: 'Enregistrer la réception' }).click()
+
+    await expect(page.getByTestId('garanties')).toContainText('2036')
+    await expect(page.getByTestId('garanties')).toContainText('n’engage pas les parties')
+  })
+
+  await test.step('l’artisan voit la réception déclarée par son client', async () => {
+    // Un fait partage ne se consigne pas en secret.
+    await artisan.goto(`/devis/${quote.id}/chantier`)
+    await expect(artisan.getByText('a déclaré la réception des travaux')).toBeVisible()
+  })
+
+  await shop.close()
 })

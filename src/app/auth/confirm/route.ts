@@ -32,7 +32,12 @@ export async function GET(request: Request) {
         user ? db.query.member.findFirst({ where: eq(member.userId, user.id) }) : undefined,
         // La connexion est le moment ou le dossier cree par la signature
         // rencontre enfin un compte : c'est ici qu'il se rattache.
-        user?.email ? claimRequester(user.id, user.email) : null,
+        //
+        // **Hors du chemin critique.** Un echec ici ne doit pas empecher de se
+        // connecter : la route sert les DEUX publics, et un incident sur le
+        // dossier d'un client verrouillerait aussi l'atelier des artisans. Le
+        // rattachement se rejoue de toute facon a chaque lecture de session.
+        user?.email ? claimRequester(user.id, user.email).catch(() => null) : null,
       ])
 
       // Hors du bloc `try` : `redirect` signale la navigation en levant une
