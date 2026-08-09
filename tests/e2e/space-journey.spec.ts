@@ -2,7 +2,9 @@ import { randomUUID } from 'node:crypto'
 import { test, expect } from '@playwright/test'
 import {
   clearMailbox,
+  contactMailFor,
   magicLinkFor,
+  mailboxHas,
   quoteLinkFor,
   signatureReceiptFor,
   smsCodeFor,
@@ -136,4 +138,40 @@ test('de la signature du devis à la réception déclarée', async ({ page, brow
   })
 
   await shop.close()
+
+  await test.step('son répertoire retient l’entreprise et son chantier', async () => {
+    await page.goto('/mon-repertoire')
+
+    await expect(page.getByTestId('repertoire')).toContainText('PLOMBERIE DU PARCOURS')
+    await expect(page.getByTestId('repertoire')).toContainText('Remplacement chauffe-eau')
+  })
+
+  await test.step('il ajoute le couvreur que nous ne connaissons pas', async () => {
+    await page.getByTestId('nom-entreprise').fill('Couvreur de 2019')
+    await page.getByLabel('Téléphone').fill('0556000000')
+    await page.getByRole('button', { name: 'Ajouter au répertoire' }).click()
+
+    await expect(page.getByTestId('repertoire')).toContainText('Couvreur de 2019')
+    // Ce que nous n'en savons pas est dit, sinon la verification semblerait
+    // s'etendre a tout le carnet.
+    await expect(page.getByText('nous ne les avons pas prévenues')).toBeVisible()
+  })
+
+  await test.step('aucune invitation n’est partie', async () => {
+    // La decision la plus facile a eroder du jalon : elle ne coute rien a
+    // trahir et se verrait six mois plus tard.
+    expect(await mailboxHas('Couvreur de 2019')).toBe(false)
+  })
+
+  await test.step('il recontacte l’entreprise, qui apprend que c’est son client', async () => {
+    await page.getByRole('link', { name: 'Recontacter' }).first().click()
+    await page.getByTestId('message-reprise').fill('Bonjour, le chauffe-eau refait un bruit.')
+    await page.getByRole('button', { name: 'Envoyer' }).click()
+
+    await expect(page.getByTestId('message-envoye')).toBeVisible()
+
+    const relayed = await contactMailFor('contact@parcours.local')
+    expect(relayed).toContain('Vous avez déjà travaillé pour cette personne')
+    expect(relayed).toContain('D2026-0001')
+  })
 })

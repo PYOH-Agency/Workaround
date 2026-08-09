@@ -108,3 +108,24 @@ export async function signatureReceiptFor(email: string): Promise<string> {
     `confirmation de signature pour ${email}`,
   )
 }
+
+/**
+ * Vrai si un message du collecteur porte ce texte dans son sujet.
+ *
+ * **Ne patiente pas**, contrairement a `waitForMail` : elle sert a verifier une
+ * ABSENCE, et attendre dix secondes pour conclure qu'il n'y a rien allongerait
+ * le parcours sans rien prouver de plus.
+ */
+export async function mailboxHas(needle: string): Promise<boolean> {
+  const response = await fetch(`${MAILBOX}/api/v1/messages?limit=50`)
+  const { messages = [] } = (await response.json()) as { messages?: MailSummary[] }
+  return messages.some((mail) => mail.Subject.includes(needle))
+}
+
+/** La demande relayee a une entreprise. */
+export async function contactMailFor(email: string): Promise<string> {
+  return waitForMail(
+    (mail) => mail.To.some((to) => to.Address === email) && /Demande reçue/.test(mail.Subject),
+    `demande relayée à ${email}`,
+  )
+}
