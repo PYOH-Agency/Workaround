@@ -63,6 +63,17 @@ export const quote = pgTable(
      * toujours sur le declare.
      */
     completionSource: text('completion_source', { enum: ['declared', 'invoiced'] }),
+    /**
+     * La reception DECLAREE par le maitre d'ouvrage.
+     *
+     * Distincte de `completed_at` : celle-ci constate la fin des travaux,
+     * celle-la est un acte juridique qui fait courir les garanties legales.
+     * Nous ne l'etablissons pas — nous enregistrons une declaration, et nous la
+     * montrons **aux deux parties**, parce qu'un fait partage ne se consigne
+     * pas en secret.
+     */
+    receivedAt: timestamp('received_at', { withTimezone: true }),
+    receivedBy: uuid('received_by').references(() => requester.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
