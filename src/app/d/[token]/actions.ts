@@ -18,6 +18,7 @@ import {
 import { requestTimestamp } from '@/services/timestamp'
 import { sendSms } from '@/services/sms'
 import { recordEvent } from '@/services/events'
+import { requesterFromSignature } from '@/services/requesters'
 import { createServiceSupabase } from '@/lib/supabase-server'
 
 export interface SignState {
@@ -126,7 +127,16 @@ export async function signQuote(token: string, _state: SignState, form: FormData
   // de service, et une signature sans jeton reste valable.
   const timestampToken = await requestTimestamp(hash)
 
-  await db.insert(signature).values({ quoteId: found.id, ...proof, timestampToken })
+  // Le compte du client, cree par l'acte de signer. Rien n'est demande de plus
+  // a l'ecran : le compte nait de la signature, il ne la conditionne pas.
+  const account = await requesterFromSignature({
+    email: proof.signerEmail,
+    name: proof.signerName,
+  })
+
+  await db
+    .insert(signature)
+    .values({ quoteId: found.id, ...proof, requesterId: account.id, timestampToken })
 
   // Le code a rempli son office et la preuve de sa validation vit desormais
   // dans `signature`. Conserver le numero ici n'aurait plus de finalite.
