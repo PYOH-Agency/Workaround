@@ -46,9 +46,6 @@ export interface QuoteLinkState {
   error?: string
 }
 
-/** Le message de succes, unique et neutre. */
-const NEUTRAL = 'Si un devis a été envoyé à cette adresse, vous allez le recevoir.'
-
 /**
  * Renvoie le lien d'un devis a l'adresse a laquelle il a ete adresse.
  *
@@ -59,6 +56,11 @@ const NEUTRAL = 'Si un devis a été envoyé à cette adresse, vous allez le rec
  * se traduire par une reponse differente de celle d'une adresse inconnue.
  * Sans cela le formulaire devient un test d'existence d'adresse. Le lien
  * n'est jamais affiche, uniquement envoye.
+ *
+ * Le message affiche vit dans `./public-messages` et non ici : un fichier
+ * marque `'use server'` ne peut exporter que des fonctions async (regle
+ * React, verifiee a l'execution par ce Next.js), et une chaine constante ne
+ * l'est pas.
  */
 export async function requestQuoteLink(
   _state: QuoteLinkState,
@@ -78,5 +80,3 @@ export async function requestQuoteLink(
 
   return { sent: true }
 }
-
-export { NEUTRAL as QUOTE_LINK_CONFIRMATION }
