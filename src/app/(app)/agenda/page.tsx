@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { weekOf } from '@/domain/agenda-week'
 import { currentCompany, SessionError } from '@/lib/session'
 import { weekAgenda, type BookedAppointment } from '@/services/appointments'
+import { busyFor } from '@/services/calendar-links'
 import { Badge } from '@/ui/atoms/badge'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
@@ -11,6 +12,7 @@ import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { AppShell } from '@/ui/shells/app-shell'
 import { CancelButton } from './CancelButton'
+import { BusyNotice, SyncHint } from './BusyNotice'
 
 const DAY_LABEL = new Intl.DateTimeFormat('fr-FR', {
   timeZone: 'Europe/Paris',
@@ -59,7 +61,12 @@ export default async function AgendaPage({
   const around = Number.isNaN(asked.getTime()) ? new Date() : asked
 
   const week = weekOf(around)
-  const days = await weekAgenda(session.companyId, around)
+  const [days, busy] = await Promise.all([
+    weekAgenda(session.companyId, around),
+    // Lus a l'affichage, jamais stockes. Une panne rend `unreadable`, et
+    // l'ecran le dit plutot que d'afficher « libre ».
+    busyFor(session.companyId, new Date(`${week[0]}T00:00:00Z`), new Date(`${week[6]}T23:59:59Z`)),
+  ])
 
   return (
     <AppShell>
@@ -74,6 +81,8 @@ export default async function AgendaPage({
         </div>
         <ButtonLink href="/agenda/nouveau">Prendre un rendez-vous</ButtonLink>
       </div>
+
+      {busy.kind === 'unlinked' && <SyncHint />}
 
       <div className="flex flex-wrap gap-3">
         <ButtonLink href={`/agenda?semaine=${shifted(week, -1)}`} tone="secondary">
@@ -95,6 +104,8 @@ export default async function AgendaPage({
             <Heading level={3} as="h2">
               {DAY_LABEL.format(new Date(`${day.day}T12:00:00Z`))}
             </Heading>
+
+            <BusyNotice state={busy} day={day.day} />
 
             {day.items.length === 0 ? (
               <Text size="sm" tone="muted">
