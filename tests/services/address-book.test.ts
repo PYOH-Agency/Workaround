@@ -32,11 +32,24 @@ async function signFor(companyId: string, projectId: string, requesterId: string
   return row
 }
 
-/** Le collecteur local : rien ne part en developpement, tout s'y compte. */
-async function mailCount(): Promise<number> {
-  const response = await fetch('http://127.0.0.1:54324/api/v1/messages?limit=1')
-  const { messages_count: count } = (await response.json()) as { messages_count: number }
-  return count
+/**
+ * Un message du collecteur porte-t-il ce texte ?
+ *
+ * **Un temoin unique, jamais un compteur.** Compter la boite avant et apres ne
+ * peut rien isoler : les autres fichiers de tests envoient du courrier en
+ * parallele, et le total bouge pour des raisons etrangeres a ce qu'on verifie.
+ * C'est la meme lecon qu'en M4, ou un temoin partage avait rendu un test
+ * ambigu.
+ */
+async function mailboxMentions(needle: string): Promise<boolean> {
+  const response = await fetch('http://127.0.0.1:54324/api/v1/messages?limit=100')
+  const { messages = [] } = (await response.json()) as {
+    messages?: { Subject: string; To: { Address: string }[] }[]
+  }
+
+  return messages.some(
+    (mail) => mail.Subject.includes(needle) || mail.To.some((to) => to.Address.includes(needle)),
+  )
 }
 
 describe('le carnet du demandeur', () => {
@@ -141,17 +154,17 @@ describe('aucune invitation', () => {
   it('n envoie AUCUN message a l entreprise saisie', async () => {
     // La decision la plus facile a eroder du jalon : elle ne coute rien a
     // trahir et se verrait six mois plus tard.
-    const before = await mailCount()
     const me = await someone()
+    const witness = `Couvreur-${randomUUID().slice(0, 8)}`
 
     await addManualEntry({
       requesterId: me.id,
-      freeName: 'Couvreur de 2019',
+      freeName: witness,
       phone: '0556000000',
       activityCode: null,
       note: '',
     })
 
-    expect(await mailCount()).toBe(before)
+    expect(await mailboxMentions(witness)).toBe(false)
   })
 })
