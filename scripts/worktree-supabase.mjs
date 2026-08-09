@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import { createServer } from 'node:net'
 import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync, rmSync } from 'node:fs'
 import path from 'node:path'
@@ -40,7 +41,32 @@ async function free(port) {
 }
 
 /**
- * La premiere bande de dix ports entierement libre, apres celle du depot.
+ * Les bandes deja reservees par les worktrees voisins.
+ *
+ * Sonder les ports ne suffit pas : un port n'est occupe que pendant que la pile
+ * tourne. Deux worktrees configures a froid recevaient donc la MEME bande, et
+ * la collision n'apparaissait qu'au demarrage du second — loin de sa cause.
+ * Une bande se lit dans le config, pas sur le reseau.
+ */
+function reserved() {
+  const listed = spawnSync('git', ['worktree', 'list', '--porcelain'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  })
+
+  return new Set(
+    (listed.stdout ?? '')
+      .split('\n')
+      .filter((line) => line.startsWith('worktree '))
+      .map((line) => path.join(line.slice('worktree '.length), '.supabase-local', 'supabase', 'config.toml'))
+      .filter((file) => file !== generated && existsSync(file))
+      .map((file) => Number(readFileSync(file, 'utf8').match(/^shadow_port = (\d+)$/m)?.[1]))
+      .filter(Number.isInteger),
+  )
+}
+
+/**
+ * La premiere bande de dix ports libre — ni ecoutee, ni reservee.
  *
  * Cherchee plutot que derivee d'un hachage du nom : un hachage se collisionne
  * en silence, et la panne arrive alors au demarrage de la seconde pile, loin de
@@ -48,7 +74,10 @@ async function free(port) {
  * plus — les ports d'un worktree sont stables tant qu'il existe.
  */
 async function findBand() {
+  const taken = reserved()
+
   for (let base = BASE + SPAN; base < BASE + 400; base += SPAN) {
+    if (taken.has(base)) continue
     const probes = await Promise.all(
       Array.from({ length: SPAN }, (_, i) => free(base + i)),
     )
