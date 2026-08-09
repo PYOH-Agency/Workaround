@@ -3,15 +3,14 @@ import { db } from '@/db/client'
 import { activity, addressBookEntry, company, project, quote, signature } from '@/db/schema'
 import {
   mergeAddressBook,
+  MAX_FREE_NAME_LENGTH,
+  MAX_NOTE_LENGTH,
   type AddressBookEntry,
   type PastIntervention,
 } from '@/domain/address-book'
 import { companySlug } from '@/domain/slug'
 import { companyCoverage } from '@/services/visibility'
 import { recordEvent } from '@/services/events'
-
-export const MAX_FREE_NAME_LENGTH = 120
-export const MAX_NOTE_LENGTH = 300
 
 /** Ce qu'on ajoute a une entree d'entreprise : son etat de verification. */
 export interface CoverageBadge {

@@ -7,6 +7,12 @@
  * et sert a decouvrir, celui-ci est prive et sert a retrouver.
  */
 
+/** Une raison sociale, pas une biographie. */
+export const MAX_FREE_NAME_LENGTH = 120
+
+/** Une note personnelle — « rapide et propre » —, pas un compte rendu. */
+export const MAX_NOTE_LENGTH = 300
+
 export interface PastIntervention {
   companyId: string
   companyName: string

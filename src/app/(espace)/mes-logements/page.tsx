@@ -86,6 +86,11 @@ export default async function MyPropertiesPage() {
         </div>
       )}
 
+      <Text size="sm" tone="soft">
+        <Link href="/mon-repertoire">Mon répertoire</Link> — les entreprises déjà intervenues chez
+        vous, et où en est leur vérification aujourd’hui.
+      </Text>
+
       <Text size="sm" tone="muted">
         Ouvrez un chantier pour son suivi, ses documents et vos garanties.{' '}
         <Link href="/confidentialite" newTab>
