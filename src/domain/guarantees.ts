@@ -1,0 +1,68 @@
+/**
+ * Les garanties legales de la construction, comptees depuis la RECEPTION.
+ *
+ * La reception est un acte juridique, et `completed_at` n'en est pas un : il
+ * vaut soit declaration de l'artisan, soit emission du solde. La reception
+ * tacite, elle, exige **deux criteres cumulatifs** — prise de possession sans
+ * reserve et paiement integral — et des reserves exprimees, meme verbalement,
+ * suffisent a l'ecarter.
+ *
+ * Nous connaissons le paiement. Nous ignorons la prise de possession et les
+ * reserves. **Nous n'affirmons donc jamais une date que nous n'avons pas
+ * constatee** : c'est le maitre d'ouvrage qui declare. Imprimer une date fausse
+ * sur l'ecran d'un particulier lui ferait manquer un delai de forclusion.
+ */
+export const GUARANTEES = [
+  { key: 'perfect_completion', years: 1, article: 'article 1792-6' },
+  { key: 'proper_function', years: 2, article: 'article 1792-3' },
+  { key: 'decennial', years: 10, article: 'article 1792' },
+] as const
+
+export type GuaranteeKey = (typeof GUARANTEES)[number]['key']
+
+export interface Deadline {
+  key: GuaranteeKey
+  years: number
+  article: string
+  endsAt: Date
+}
+
+/** Meme jour, N annees plus tard — sans deborder sur le mois suivant. */
+function plusYears(from: Date, years: number): Date {
+  const target = new Date(from)
+  const day = target.getUTCDate()
+  target.setUTCFullYear(target.getUTCFullYear() + years)
+  // Un 29 fevrier reporte sur une annee non bissextile deviendrait le 1er mars.
+  if (target.getUTCDate() !== day) target.setUTCDate(0)
+  return target
+}
+
+/** `null` sans reception : aucune date, seulement la regle et ses conditions. */
+export function guaranteeDeadlines(receivedAt: Date | null): Deadline[] | null {
+  if (!receivedAt) return null
+
+  return GUARANTEES.map((guarantee) => ({
+    ...guarantee,
+    endsAt: plusYears(receivedAt, guarantee.years),
+  }))
+}
+
+export interface ReceivableInput {
+  signedAt: Date
+  completedAt: Date | null
+  declaredAt: Date
+  now: Date
+}
+
+export function assertReceivable(input: ReceivableInput): void {
+  if (input.completedAt === null) {
+    throw new Error('Ce chantier n’est pas encore terminé')
+  }
+  if (input.declaredAt.getTime() < input.signedAt.getTime()) {
+    throw new Error('Une réception ne peut pas être antérieure à la signature du devis')
+  }
+  if (input.declaredAt.getTime() > input.now.getTime()) {
+    // Une reception a venir ouvrirait des garanties qui n'ont pas commence.
+    throw new Error('Une réception à venir ne peut pas être déclarée')
+  }
+}
