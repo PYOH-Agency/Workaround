@@ -72,6 +72,41 @@ test('de la prise de rendez-vous à la semaine', async ({ page }) => {
     await expect(page.getByTestId('agenda').locator('> li')).toHaveCount(7)
   })
 
+  await test.step('il obtient son adresse d’abonnement, et sait ce qu’elle contient', async () => {
+    await page.goto('/agenda/synchronisation')
+
+    await expect(page.getByTestId('abonnement')).toContainText('/abonnement/')
+    // Le jeton EST l'autorisation : il doit savoir ce qu'il deplace.
+    await expect(page.getByText('Toute personne qui l’obtient voit votre agenda')).toBeVisible()
+  })
+
+  await test.step('Apple est expliqué, pas grisé', async () => {
+    // Une decision, pas une fonctionnalite en retard.
+    await expect(page.getByTestId('apple')).toContainText('nous ne le ferons pas')
+    await expect(page.getByTestId('apple')).toContainText('L’abonnement ci-dessus fonctionne')
+  })
+
+  await test.step('le flux est un calendrier valide, et porte son rendez-vous', async () => {
+    const href = (await page.getByTestId('abonnement').innerText()).trim()
+    const feed = await page.request.get(href)
+
+    expect(feed.headers()['content-type']).toContain('text/calendar')
+
+    const body = await feed.text()
+    expect(body).toContain('BEGIN:VCALENDAR')
+    expect(body).toContain('Madame Rey')
+    // L'adresse contient une virgule : non echappee, la ville disparaitrait.
+    expect(body).toContain('Sainte-Catherine\\,')
+  })
+
+  await test.step('régénérer l’adresse fait taire l’ancienne', async () => {
+    const href = (await page.getByTestId('abonnement').innerText()).trim()
+    await page.getByRole('button', { name: 'Régénérer l’adresse' }).click()
+    await expect(page.getByTestId('abonnement')).not.toContainText(href.split('/abonnement/')[1])
+
+    expect((await page.request.get(href)).status()).toBe(404)
+  })
+
   await test.step('il annule, et le rendez-vous quitte la semaine', async () => {
     await page.goto('/agenda?semaine=2026-09-01')
     await page.getByRole('button', { name: 'Annuler' }).first().click()
