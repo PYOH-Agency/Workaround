@@ -246,6 +246,10 @@ import { isCurrent, navGroups, showsNav } from './app-nav-routes'
  * la sienne, et se battre en specificite contre elle donnerait un resultat
  * dependant de l'ordre des classes Tailwind.
  *
+ * Ce filet prend `field` et non `rule`. `rule` est un filet de separation, son
+ * contraste est volontairement faible et WCAG ne lui impose rien — 1,43:1 sur
+ * `card`. Un indicateur d'etat interactif doit tenir 3:1.
+ *
  * Passage a la ligne plutot qu'un menu : l'artisan est sur un chantier, une
  * main prise. Un menu cache exactement ce que ce composant existe pour montrer.
  */
@@ -276,7 +280,7 @@ export function AppNav() {
                     // 44 px : le seuil que le socle s'impose deja pour `Input`.
                     // Avant, la cible faisait la hauteur du texte, soit 20 px.
                     'inline-flex min-h-11 items-center rounded-badge border-b-2 px-2',
-                    current ? 'border-link' : 'border-transparent hover:border-rule',
+                    current ? 'border-link' : 'border-transparent hover:border-field',
                   )}
                 >
                   <Text size="sm" tone={current ? 'default' : 'muted'} as="span">

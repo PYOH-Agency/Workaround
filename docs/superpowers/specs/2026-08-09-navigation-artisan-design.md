@@ -80,7 +80,9 @@ Trois marques simultanées, parce que le socle interdit que la couleur porte seu
 | `Text tone="default"` au lieu de `tone="muted"` | Le contraste monte sur l'entrée courante |
 | Barre de 2 px en `border-link` | Ce qu'un œil voit sans lire |
 
-Les entrées inactives portent `border-transparent` et gagnent `border-rule` au survol. Le survol ne change pas la couleur du texte : `Text` fixe la sienne, et se battre en spécificité contre elle produirait un résultat dépendant de l'ordre des classes Tailwind.
+Les entrées inactives portent `border-transparent` et gagnent `border-field` au survol. Le survol ne change pas la couleur du texte : `Text` fixe la sienne, et se battre en spécificité contre elle produirait un résultat dépendant de l'ordre des classes Tailwind.
+
+Le filet de survol prend `field` et non `rule` : `rule` est un filet de séparation, son contraste est volontairement faible et WCAG ne lui impose rien — 1,43:1 sur `card`. Un indicateur d'état interactif doit tenir 3:1, et `field` est déjà le jeton des bordures perceptibles de contrôles (`Input`, `Checkbox`, `Button` secondaire).
 
 `ink-muted` sur `card` est déjà vérifié à 4.5 par `tests/ui/contrast.test.ts`. Aucun jeton nouveau, aucune couverture nouvelle.
 
