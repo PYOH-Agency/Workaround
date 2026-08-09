@@ -235,13 +235,19 @@ Pas d'étoiles. Les notes déclaratives existent déjà partout et sont massivem
 
 | Métrique | Source de la mesure | Fenêtre | Seuil d'affichage |
 |---|---|---|---|
-| Taux de présence aux RDV de visite | `RendezVous.presence` | 12 mois glissants | 5 observations |
-| Délai médian de remise du devis | `RendezVous` de visite → envoi du `Devis` | 12 mois glissants | 5 observations |
+| ~~Taux de présence aux RDV de visite~~ — **non construit**, voir ci-dessous | — | — | — |
+| Délai médian de remise du devis | `RendezVous` de visite → envoi du `Devis` | 12 mois glissants | **10 observations** |
 | **Écart devis → facture** *(facture finale ≤ devis + avenants signés)* | `Devis` + `Avenant` vs `Facture` | 12 mois glissants | 10 chantiers |
 | Respect du délai annoncé | `Devis.delai_engage` (champ obligatoire du devis) vs date réelle de fin de chantier | 12 mois glissants | 10 chantiers |
 | Volume de chantiers terminés | `Chantier` | 12 mois + total | — |
 | Ancienneté | `Entreprise.date_creation` | — | — |
 | Vérifications par activité | `EntrepriseActivite` | courant | — |
+
+> **Deux corrections apportées par M7**, et elles vont dans le même sens — ne rien publier qui ne se mesure honnêtement.
+>
+> **Le taux de présence n'est pas construit.** Il exige un témoin, et au moment d'un rendez-vous de visite le prospect n'a ni compte, ni devis signé, ni lien avec nous — il fait peut-être venir trois entreprises. Ceux qui répondraient à « l'artisan est-il venu ? » seraient ceux que la visite a fâchés. Contrairement au biais de sélection du §9, que le volume affiché rend lisible, **ici le volume lui-même serait biaisé** : un taux sur trois réponses pour quarante rendez-vous n'est pas imprécis, il est faux.
+>
+> **Le seuil du délai de remise passe de 5 à 10.** Deux seuils différents sur un même passeport seraient indéfendables — *« pourquoi dix ici et cinq là ? »* — et l'argument des dix vaut identiquement.
 
 > **Note de périmètre.** Le *délai de première réponse*, souvent cité comme la métrique la plus parlante, **n'est pas mesurable en P1** : il suppose une sollicitation entrante, donc une marketplace. Il est activé en P2. En P1 le passeport affiche les six métriques ci-dessus, ce qui suffit à faire tourner la boucle.
 

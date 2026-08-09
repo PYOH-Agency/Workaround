@@ -37,6 +37,15 @@ const METRICS = [
     silent:
       'Les jours fériés ne sont pas décomptés. Un retard causé par le client ou par un autre corps d’état est compté comme un retard — sauf si l’entreprise l’a contesté et que le client lui a donné raison : ce chantier quitte alors le calcul, sans jamais être compté comme respecté.',
   },
+  {
+    label: 'Délai de remise du devis',
+    measures:
+      'Le temps médian entre une visite chez un client et l’envoi du devis correspondant, en jours calendaires.',
+    method:
+      'Du premier rendez-vous de visite enregistré dans l’outil au premier devis envoyé pour ce chantier. La médiane, et non la moyenne : un devis oublié six mois ne doit pas déplacer le chiffre de tous les autres.',
+    silent:
+      'Un délai long peut venir du client — qui ne répond pas, ou qui change d’avis — comme de l’entreprise. Et il ne porte que sur les chantiers dont la visite a été prise dans l’outil : une visite notée sur un carnet n’y figure pas.',
+  },
 ]
 
 export default function DefinitionsPage() {

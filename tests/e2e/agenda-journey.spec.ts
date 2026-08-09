@@ -72,6 +72,48 @@ test('de la prise de rendez-vous à la semaine', async ({ page }) => {
     await expect(page.getByTestId('agenda').locator('> li')).toHaveCount(7)
   })
 
+  await test.step('il prend une seconde visite, pour demain', async () => {
+    // Le rappel part la veille : il faut un rendez-vous de demain pour que le
+    // travail de fond ait quelque chose a envoyer.
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10)
+
+    await page.goto('/agenda/nouveau')
+    await page.getByTestId('client-visite').fill('Monsieur Blanc')
+    await page.getByLabel('E-mail').fill('blanc@test.local')
+    await page.getByLabel('Téléphone').fill('0612345679')
+    await page.getByLabel('Adresse').fill('3 place Gambetta')
+    await page.getByLabel('Code postal').fill('33000')
+    await page.getByLabel('Ville').fill('Bordeaux')
+    await page.getByLabel('Objet').fill('Fuite salle de bain')
+    await page.getByTestId('debut-visite').fill(`${tomorrow}T09:00`)
+    await page.getByLabel('Fin').fill(`${tomorrow}T10:00`)
+
+    await page.getByRole('button', { name: 'Prendre le rendez-vous' }).click()
+    await expect(page).toHaveURL(/\/agenda$/)
+  })
+
+  /*
+    Le rappel de la veille n'est PAS joue ici, a dessein.
+
+    Il part du travail de fond quotidien, qui re-controle aussi chaque
+    entreprise aupres des annuaires publics : sur la base de test, cela fait
+    des centaines d'appels reseau reels, et le parcours expirerait avant
+    d'avoir rien prouve.
+
+    Il est verifie la ou il se verifie honnetement : `due-reminders.test.ts`
+    l'envoie pour de vrai dans le collecteur local, ne le renvoie pas deux
+    fois, l'ecarte sur un rendez-vous annule, et n'inscrit rien au journal
+    quand le message n'a pas pu partir.
+  */
+
+  await test.step('le passeport compte la visite, sans encore afficher de médiane', async () => {
+    // Aucun devis envoye : rien a mesurer, et le volume le dit.
+    await page.goto('/mon-passeport')
+
+    await expect(page.getByTestId('delai-remise')).toContainText('Pas encore assez de données')
+    await expect(page.getByTestId('delai-remise')).toContainText('0 devis')
+  })
+
   await test.step('il obtient son adresse d’abonnement, et sait ce qu’elle contient', async () => {
     await page.goto('/agenda/synchronisation')
 

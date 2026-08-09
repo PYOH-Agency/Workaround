@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { db, connection } from '@/db/client'
-import { calendarConnection } from '@/db/schema'
+import { appointment, calendarConnection, event } from '@/db/schema'
 import { busyFor, linkCalendar, linkedCalendars, unlinkCalendar } from '@/services/calendar-links'
 import { google } from '@/services/calendar-google'
 import { createCompany } from './invoice-fixtures'
@@ -141,32 +141,32 @@ describe('les creneaux occupes', () => {
       { from: new Date('2026-09-01T09:00:00Z'), to: new Date('2026-09-01T10:00:00Z') },
     ])
 
-    const before = await rowTotals()
+    const before = await ownRows(companyId)
     await busyFor(companyId, FROM, TO)
 
-    expect(await rowTotals()).toBe(before)
+    expect(await ownRows(companyId)).toBe(before)
 
     vi.restoreAllMocks()
   })
 })
 
 /**
- * Le nombre exact de lignes de chaque table.
+ * Ce que la base contient POUR CETTE ENTREPRISE.
  *
- * `pg_stat_user_tables` serait approximatif et differe : on compte pour de
- * vrai, sinon le test passerait sur une statistique en retard.
+ * **Scope par entreprise, jamais global.** Un total global bougerait a cause
+ * des autres fichiers de tests, qui ecrivent en parallele — c'est exactement
+ * l'erreur commise en M6·C avec un compteur de boite aux lettres, et elle se
+ * reproduit des qu'on compte quelque chose de partage.
+ *
+ * Les trois tables retenues sont celles ou une ecriture serait plausible : le
+ * raccordement lui-meme, les rendez-vous, et le journal.
  */
-async function rowTotals(): Promise<string> {
-  const rows = await db.execute<{ name: string; total: number }>(sql`
-    SELECT c.relname AS name,
-           (xpath('/row/c/text()',
-                  query_to_xml(format('SELECT count(*) AS c FROM %I.%I', n.nspname, c.relname),
-                               false, true, '')))[1]::text::int AS total
-    FROM pg_class c
-    JOIN pg_namespace n ON n.oid = c.relnamespace
-    WHERE c.relkind = 'r' AND n.nspname = 'public'
-    ORDER BY c.relname
-  `)
+async function ownRows(companyId: string): Promise<string> {
+  const [links, meetings, journal] = await Promise.all([
+    db.$count(calendarConnection, eq(calendarConnection.companyId, companyId)),
+    db.$count(appointment, eq(appointment.companyId, companyId)),
+    db.$count(event, eq(event.companyId, companyId)),
+  ])
 
-  return JSON.stringify(rows)
+  return JSON.stringify({ links, meetings, journal })
 }

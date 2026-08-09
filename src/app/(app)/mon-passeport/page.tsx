@@ -1,12 +1,14 @@
 import { redirect } from 'next/navigation'
 import { currentCompany, SessionError } from '@/lib/session'
 import { companyMetrics } from '@/services/passport-metrics'
+import { companyQuoteLeadTime } from '@/services/quote-lead-time'
 import { disputesInReview } from '@/services/disputes'
 import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { AppShell } from '@/ui/shells/app-shell'
 import { MetricCard } from './MetricCard'
+import { MedianCard } from './MedianCard'
 import { DisputeList } from './DisputeList'
 
 /**
@@ -32,6 +34,7 @@ export default async function PassportPage() {
   const now = new Date()
   const metrics = await companyMetrics(session.companyId, now)
   const disputes = await disputesInReview(session.companyId, now)
+  const quoteLeadTime = await companyQuoteLeadTime(session.companyId, now)
 
   return (
     <AppShell>
@@ -60,6 +63,13 @@ export default async function PassportPage() {
           label="Délai annoncé respecté"
           rate={metrics.leadTimeRespect}
           definition="Part de vos chantiers terminés dans le délai que vous aviez engagé, en jours ouvrés."
+        />
+
+        <MedianCard
+          testId="delai-remise"
+          label="Délai de remise du devis"
+          median={quoteLeadTime}
+          definition="Le temps que vous mettez à envoyer un devis après une visite, en jours calendaires."
         />
 
         <Card elevation="e1">

@@ -7,6 +7,7 @@ import { currentAnomalies } from '@/services/anomalies'
 import { sendAnomalyDigest } from '@/services/anomaly-digest'
 import { runLegalChecks } from '@/services/legal-checks'
 import { sendExpiryNotice } from '@/services/expiry-notice'
+import { runAppointmentReminders } from '@/services/due-reminders'
 
 export const runtime = 'nodejs'
 
@@ -67,6 +68,10 @@ export async function GET(request: Request) {
     sent++
   }
 
+  // Les rappels de rendez-vous partent ici, groupes avec les autres envois :
+  // multiplier les planifications multiplierait les facons de tomber en panne.
+  const reminders = await runAppointmentReminders(now)
+
   // Les controles legaux tournent au meme rythme et au meme declencheur :
   // multiplier les planifications multiplierait les facons de tomber en panne.
   const companies = await db.select({ id: company.id, siret: company.siret }).from(company)
@@ -93,6 +98,7 @@ export async function GET(request: Request) {
     checked: certificates.length,
     sent,
     unreachable,
+    reminders,
     companies: companies.length,
     anomalies: anomalies.length,
     alerted,
