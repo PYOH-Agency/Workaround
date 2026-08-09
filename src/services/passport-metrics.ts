@@ -1,6 +1,6 @@
 import { and, eq, isNotNull, isNull } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { invoice, quote } from '@/db/schema'
+import { invoice, metricDispute, quote } from '@/db/schema'
 import { computeMetrics, type CompletedChantier, type Metrics } from '@/domain/passport-metrics'
 
 /**
@@ -18,8 +18,14 @@ export async function companyMetrics(companyId: string, now: Date): Promise<Metr
       completedAt: quote.completedAt,
       committedLeadTimeDays: quote.committedLeadTimeDays,
       initialTotalInclTax: quote.totalInclTax,
+      // La contestation vient de la REQUETE, pas d'un filtre applique ensuite :
+      // un ecran qui oublierait de filtrer publierait un chiffre conteste.
+      disputeExpiresAt: metricDispute.expiresAt,
+      disputeVerdict: metricDispute.verdict,
     })
     .from(quote)
+    // Jointure GAUCHE : un chantier sans contestation reste dans l'instantane.
+    .leftJoin(metricDispute, eq(metricDispute.quoteId, quote.id))
     .where(
       and(
         eq(quote.companyId, companyId),
@@ -52,6 +58,11 @@ export async function companyMetrics(companyId: string, now: Date): Promise<Metr
       // une nouvelle ligne plutot que de toucher la precedente.
       initialTotalInclTax: root.initialTotalInclTax,
       invoicedInclTax: invoiced,
+      // L'etat se deduit de l'echeance au moment du calcul : rien n'est stocke,
+      // donc rien ne peut rester exclu apres la fin du delai.
+      dispute: root.disputeExpiresAt
+        ? { expiresAt: root.disputeExpiresAt, verdict: root.disputeVerdict }
+        : null,
     })
   }
 
