@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor } from './helpers'
+import { clearMailbox, magicLinkFor, mailSubjects } from './helpers'
 import { coveredCompany } from './fixtures-directory'
 
 /**
@@ -95,10 +95,8 @@ test('de la recherche a la demande recue', async ({ browser }) => {
   // de donnees : c'est ce qui rend le balayage de l'etape suivante sans
   // ambiguite. Un temoin partage avec les fixtures obligerait a interpreter.
   await test.step('l artisan recoit la demande par courriel', async () => {
-    const inbox = await fetch('http://127.0.0.1:54324/api/v1/messages?limit=20')
-    const { messages } = (await inbox.json()) as { messages: { Subject: string }[] }
-
-    expect(messages.some((m) => m.Subject.includes('Demande reçue'))).toBe(true)
+    const subjects = await mailSubjects()
+    expect(subjects.some((subject) => subject.includes('Demande reçue'))).toBe(true)
   })
 
   await context.close()

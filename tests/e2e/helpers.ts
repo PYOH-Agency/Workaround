@@ -19,6 +19,20 @@ export async function clearMailbox(): Promise<void> {
   await fetch(`${MAILBOX}/api/v1/messages`, { method: 'DELETE' })
 }
 
+/**
+ * Les sujets presents dans le collecteur.
+ *
+ * Existe pour qu'aucun parcours n'ecrive l'adresse du collecteur a la main :
+ * celui de `directory-journey` la codait en dur sur 54324 et interrogeait donc
+ * la pile d'un autre worktree — il passait tant que les deux n'en faisaient
+ * qu'une, et devenait faux des qu'elles se sont separees.
+ */
+export async function mailSubjects(limit = 20): Promise<string[]> {
+  const response = await fetch(`${MAILBOX}/api/v1/messages?limit=${limit}`)
+  const { messages = [] } = (await response.json()) as { messages?: MailSummary[] }
+  return messages.map((mail) => mail.Subject)
+}
+
 /** Attend un message correspondant au predicat, puis renvoie son corps texte. */
 async function waitForMail(
   matches: (mail: MailSummary) => boolean,

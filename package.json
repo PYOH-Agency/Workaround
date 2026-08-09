@@ -9,16 +9,19 @@
     "check:size": "node scripts/check-file-size.mjs",
     "check:ds": "node scripts/check-design-system.mjs",
     "check:isolation": "node scripts/check-feature-isolation.mjs",
-    "dev": "next dev",
+    "dev": "node scripts/dev.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "supabase db reset && vitest run",
+    "test": "pnpm db:reset && vitest run",
     "test:unit": "vitest run tests/domain tests/lib tests/ui",
-    "test:e2e": "supabase db reset && playwright test",
+    "test:e2e": "pnpm db:reset && playwright test",
     "db:generate": "drizzle-kit generate",
-    "db:reset": "supabase db reset",
-    "test:integration": "vitest run --config vitest.integration.config.mts"
+    "db:reset": "node scripts/supabase.mjs db reset",
+    "test:integration": "vitest run --config vitest.integration.config.mts",
+    "db:start": "node scripts/supabase.mjs start",
+    "db:stop": "node scripts/supabase.mjs stop",
+    "db:worktree": "node scripts/worktree-supabase.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
@@ -45,7 +48,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
-    "supabase": "^2.111.0",
+    "supabase": "^2.113.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"

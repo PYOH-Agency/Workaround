@@ -47,6 +47,9 @@ next-env.d.ts
 supabase/.temp
 supabase/.branches
 
+# pile Supabase propre a un worktree, generee par `pnpm db:worktree`
+.supabase-local/
+
 # superpowers (maquettes de brainstorming)
 .superpowers/
 
