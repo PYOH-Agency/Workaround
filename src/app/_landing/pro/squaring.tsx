@@ -1,4 +1,4 @@
-import styles from './motion.module.css'
+import styles from './squaring.module.css'
 
 /**
  * La mise a l'equerre.

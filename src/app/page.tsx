@@ -6,6 +6,7 @@ import { Next } from './_landing/pro/next'
 import { Passport } from './_landing/pro/passport'
 import { Pricing } from './_landing/pro/pricing'
 import { Principles } from './_landing/pro/principles'
+import { Sequence } from './_landing/pro/sequence'
 import { Steps } from './_landing/pro/steps'
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function Home() {
       <Hero />
       <Mentions />
       <Steps />
+      <Sequence />
       <Passport />
       <Principles />
       <Next />
