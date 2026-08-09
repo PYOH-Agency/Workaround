@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { parseSiretInput } from '@/domain/siret'
 import { publicProfile } from '@/services/public-profile'
+import { resendQuoteLinks } from '@/services/quote-link'
 
 /**
  * Verification par SIRET — couche partagee, et non fonctionnalite d'un ecran.
@@ -39,3 +40,43 @@ export async function lookupCompany(
   // `redirect` leve : jamais dans un try/catch.
   redirect(`/artisan/${profile.slug}`)
 }
+
+export interface QuoteLinkState {
+  sent?: boolean
+  error?: string
+}
+
+/** Le message de succes, unique et neutre. */
+const NEUTRAL = 'Si un devis a été envoyé à cette adresse, vous allez le recevoir.'
+
+/**
+ * Renvoie le lien d'un devis a l'adresse a laquelle il a ete adresse.
+ *
+ * **La reponse est toujours la meme**, qu'un devis existe ou non, que la
+ * limitation ait joue ou non, et meme si `resendQuoteLinks` echoue (base ou
+ * SMTP indisponible) : le try/catch est une defense en profondeur, le service
+ * avale deja ses erreurs internes, mais une panne non prevue ici ne doit pas
+ * se traduire par une reponse differente de celle d'une adresse inconnue.
+ * Sans cela le formulaire devient un test d'existence d'adresse. Le lien
+ * n'est jamais affiche, uniquement envoye.
+ */
+export async function requestQuoteLink(
+  _state: QuoteLinkState,
+  form: FormData,
+): Promise<QuoteLinkState> {
+  const email = String(form.get('email') ?? '').trim()
+
+  if (!email.includes('@')) {
+    return { error: 'Cette adresse ne semble pas valide.' }
+  }
+
+  try {
+    await resendQuoteLinks(email, new Date())
+  } catch {
+    // Panne base ou SMTP en amont du service : la reponse reste neutre.
+  }
+
+  return { sent: true }
+}
+
+export { NEUTRAL as QUOTE_LINK_CONFIRMATION }
