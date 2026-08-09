@@ -7,9 +7,13 @@ import { cn } from '@/ui/cn'
  *
  * `data-theme="light"` force le clair meme si le systeme est en sombre : c'est
  * un document, il doit avoir la meme tete pour tout le monde et ressembler au
- * PDF qu'il accompagne. Les variables `--dq-*` etant heritees, poser l'attribut
- * sur un conteneur suffit — et la variante `dark:` ne s'active pas sous ce noeud
- * puisqu'elle cible `[data-theme='dark'] *`.
+ * PDF qu'il accompagne.
+ *
+ * L'attribut n'agit pas par heritage : c'est `tokens.css` qui le rend valable
+ * sur un conteneur, en declarant les variables sous `[data-theme='light']` et
+ * en excluant le sous-arbre de la variante `dark:`. Les deux vont ensemble —
+ * une seule des deux moities donne un rendu hybride, variables claires et
+ * utilitaires sombres.
  *
  * C'est aussi le seul gabarit sous lequel la terre cuite est autorisee en fond
  * de bouton, parce qu'il n'y a jamais d'action destructive a cote.

@@ -242,6 +242,8 @@ Les champs de saisie sont à **16 px minimum** en toutes circonstances, pour év
 
 Piloté par un attribut `data-theme` sur `<html>` avec trois valeurs — `system` (défaut), `light`, `dark` — et un script inline anti-flash dans le layout racine. Les rôles sémantiques sont des variables CSS redéfinies par thème ; `@theme inline` de Tailwind v4 fait émettre aux utilitaires un `var(--color-*)` plutôt qu'une valeur résolue, ce qui rend la bascule instantanée sans duplication d'utilitaires.
 
+**L'attribut vaut aussi sur un sous-arbre**, et c'est ce qui permet à `PublicShell` de forcer le clair sur un système en sombre. Deux conditions, indissociables : les blocs de variables ne sont **pas** ancrés à `:root` (`[data-theme='light']`, `[data-theme='dark']`), et la variante `dark:` est explicitement neutralisée sous un nœud clair. N'en tenir qu'une donne un document hybride — variables d'un thème, utilitaires de l'autre. Seule la règle `prefers-color-scheme` reste ancrée à la racine : appliquée à n'importe quel élément, elle repeindrait chaque descendant du sous-arbre clair. `color-scheme` suit l'attribut pour que les contrôles natifs s'alignent. Un sous-arbre sombre **dans** un sous-arbre clair n'est pas supporté : CSS ne sait pas désigner l'ancêtre `data-theme` le plus proche, et le produit n'a que le cas inverse.
+
 ## 6. L'architecture atomique
 
 ### 6.1 Les cinq couches

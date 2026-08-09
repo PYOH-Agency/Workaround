@@ -12,9 +12,18 @@
  * `[data-theme='dark']` et `prefers-color-scheme` est assumee :
  * `tests/ui/tokens.test.ts` verifie que les deux blocs restent identiques a
  * `roles.dark`.
+ *
+ * Les selecteurs ne sont volontairement pas ancres a `:root` : `PublicShell`
+ * pose `data-theme="light"` sur un conteneur pour qu'un document ait la meme
+ * tete pour tout le monde. Ancres a la racine, ces blocs ne repondaient pas a
+ * un attribut imbrique — les variables sombres de `:root` etaient simplement
+ * heritees et la page publique sortait en sombre. Seule la requete
+ * `prefers-color-scheme` reste ancree : appliquee a n'importe quel element,
+ * elle repeindrait en sombre chaque descendant du sous-arbre clair.
  */
 
-:root {
+:root,
+[data-theme='light'] {
   --dq-surface: #F5F1E8;
   --dq-card: #FDFCF8;
   --dq-raised: #FFFFFF;
@@ -40,7 +49,7 @@
   --dq-on-danger: #FFFFFF;
 }
 
-:root[data-theme='dark'] {
+[data-theme='dark'] {
   --dq-surface: #14110E;
   --dq-card: #1F1A16;
   --dq-raised: #2A2320;
@@ -94,6 +103,20 @@
   }
 }
 
+/**
+ * Les controles natifs — barres de defilement, selecteurs de date, autofill —
+ * suivent `color-scheme`, pas nos variables. Sans ces deux regles, un document
+ * force en clair sur un systeme en sombre garderait des barres sombres.
+ * La racine sans attribut reste sur `light dark` : voir `globals.css`.
+ */
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 @theme inline {
   --color-surface: var(--dq-surface);
   --color-card: var(--dq-card);
@@ -139,13 +162,23 @@
  * La variante `dark:` de Tailwind v4 suit `prefers-color-scheme` par defaut,
  * ce qui ignorerait un `data-theme` explicite. On la redefinit pour qu'elle
  * couvre les deux cas, dans le meme ordre que les variables ci-dessus.
+ *
+ * Le `:not(:where(...))` neutralise la variante sous un sous-arbre clair.
+ * Sans lui, `:root:not([data-theme='light']) *` designe aussi les descendants
+ * du conteneur de `PublicShell` : sur un systeme en sombre, la page publique
+ * gardait ses variables claires mais activait quand meme ses utilitaires
+ * `dark:`. `:where()` maintient la specificite a zero des deux cotes.
+ *
+ * Limite assumee : un sous-arbre sombre imbrique dans un sous-arbre clair
+ * n'active pas `dark:`. CSS ne sait pas designer « l'ancetre `data-theme` le
+ * plus proche », et le produit n'a que le cas inverse.
  */
 @custom-variant dark {
-  &:where([data-theme='dark'] *) {
+  &:where([data-theme='dark'] *):not(:where([data-theme='light'] *)) {
     @slot;
   }
   @media (prefers-color-scheme: dark) {
-    &:where(:root:not([data-theme='light']) *) {
+    &:where(:root:not([data-theme='light']) *):not(:where([data-theme='light'] *)) {
       @slot;
     }
   }
