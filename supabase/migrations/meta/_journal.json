@@ -71,6 +71,13 @@
       "when": 1786277806563,
       "tag": "0009_ordinary_jubilee",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786280620841,
+      "tag": "0010_useful_retro_girl",
+      "breakpoints": true
     }
   ]
 }
