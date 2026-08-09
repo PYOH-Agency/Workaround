@@ -1,0 +1,242 @@
+/**
+ * L'orchestration de la page d'accueil.
+ *
+ * Un module CSS et non des utilitaires Tailwind : ce qui suit est une
+ * chronologie — six acteurs, des retards en dixiemes de seconde, deux courbes
+ * differentes. Exprimee en classes utilitaires elle deviendrait illisible, et
+ * en JavaScript elle couterait un paquet client a une page que l'artisan ouvre
+ * sur le chantier, en 4G. Il n'y a donc ici ni dependance, ni image, ni script.
+ *
+ * Deux regles tenues partout dans ce fichier :
+ * - la marque ne pivote jamais (spec image de marque §4.6). C'est la feuille
+ *   qui se met d'equerre, pas l'equerre qui cherche la feuille — ce qui est
+ *   aussi le geste reel du metier.
+ * - `prefers-reduced-motion` ne degrade pas, il livre l'etat final.
+ */
+
+/* --- 1. L'equerre se pose : un balayage, jamais une deformation ----------- */
+
+@keyframes dq-wipe-up {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes dq-wipe-right {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+/* --- 2. La feuille arrive --------------------------------------------- */
+
+@keyframes dq-sheet-in {
+  from {
+    opacity: 0;
+    transform: translate(12px, -14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- 3. Son angle n'est pas droit, et il le devient ----------------------
+ *
+ * Un cisaillement, et non une rotation. Une feuille qu'on fait pivoter reste
+ * d'equerre — elle est seulement de travers, et une equerre ne dit rien de ca.
+ * Ce que l'outil controle, c'est l'ANGLE : d'ou `skewX`, qui laisse le bord
+ * inferieur porter sur la lame et fait pencher le bord gauche. Le jour s'ouvre
+ * alors le long du bras — exactement ce qu'on voit en posant une equerre dans
+ * un angle faux.
+ *
+ * Le depassement de 0,6 degre au retour est le rebond sec d'une piece qu'on
+ * pousse jusqu'a ce qu'elle porte.
+ */
+
+@keyframes dq-true-up {
+  0% {
+    transform: skewX(-4deg);
+  }
+  72% {
+    transform: skewX(0.6deg);
+  }
+  100% {
+    transform: skewX(0deg);
+  }
+}
+
+@keyframes dq-gap-close {
+  from {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* --- 4. L'angle verifie s'appose ----------------------------------------- */
+
+@keyframes dq-stamp {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dq-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dq-rise {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Les acteurs ---------------------------------------------------------- */
+
+/*
+ * `transform-origin` s'exprime alors dans les unites du viewBox, et non dans la
+ * boite de remplissage de chaque forme.
+ *
+ * `both` est repete dans chaque raccourci `animation` et non factorise ici : le
+ * raccourci remet `animation-fill-mode` a `none`, donc une declaration commune
+ * placee avant serait ecrasee par chacune des regles qui suivent — et toute la
+ * chronologie perdrait ses etats de depart et d'arrivee.
+ */
+.scene :where(.arm, .blade, .sheetIn, .sheet, .gap, .stamp, .late) {
+  transform-box: view-box;
+}
+
+.arm {
+  animation: dq-wipe-up 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.blade {
+  animation: dq-wipe-right 0.34s 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/*
+ * Deux groupes imbriques et non deux animations sur le meme noeud : les deux
+ * pilotent `transform`, et la seconde — meme pendant son retard — ecraserait la
+ * premiere. L'arrivee est portee par le parent, la mise d'equerre par l'enfant.
+ */
+.sheetIn {
+  animation: dq-sheet-in 0.4s 0.45s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+.sheet {
+  animation: dq-true-up 0.5s 0.95s cubic-bezier(0.3, 1.4, 0.4, 1) both;
+  /* L'origine est le coin controle : c'est lui qui ne bouge pas. */
+  transform-origin: 130px 270px;
+}
+
+/*
+ * Le jour le long du bras. Meme retard et meme duree que la correction de
+ * l'angle : il tient tant que le coin est faux — `both` le maintient a 0,9
+ * pendant l'attente — et il a disparu au moment ou la feuille porte.
+ */
+.gap {
+  animation: dq-gap-close 0.5s 0.95s ease-out both;
+}
+
+.stamp {
+  animation: dq-stamp 0.26s 1.45s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  transform-origin: 187px 211px;
+}
+
+.late {
+  animation: dq-fade-in 0.3s 1.55s ease-out both;
+}
+
+/* --- L'accroche entre avec la scene, pas apres --------------------------- */
+
+.step {
+  animation: dq-rise 0.5s both cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+.step:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.step:nth-child(2) {
+  animation-delay: 0.13s;
+}
+.step:nth-child(3) {
+  animation-delay: 0.21s;
+}
+.step:nth-child(4) {
+  animation-delay: 0.29s;
+}
+
+/* --- Revelation au defilement, sans une ligne de JavaScript --------------- */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: dq-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 12% cover 24%;
+    }
+  }
+}
+
+/* --- L'angle en coin de carte -------------------------------------------
+ *
+ * Present au repos, net au survol — et non revele par le survol : sur un ecran
+ * tactile, un marqueur qui n'apparait qu'au pointeur n'apparait jamais.
+ */
+
+.angle {
+  opacity: 0.55;
+  transform: translate(-4px, 4px);
+  transition:
+    opacity 0.18s ease-out,
+    transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.control:hover .angle,
+.control:focus-within .angle {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- Mouvement reduit : l'etat final, tout de suite ----------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .scene :where(.arm, .blade, .sheetIn, .sheet, .gap, .stamp, .late),
+  .step,
+  .reveal,
+  .angle {
+    animation: none;
+    transition: none;
+    transform: none;
+    clip-path: none;
+    opacity: 1;
+  }
+
+  /* Le jeu n'existe plus une fois la feuille d'equerre : il ne doit pas rester. */
+  .gap {
+    display: none;
+  }
+}
