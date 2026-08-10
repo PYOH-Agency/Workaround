@@ -116,7 +116,7 @@ export default async function PublicInvoicePage({
       */}
       {found.retention.amount > 0 && (
         <Text size="sm" tone="soft">
-          Vous pouvez retenir <Money cents={found.retention.amount} /> € au titre de la garantie
+          Vous pouvez retenir <Money cents={found.retention.amount} /> au titre de la garantie
           (loi n° 71-584 du 16 juillet 1971). Cette somme est à consigner auprès d’un tiers convenu
           entre vous et l’entreprise —{' '}
           <strong>elle n’est détenue ni par l’entreprise ni par d’équerre</strong>. Elle lui sera

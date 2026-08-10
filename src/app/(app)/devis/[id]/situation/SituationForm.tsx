@@ -6,7 +6,6 @@ import { remainingByRate, type RatedAmount } from '@/domain/invoice-balance'
 import { situationByRate, type SituationLine } from '@/domain/situation'
 import { Button } from '@/ui/atoms/button'
 import { Input } from '@/ui/atoms/input'
-import { Money } from '@/ui/atoms/money'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { Field } from '@/ui/molecules/field'
@@ -132,7 +131,8 @@ export function SituationForm({
 
       {preview <= 0 && (
         <Text size="sm" tone="muted">
-          <Money cents={0} /> € : cette situation ne facturerait rien de plus que la précédente.
+          Cette situation ne facturerait rien de plus que la précédente. Un recul se corrige par un
+          avoir, pas par une situation.
         </Text>
       )}
     </form>
