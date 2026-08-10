@@ -48,6 +48,37 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
     await expect(page.getByTestId('statut-34')).toHaveText('Attestation manquante')
   })
 
+  await test.step('sur un téléphone, la navigation se replie sans rien perdre', async () => {
+    // L'artisan est sur un chantier, une main prise. Un menu ou un defilement
+    // horizontal cacherait exactement ce que cette navigation existe pour
+    // montrer — c'est le defaut corrige, qui reviendrait par la fenetre.
+    await page.setViewportSize({ width: 375, height: 812 })
+
+    const nav = page.getByRole('navigation', { name: 'Navigation principale' })
+    const links = nav.getByRole('link')
+    await expect(links).toHaveCount(5)
+
+    // 44 px : le seuil que le socle s'impose deja pour `Input`. La cible faisait
+    // la hauteur du texte, soit 20 px, avant ce lot.
+    for (const link of await links.all()) {
+      const box = await link.boundingBox()
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44)
+    }
+
+    // Une barre d'une seule ligne ferait exactement 44 px de haut : au-dela,
+    // c'est qu'elle s'est repliee.
+    const navBox = await nav.boundingBox()
+    expect(navBox?.height ?? 0).toBeGreaterThan(44)
+
+    // Et le repli est un vrai repli : rien ne part hors de l'ecran.
+    const fits = await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    )
+    expect(fits).toBe(true)
+
+    await page.setViewportSize({ width: 1280, height: 720 })
+  })
+
   await test.step('la page publique n’existe pas encore', async () => {
     const anonymous = await context.newPage()
     const response = await anonymous.goto(`/artisan/${company.slug}`)
