@@ -379,14 +379,19 @@ Les tests de `tests/services/` parlent à un vrai Postgres : `pnpm db:reset` doi
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { randomUUID } from 'node:crypto'
 import { db, connection } from '@/db/client'
-import { company, project, quote, invoice, payment } from '@/db/schema'
+import { quote, invoice, payment } from '@/db/schema'
 import { moneyInFlight } from '@/services/home'
+import { createCompany, createProject } from './invoice-fixtures'
 
-const COMPANY = randomUUID()
-const PROJECT = randomUUID()
+/**
+ * `project` exige un client ET un logement, tous deux `NOT NULL`. Les fixtures
+ * partagees les creent deja — cinq suites s'en servent, et une sixieme copie
+ * des inserts a la main divergerait a la premiere migration.
+ */
+let COMPANY: string
+let PROJECT: string
+
 const now = new Date('2026-08-10T09:00:00Z')
-
-const siret = () => randomUUID().replace(/\D/g, '').padEnd(14, '0').slice(0, 14)
 
 async function signedQuote(totalInclTax: number): Promise<string> {
   const id = randomUUID()
@@ -433,8 +438,8 @@ async function issuedInvoice(input: {
 }
 
 beforeAll(async () => {
-  await db.insert(company).values({ id: COMPANY, siret: siret(), legalName: 'Entreprise de test' })
-  await db.insert(project).values({ id: PROJECT, companyId: COMPANY, label: 'Chantier de test' })
+  COMPANY = await createCompany()
+  PROJECT = await createProject(COMPANY)
 })
 
 afterAll(async () => {
@@ -672,22 +677,23 @@ git commit -m "feat: l'argent en cours se lit d'une seule requete"
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { randomUUID } from 'node:crypto'
 import { db, connection } from '@/db/client'
-import { company, project, quote, insuranceCertificate } from '@/db/schema'
+import { quote, insuranceCertificate } from '@/db/schema'
 import { pendingTasks } from '@/services/home'
 import type { Access } from '@/domain/authorization'
+import { createCompany, createProject } from './invoice-fixtures'
 
-const COMPANY = randomUUID()
-const PROJECT = randomUUID()
+/** Memes fixtures partagees que `home-money.test.ts` : `project` exige un client et un logement. */
+let COMPANY: string
+let PROJECT: string
+
 const now = new Date('2026-08-10T09:00:00Z')
 
 const OWNER: Access = { plan: 'free', role: 'owner' }
 const MEMBER: Access = { plan: 'free', role: 'member' }
 
-const siret = () => randomUUID().replace(/\D/g, '').padEnd(14, '0').slice(0, 14)
-
 beforeAll(async () => {
-  await db.insert(company).values({ id: COMPANY, siret: siret(), legalName: 'Entreprise de test' })
-  await db.insert(project).values({ id: PROJECT, companyId: COMPANY, label: 'Chantier de test' })
+  COMPANY = await createCompany()
+  PROJECT = await createProject(COMPANY)
 
   // Un devis envoye il y a plus de sept jours ouvres.
   await db.insert(quote).values({
