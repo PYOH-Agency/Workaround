@@ -1,5 +1,6 @@
 import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import { format } from '@/domain/money'
+import { retainedAmount } from '@/domain/retention'
 import type { PublicQuote } from '@/services/quote-public'
 import { registerBrandFonts } from './fonts'
 import { pdf, pdfFont } from './tokens'
@@ -178,6 +179,19 @@ function QuoteDocument({ quote }: { quote: PublicQuote }) {
             </Text>
           )}
           <Text>Modalités de paiement : {quote.company.legal.paymentTerms}</Text>
+          {/*
+            La stipulation doit figurer AU DEVIS : c'est le contrat. Une retenue
+            appliquee sans stipulation ecrite est une amputation illegale du
+            paiement de l'artisan.
+          */}
+          {quote.retentionRate > 0 && (
+            <Text>
+              Retenue de garantie de {quote.retentionRate} % (loi n° 71-584 du 16 juillet 1971),
+              soit {euro(retainedAmount(quote.totals.totalInclTax, quote.retentionRate))}. Cette
+              somme est consignée par le maître d’ouvrage auprès d’un tiers convenu entre les
+              parties, et lui est restituée un an après la réception des travaux.
+            </Text>
+          )}
           <Text>
             Travaux couverts par les garanties légales de parfait achèvement, de bon fonctionnement
             et décennale.

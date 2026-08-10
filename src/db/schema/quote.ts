@@ -74,6 +74,14 @@ export const quote = pgTable(
      */
     receivedAt: timestamp('received_at', { withTimezone: true }),
     receivedBy: uuid('received_by').references(() => requester.id),
+    /**
+     * La retenue de garantie stipulee, en points de pourcentage. `0` = aucune.
+     *
+     * **Elle se stipule ICI**, au devis : la loi n° 71-584 la veut facultative
+     * et contractuelle. Une retenue appliquee sans stipulation serait une
+     * amputation illegale du paiement de l'artisan.
+     */
+    retentionRate: integer('retention_rate').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

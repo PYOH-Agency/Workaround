@@ -64,6 +64,8 @@ export interface PublicQuote {
   }
   committedLeadTimeDays: number | null
   validityDays: number
+  /** La retenue de garantie stipulee, en points de pourcentage. `0` = aucune. */
+  retentionRate: number
   lines: QuoteLineView[]
   totals: Totals
 }
@@ -122,6 +124,7 @@ export async function loadQuoteByToken(token: string): Promise<PublicQuote | nul
     },
     committedLeadTimeDays: found.committedLeadTimeDays,
     validityDays: found.validityDays,
+    retentionRate: found.retentionRate,
     lines: [...found.lines]
       .sort((a, b) => a.position - b.position)
       .map((line) => ({

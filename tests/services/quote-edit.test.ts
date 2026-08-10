@@ -26,7 +26,7 @@ async function draft(status: 'draft' | 'sent' | 'signed' = 'draft') {
       companyId: COMPANY,
       number: `D2026-E${randomUUID().slice(0, 6)}`,
       status,
-      committedLeadTimeDays: 5,
+      committedLeadTimeDays: 5, retentionRate: 0,
       totalExclTax: 85000,
       totalTax: 8500,
       totalInclTax: 93500,
@@ -56,7 +56,7 @@ describe('modification d un brouillon', () => {
     const source = await draft()
     const updated = await updateDraftQuote(COMPANY, source.id, {
       lines,
-      committedLeadTimeDays: 8,
+      committedLeadTimeDays: 8, retentionRate: 0,
     })
 
     // 850,00 a 10 % et 2 x 60,00 a 20 % : 970,00 HT, 109,00 de TVA, 1 079,00 TTC.
@@ -78,7 +78,7 @@ describe('modification d un brouillon', () => {
     // Le client l'a recu : le modifier dans son dos rendrait le document qu'il
     // detient different de celui qu'on lui opposerait.
     const sent = await draft('sent')
-    await expect(updateDraftQuote(COMPANY, sent.id, { lines, committedLeadTimeDays: 5 })).rejects.toThrow(
+    await expect(updateDraftQuote(COMPANY, sent.id, { lines, committedLeadTimeDays: 5, retentionRate: 0 })).rejects.toThrow(
       'brouillon',
     )
   })
@@ -87,7 +87,7 @@ describe('modification d un brouillon', () => {
     // C'est exactement ce que l'avenant existe pour eviter.
     const signed = await draft('signed')
     await expect(
-      updateDraftQuote(COMPANY, signed.id, { lines, committedLeadTimeDays: 5 }),
+      updateDraftQuote(COMPANY, signed.id, { lines, committedLeadTimeDays: 5, retentionRate: 0 }),
     ).rejects.toThrow('brouillon')
   })
 
@@ -96,14 +96,14 @@ describe('modification d un brouillon', () => {
     const source = await draft()
 
     await expect(
-      updateDraftQuote(other, source.id, { lines, committedLeadTimeDays: 5 }),
+      updateDraftQuote(other, source.id, { lines, committedLeadTimeDays: 5, retentionRate: 0 }),
     ).rejects.toThrow('introuvable')
   })
 
   it('refuse un devis sans aucune ligne', async () => {
     const source = await draft()
     await expect(
-      updateDraftQuote(COMPANY, source.id, { lines: [], committedLeadTimeDays: 5 }),
+      updateDraftQuote(COMPANY, source.id, { lines: [], committedLeadTimeDays: 5, retentionRate: 0 }),
     ).rejects.toThrow('une ligne')
   })
 })

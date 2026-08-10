@@ -117,6 +117,24 @@ export function NewQuoteForm({ validityDays }: { validityDays: number }) {
               {(p) => <Input {...p} name="adresse_ville" />}
             </Field>
           </div>
+
+          <div className="sm:max-w-xs">
+            <Field
+              label="Retenue de garantie"
+              help="Facultative, 5 % au maximum (loi n° 71-584). Votre client consigne cette somme auprès d’un tiers ; elle vous est due un an après la réception des travaux."
+            >
+              {(p) => (
+                <Select {...p} name="retenue" defaultValue="0">
+                  <option value="0">Aucune</option>
+                  <option value="1">1 %</option>
+                  <option value="2">2 %</option>
+                  <option value="3">3 %</option>
+                  <option value="4">4 %</option>
+                  <option value="5">5 %</option>
+                </Select>
+              )}
+            </Field>
+          </div>
         </section>
 
         <section className="flex flex-col gap-4">

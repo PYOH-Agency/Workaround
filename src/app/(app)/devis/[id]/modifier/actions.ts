@@ -19,6 +19,7 @@ export async function editQuote(
     await updateDraftQuote(companyId, quoteId, {
       lines: readLines(form),
       committedLeadTimeDays: delay ? Number(delay) : null,
+      retentionRate: Number(form.get('retenue') ?? 0),
     })
   } catch (e) {
     return { error: (e as Error).message }

@@ -7,6 +7,7 @@ import { Button } from '@/ui/atoms/button'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
 import { Input } from '@/ui/atoms/input'
+import { Select } from '@/ui/atoms/select'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
 import { TotalsPanel } from '@/ui/organisms/totals-panel'
@@ -28,11 +29,13 @@ export function EditQuoteForm({
   number,
   initialLines,
   committedLeadTimeDays,
+  retentionRate,
 }: {
   quoteId: string
   number: string
   initialLines: LineDraft[]
   committedLeadTimeDays: number | null
+  retentionRate: number
 }) {
   const [state, action, pending] = useActionState(editQuote.bind(null, quoteId), initialState)
   const [lines, setLines] = useState<LineDraft[]>(
@@ -102,6 +105,24 @@ export function EditQuoteForm({
                   min="1"
                   defaultValue={committedLeadTimeDays ?? ''}
                 />
+              )}
+            </Field>
+          </div>
+
+          <div className="sm:max-w-xs">
+            <Field
+              label="Retenue de garantie"
+              help="Facultative, 5 % au maximum (loi n° 71-584). Votre client consigne cette somme auprès d’un tiers ; elle vous est due un an après la réception des travaux."
+            >
+              {(p) => (
+                <Select {...p} name="retenue" defaultValue={String(retentionRate)}>
+                  <option value="0">Aucune</option>
+                  <option value="1">1 %</option>
+                  <option value="2">2 %</option>
+                  <option value="3">3 %</option>
+                  <option value="4">4 %</option>
+                  <option value="5">5 %</option>
+                </Select>
               )}
             </Field>
           </div>

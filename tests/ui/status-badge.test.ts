@@ -15,7 +15,10 @@ describe('correspondance des statuts', () => {
   })
 
   it('couvre tous les statuts de paiement du domaine', () => {
-    const all: PaymentStatus[] = ['unpaid', 'partially_paid', 'paid', 'overdue']
+    // `withheld` est arrive en M8·B : ni payee, ni en retard — une somme
+    // legalement retenue, qui merite sa propre pastille plutot que d'emprunter
+    // celle d'un impaye.
+    const all: PaymentStatus[] = ['unpaid', 'partially_paid', 'paid', 'withheld', 'overdue']
     expect(Object.keys(paymentBadges).sort()).toEqual([...all].sort())
   })
 

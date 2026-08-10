@@ -63,7 +63,15 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   const { byRate } = computeTotals(found.lines)
   const received = found.payments.map((p) => p.amount)
   const due = outstanding(found.totalInclTax, received)
-  const status = paymentStatus(found.totalInclTax, received, found.dueAt, new Date())
+  const status = paymentStatus(
+    {
+      totalInclTax: found.totalInclTax,
+      payments: received,
+      dueAt: found.dueAt,
+      withheld: 0,
+    },
+    new Date(),
+  )
 
   return (
     <AppShell access={session}>

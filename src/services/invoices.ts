@@ -128,6 +128,9 @@ export async function issueInvoice(input: IssueInvoiceInput) {
         // Figes a l'emission : la facture est immuable, ses mentions aussi.
         latePaymentRate: company.latePaymentRate!,
         recoveryIndemnity: LEGAL_RECOVERY_INDEMNITY_CENTS,
+        // Fige a l'emission, comme les autres mentions. **Jamais sur un
+        // avoir** : un avoir rend de l'argent, rien n'y est retenu.
+        retentionRate: input.type === 'credit_note' ? 0 : source.retentionRate,
         operationType: company.operationType,
         publicToken: randomBytes(24).toString('base64url'),
       })

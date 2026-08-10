@@ -7,6 +7,7 @@ import { db } from '@/db/client'
 import { quote, quoteLine } from '@/db/schema'
 import { computeTotals, type Totals } from '@/domain/quote-totals'
 import { toCents } from '@/domain/money'
+import { assertRetentionRate } from '@/domain/retention'
 import { nextQuoteNumber } from '@/services/quotes'
 import { createProject } from '@/services/projects'
 import { recordEvent } from '@/services/events'
@@ -56,10 +57,18 @@ export async function saveQuote(
     })
 
     const totals = computeTotals(lines)
-    const leadTime = form.get('delai') ? Number(form.get('delai')) : null
-    const validityDays = Number(form.get('validity_days')) || 90
 
-    created = await insertWithNumber(companyId, project.id, totals, leadTime, validityDays, lines)
+    created = await insertWithNumber(
+      companyId,
+      project.id,
+      totals,
+      {
+        committedLeadTimeDays: form.get('delai') ? Number(form.get('delai')) : null,
+        validityDays: Number(form.get('validity_days')) || 90,
+        retentionRate: Number(form.get('retenue') ?? 0),
+      },
+      lines,
+    )
   } catch (e) {
     return { error: (e as Error).message }
   }
@@ -82,14 +91,31 @@ export async function saveQuote(
  * version) rejette alors le second — on retente plutot que de renvoyer a
  * l'artisan une erreur qu'il ne peut pas comprendre.
  */
+/**
+ * Les reglages du devis, distincts de son contenu.
+ *
+ * Un objet plutot qu'une quatrieme, cinquieme et sixieme position : `(…, null,
+ * 90, 5)` ne se relit pas, et une inversion de deux nombres ne se verrait
+ * jamais.
+ */
+interface QuoteSettings {
+  committedLeadTimeDays: number | null
+  validityDays: number
+  retentionRate: number
+}
+
 async function insertWithNumber(
   companyId: string,
   projectId: string,
   totals: Totals,
-  committedLeadTimeDays: number | null,
-  validityDays: number,
+  settings: QuoteSettings,
   lines: LineFormInput[],
 ) {
+  // **Les DEUX chemins d'ecriture sont gardes.** `updateDraftQuote` a le sien ;
+  // celui-ci ecrit en base sans y passer, et une garde qui ne couvre qu'un des
+  // deux chemins n'en est pas une.
+  assertRetentionRate(settings.retentionRate)
+
   for (let attempt = 0; attempt < 3; attempt++) {
     const existing = await db
       .select({ number: quote.number })
@@ -108,8 +134,9 @@ async function insertWithNumber(
           projectId,
           companyId,
           number,
-          committedLeadTimeDays,
-          validityDays,
+          committedLeadTimeDays: settings.committedLeadTimeDays,
+          validityDays: settings.validityDays,
+          retentionRate: settings.retentionRate,
           publicToken: randomBytes(24).toString('base64url'),
           totalExclTax: totals.totalExclTax,
           totalTax: totals.totalTax,

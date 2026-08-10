@@ -47,6 +47,7 @@ const QUOTE: PublicQuote = {
   },
   committedLeadTimeDays: 10,
   validityDays: 90,
+  retentionRate: 0,
   lines: [
     {
       label: 'Chauffe-eau 200 L posé',

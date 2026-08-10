@@ -40,6 +40,7 @@ export default async function EditQuotePage({ params }: { params: Promise<{ id: 
         quoteId={found.id}
         number={found.number}
         committedLeadTimeDays={found.committedLeadTimeDays}
+        retentionRate={found.retentionRate}
         initialLines={lines.map((line) => ({
           label: line.label,
           unit: line.unit,

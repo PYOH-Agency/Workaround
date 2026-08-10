@@ -110,7 +110,15 @@ export async function loadInvoiceByToken(token: string): Promise<PublicInvoice |
       byRate: computeTotals(found.lines).byRate,
     },
     outstandingInclTax: outstanding(found.totalInclTax, received),
-    status: paymentStatus(found.totalInclTax, received, found.dueAt, new Date()),
+    status: paymentStatus(
+      {
+        totalInclTax: found.totalInclTax,
+        payments: received,
+        dueAt: found.dueAt,
+        withheld: 0,
+      },
+      new Date(),
+    ),
     latePaymentRate: found.latePaymentRate,
     recoveryIndemnity: found.recoveryIndemnity,
   }

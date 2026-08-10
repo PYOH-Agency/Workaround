@@ -62,7 +62,15 @@ export default async function InvoicesPage() {
         <ul className="flex flex-col gap-3">
           {rows.map((row) => {
             const received = row.payments.map((p) => p.amount)
-            const status = paymentStatus(row.totalInclTax, received, row.dueAt, now)
+            const status = paymentStatus(
+              {
+                totalInclTax: row.totalInclTax,
+                payments: received,
+                dueAt: row.dueAt,
+                withheld: 0,
+              },
+              now,
+            )
 
             return (
               <li key={row.id}>

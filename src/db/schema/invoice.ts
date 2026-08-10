@@ -62,6 +62,14 @@ export const invoice = pgTable(
     // retroactivement une facture deja remise a son client.
     latePaymentRate: text('late_payment_rate').notNull(),
     recoveryIndemnity: integer('recovery_indemnity').notNull(),
+    /**
+     * Le taux de retenue, **fige a l'emission** comme les autres mentions.
+     *
+     * Une facture est immuable : un artisan qui modifierait le taux de son
+     * devis demain ne doit pas changer retroactivement un document deja remis
+     * a son client.
+     */
+    retentionRate: integer('retention_rate').notNull().default(0),
     operationType: text('operation_type', { enum: ['services', 'goods', 'mixed'] }).notNull(),
     publicToken: text('public_token').notNull().unique(),
   },

@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { quote, quoteLine } from '@/db/schema'
 import { computeTotals, type LineInput } from '@/domain/quote-totals'
+import { assertRetentionRate } from '@/domain/retention'
 import { recordEvent } from '@/services/events'
 
 export interface EditableLine extends LineInput {
@@ -12,6 +13,8 @@ export interface EditableLine extends LineInput {
 export interface QuoteEdit {
   lines: EditableLine[]
   committedLeadTimeDays: number | null
+  /** En points de pourcentage, 0 a 5. `0` = aucune retenue stipulee. */
+  retentionRate: number
 }
 
 /**
@@ -35,6 +38,8 @@ export async function updateDraftQuote(companyId: string, quoteId: string, edit:
     throw new Error('Seul un brouillon se modifie. Un devis signé se corrige par un avenant.')
   }
   if (edit.lines.length === 0) throw new Error('Un devis doit comporter au moins une ligne')
+
+  assertRetentionRate(edit.retentionRate)
 
   const totals = computeTotals(edit.lines)
 
@@ -60,6 +65,7 @@ export async function updateDraftQuote(companyId: string, quoteId: string, edit:
       .update(quote)
       .set({
         committedLeadTimeDays: edit.committedLeadTimeDays,
+        retentionRate: edit.retentionRate,
         totalExclTax: totals.totalExclTax,
         totalTax: totals.totalTax,
         totalInclTax: totals.totalInclTax,

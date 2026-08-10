@@ -82,7 +82,7 @@ export async function createProject(companyId: string): Promise<string> {
 export async function signedQuote(
   companyId: string,
   projectId: string,
-  status: 'sent' | 'signed' = 'signed',
+  status: 'draft' | 'sent' | 'signed' = 'signed',
 ) {
   const [row] = await db
     .insert(quote)

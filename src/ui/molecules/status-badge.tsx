@@ -44,6 +44,11 @@ export const paymentBadges: Record<PaymentStatus, Entry> = {
     icon: <Icon name="clock" size="sm" />,
   },
   paid: { tone: 'verified', label: 'Réglée', icon: <Icon name="check" size="sm" /> },
+  /**
+   * Ni payee, ni en retard. Le vocabulaire compte : « en attente » suggererait
+   * un oubli du client, alors qu'il applique une clause du devis.
+   */
+  withheld: { tone: 'neutral', label: 'Retenue en cours', icon: <Icon name="clock" size="sm" /> },
   overdue: { tone: 'danger', label: 'En retard', icon: <Icon name="alert" size="sm" /> },
 }
 
