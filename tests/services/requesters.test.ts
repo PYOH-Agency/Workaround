@@ -1,7 +1,7 @@
 import { describe, it, expect, afterAll } from 'vitest'
 import { randomUUID } from 'node:crypto'
 import { connection } from '@/db/client'
-import { claimRequester, requesterFromSignature } from '@/services/requesters'
+import { claimRequester, requesterFromSignature, requesterFromSignUp } from '@/services/requesters'
 
 afterAll(async () => {
   await connection.end()
@@ -70,5 +70,28 @@ describe('la revendication a la connexion', () => {
 
   it('rend null pour une adresse inconnue', async () => {
     expect(await claimRequester(randomUUID(), someEmail())).toBeNull()
+  })
+})
+
+describe('le compte cree par la personne elle-meme', () => {
+  it('porte source self, distinct de invitation', async () => {
+    // `invitation` veut dire « un artisan l'a rattache a un logement » : reunir
+    // les deux ferait mentir la colonne sur son propre contenu.
+    const created = await requesterFromSignUp({ email: someEmail(), name: 'Paul Martin' })
+
+    expect(created.source).toBe('self')
+    expect(created.userId).toBeNull()
+  })
+
+  it('ne double PAS un dossier ne d une signature', async () => {
+    // Elle a signe il y a six mois, puis cree un compte sans faire le lien :
+    // c'est la meme personne, et son dossier existe deja.
+    const email = someEmail()
+    const signed = await requesterFromSignature({ email, name: 'Paul Martin' })
+    const created = await requesterFromSignUp({ email, name: 'Paul M.' })
+
+    expect(created.id).toBe(signed.id)
+    // La source d'origine ne change pas : c'est bien la signature qui l'a cree.
+    expect(created.source).toBe('signature')
   })
 })
