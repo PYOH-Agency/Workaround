@@ -485,8 +485,11 @@ describe('l argent en cours', () => {
     await issuedInvoice({
       quoteId,
       totalInclTax: 100_000,
+      // En POINTS de pourcentage entiers, plafonnes a 5 par la loi 71-584 —
+      // voir `assertRetentionRate`. En points de base, 500 retiendrait cinq
+      // fois le montant de la facture.
       dueAt: new Date('2026-07-01T00:00:00Z'),
-      retentionRate: 500,
+      retentionRate: 5,
     })
 
     const money = await moneyInFlight(COMPANY, now)
