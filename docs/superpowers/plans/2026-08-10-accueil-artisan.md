@@ -17,7 +17,9 @@
 | Fichier | Responsabilité |
 |---|---|
 | `src/domain/home-queue.ts` | **Créé.** Les seuils du §5 de la spec, purs. Aucun accès base |
-| `src/services/home.ts` | **Créé.** `moneyInFlight` et `pendingTasks` : les requêtes et l'assemblage |
+| `src/services/invoice-ledger.ts` | **Créé.** `settlements` : les factures d'une entreprise, leurs encaissements et la réception du chantier. Sans aucun filtre métier — c'est ce qui lui permet de servir ses deux appelants |
+| `src/services/home.ts` | **Créé.** `quoteChains` et `moneyInFlight` : l'argent en cours |
+| `src/services/home-tasks.ts` | **Créé.** `pendingTasks` : la file d'attente. Un fichier distinct parce que les deux réunis font 351 lignes pour une limite à 250 — et parce qu'ils répondent à deux questions différentes |
 | `src/ui/atoms/button.tsx` | **Modifié.** Un ton `raised` |
 | `src/ui/molecules/task-row.tsx` | **Créé.** Une ligne échéance / objet / geste |
 | `src/ui/organisms/money-flow.tsx` | **Créé.** La barre segmentée et sa légende |
@@ -775,8 +777,12 @@ git commit -m "feat: l'argent en cours se lit d'une seule requete"
 ### Task 3 : la file d'attente
 
 **Files:**
-- Modify: `src/services/home.ts` (ajout de `pendingTasks`)
+- Create: `src/services/invoice-ledger.ts` (`settlements`, extraite de `home.ts`)
+- Modify: `src/services/home.ts` (elle importe désormais `settlements`)
+- Create: `src/services/home-tasks.ts` (`pendingTasks`)
 - Test: `tests/services/home-tasks.test.ts`
+
+**Le découpage d'abord.** `home.ts` et `pendingTasks` réunis font 351 lignes, pour une limite à 250. `settlements` sort dans `src/services/invoice-ledger.ts` — elle sert les deux, et n'appartient à aucun. Elle y garde sa forme exacte, sans filtre métier : c'est ce qui lui permet de servir deux appelants qui ne cherchent pas la même chose.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -786,7 +792,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { randomUUID } from 'node:crypto'
 import { db, connection } from '@/db/client'
 import { quote, insuranceCertificate } from '@/db/schema'
-import { pendingTasks } from '@/services/home'
+import { pendingTasks } from '@/services/home-tasks'
 import type { Access } from '@/domain/authorization'
 import { createCompany, createProject } from './invoice-fixtures'
 
@@ -872,7 +878,7 @@ Expected : FAIL — `pendingTasks is not a function`
 
 - [ ] **Step 3: Write the implementation**
 
-Ajouter `isNotNull` et `desc` à l'import de `drizzle-orm` en tête du fichier, puis ajouter en fin de `src/services/home.ts` (les imports suivants remontent en tête, avec les autres) :
+Créer `src/services/home-tasks.ts`, qui importe `settlements` depuis `@/services/invoice-ledger` :
 
 ```ts
 import { can, type Access, type Capability } from '@/domain/authorization'
