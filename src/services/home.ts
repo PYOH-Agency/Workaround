@@ -6,6 +6,7 @@ import { remainingToInvoice } from '@/domain/invoice-balance'
 import { amountDueNow, paymentStatus, type Settlement } from '@/domain/payment-status'
 import { referenceVersion, type QuoteVersion } from '@/domain/quote-versions'
 import { retentionState } from '@/domain/retention'
+import { settlements } from '@/services/invoice-ledger'
 
 /**
  * L'assemblage de l'accueil.
@@ -27,31 +28,6 @@ export interface MoneyInFlight {
   /** Facture, echu, retenue de garantie deduite. */
   overdue: Cents
   cashedLast12Months: Cents
-}
-
-/** Les factures d'une entreprise, avec leurs encaissements et la reception du chantier. */
-async function settlements(companyId: string) {
-  const rows = await db
-    .select({
-      id: invoice.id,
-      quoteId: invoice.quoteId,
-      type: invoice.type,
-      totalInclTax: invoice.totalInclTax,
-      dueAt: invoice.dueAt,
-      retentionRate: invoice.retentionRate,
-      receivedAt: quote.receivedAt,
-    })
-    .from(invoice)
-    .leftJoin(quote, eq(invoice.quoteId, quote.id))
-    .where(eq(invoice.companyId, companyId))
-
-  const paid = await db
-    .select({ invoiceId: payment.invoiceId, amount: payment.amount, receivedAt: payment.receivedAt })
-    .from(payment)
-    .innerJoin(invoice, eq(payment.invoiceId, invoice.id))
-    .where(eq(invoice.companyId, companyId))
-
-  return { rows, paid }
 }
 
 /**
