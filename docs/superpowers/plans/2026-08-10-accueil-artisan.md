@@ -76,13 +76,15 @@ const task = (kind: Task['kind'], dueInDays: number): Task => ({
 describe('un devis qui attend', () => {
   it('entre dans la file au septieme jour ouvre', () => {
     expect(FOLLOW_UP_BUSINESS_DAYS).toBe(7)
-    // Envoye le mercredi 29 juillet : sept jours ouvres au 6 aout.
-    const sentAt = new Date('2026-07-29T09:00:00Z')
+    // Envoye le mardi 28 juillet : sept jours ouvres au jeudi 6 aout.
+    // `businessDaysSince` compte ]depuis, maintenant] — le jour de l'envoi ne
+    // compte pas, et c'est ce qui fait un mardi et non un mercredi.
+    const sentAt = new Date('2026-07-28T09:00:00Z')
     expect(quoteIsSilent({ sentAt, validityDays: 90 }, now)).toBe(true)
   })
 
   it("n'y entre pas au sixieme", () => {
-    const sentAt = new Date('2026-07-30T09:00:00Z')
+    const sentAt = new Date('2026-07-29T09:00:00Z')
     expect(quoteIsSilent({ sentAt, validityDays: 90 }, now)).toBe(false)
   })
 
@@ -235,8 +237,15 @@ export interface Task {
   action: string
 }
 
+/**
+ * `Math.ceil`, comme `noticesDue` dans `expiry.ts`.
+ *
+ * Avec un plancher, une attestation valable encore soixante jours et quinze
+ * heures compterait soixante jours et entrerait dans la file un jour trop tot —
+ * a rebours du palier de preavis, qui est la meme frontiere.
+ */
 function daysBetween(from: Date, to: Date): number {
-  return Math.floor((to.getTime() - from.getTime()) / DAY)
+  return Math.ceil((to.getTime() - from.getTime()) / DAY)
 }
 
 /**
