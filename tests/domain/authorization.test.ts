@@ -31,12 +31,15 @@ describe('la porte du plan', () => {
       .filter(([, required]) => required.plan === 'pro')
       .map(([name]) => name)
 
-    expect(pro).toEqual(['team.manage'])
+    // **Mise a jour en M8·B, en connaissance de cause.** `situation.issue` est
+    // une fonction NEUVE : la facturation a l'avancement au pourcentage global
+    // (`issueProgress`) reste ouverte a tous, inchangee. Rien n'a ete retire.
+    expect(pro).toEqual(['team.manage', 'situation.issue'])
   })
 
   it('laisse une entreprise gratuite faire tout le reste', () => {
     const free = (Object.keys(CAPABILITIES) as Capability[]).filter(
-      (capability) => capability !== 'team.manage',
+      (capability) => CAPABILITIES[capability].plan === 'free',
     )
 
     for (const capability of free) expect(can(PATRON, capability)).toBe(true)

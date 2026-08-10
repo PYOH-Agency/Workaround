@@ -54,6 +54,11 @@ export const CAPABILITIES = {
   'chantier.post': { plan: 'free', role: 'member', label: 'publier au fil de chantier' },
   'chantier.complete': { plan: 'free', role: 'owner', label: 'déclarer la fin d’un chantier' },
   'team.manage': { plan: 'pro', role: 'owner', label: 'gérer l’équipe' },
+  'situation.issue': {
+    plan: 'pro',
+    role: 'owner',
+    label: 'établir une situation de travaux',
+  },
 } as const satisfies Record<string, Requirement>
 
 export type Capability = keyof typeof CAPABILITIES
