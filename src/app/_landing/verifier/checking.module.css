@@ -1,0 +1,127 @@
+/**
+ * La chronologie de la scene demandeur, et rien d'autre.
+ *
+ * Meme regime et memes contraintes que `pro/squaring.module.css` : une
+ * chronologie interieure a une illustration, qui ne touche pas a la mise en
+ * page et joue une fois. Ni dependance, ni image, ni script.
+ *
+ * Deux regles tenues ici comme la-bas :
+ * - le sceau ne pivote pas. C'est la marque, et elle ne pivote jamais (spec
+ *   image de marque §4.6). Il grandit et se pose, il ne se visse pas.
+ * - `prefers-reduced-motion` ne degrade pas, il livre l'etat final.
+ */
+
+/* --- 1. L'attestation se presente ---------------------------------------- */
+
+@keyframes dq-sheet-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- 2. On la lit ligne a ligne ------------------------------------------
+ *
+ * Le trait de chaque activite se decouvre de gauche a droite : c'est le geste
+ * de l'index qui suit la ligne. Un `clip-path`, donc, et non une opacite —
+ * une ligne qui apparait d'un bloc n'est pas une ligne qu'on lit.
+ */
+
+@keyframes dq-read {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+/* --- 3. Le verdict tombe -------------------------------------------------- */
+
+@keyframes dq-verdict {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- 4. Le sceau s'appose ------------------------------------------------- */
+
+@keyframes dq-seal-land {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Les acteurs ---------------------------------------------------------- */
+
+/*
+ * `transform-box: view-box` fait exprimer `transform-origin` dans les unites du
+ * viewBox plutot que dans la boite de remplissage de chaque forme.
+ *
+ * `both` est repete dans chaque raccourci : le raccourci `animation` remet
+ * `animation-fill-mode` a `none`, donc une declaration commune serait ecrasee.
+ */
+.scene :where(.sheet, .line, .verdict, .seal) {
+  transform-box: view-box;
+}
+
+.sheet {
+  animation: dq-sheet-arrive 0.42s 0.1s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+/*
+ * Les trois lignes se lisent l'une apres l'autre, 0,22 s d'ecart, et chaque
+ * verdict tombe 0,12 s apres la fin de sa ligne. Le decalage est ecrit ligne
+ * par ligne plutot que calcule : trois valeurs se relisent, une formule non.
+ */
+.line1 { animation: dq-read 0.3s 0.5s ease-out both; }
+.line2 { animation: dq-read 0.3s 0.72s ease-out both; }
+.line3 { animation: dq-read 0.3s 0.94s ease-out both; }
+
+.verdict1 { animation: dq-verdict 0.26s 0.92s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+.verdict2 { animation: dq-verdict 0.26s 1.14s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+.verdict3 { animation: dq-verdict 0.26s 1.36s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+
+/*
+ * Le sceau ferme la scene : il ne tombe qu'une fois les trois lignes lues.
+ * C'est le dernier temps, et c'est lui qui porte le sens de la page — non pas
+ * « tout va bien », mais « vous savez ».
+ */
+.seal {
+  animation: dq-seal-land 0.32s 1.62s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  /* Le centre du sceau, pour qu'il grandisse sur place. */
+  transform-origin: 288px 266px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene :where(.sheet, .line, .verdict, .seal),
+  .scene :where(.line1, .line2, .line3, .verdict1, .verdict2, .verdict3) {
+    animation: none;
+    transition: none;
+    transform: none;
+    clip-path: none;
+    opacity: 1;
+  }
+}
