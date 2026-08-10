@@ -1,26 +1,34 @@
 import { describe, it, expect } from 'vitest'
 import { SessionError, resolveCompany, resolveRequester } from '@/lib/session'
 
+const USER = { id: 'u1', email: 'a@b.fr' }
+
 describe('resolveCompany', () => {
   it('rejette une session sans utilisateur', () => {
     expect(() => resolveCompany(null, null)).toThrow(SessionError)
   })
 
   it('rejette un utilisateur sans entreprise rattachee', () => {
-    expect(() => resolveCompany({ id: 'u1', email: 'a@b.fr' }, null)).toThrow('Aucune entreprise')
+    expect(() => resolveCompany(USER, null)).toThrow('Aucune entreprise')
   })
 
-  it('renvoie l identifiant d entreprise et le role', () => {
-    expect(resolveCompany({ id: 'u1', email: 'a@b.fr' }, { companyId: 'c1', role: 'owner' })).toEqual(
-      { userId: 'u1', email: 'a@b.fr', companyId: 'c1', role: 'owner' },
-    )
+  it('renvoie le role ET le plan', () => {
+    // La session est ce que lisent la garde et la navigation : si le plan n'y
+    // est pas, chaque ecran devra aller le chercher — et l'un d'eux oubliera.
+    expect(resolveCompany(USER, { companyId: 'c1', role: 'owner', plan: 'pro' })).toEqual({
+      userId: 'u1',
+      email: 'a@b.fr',
+      companyId: 'c1',
+      role: 'owner',
+      plan: 'pro',
+    })
   })
 
   it('distingue les deux causes de rejet, pour que l appelant puisse orienter', () => {
     // Sans utilisateur : il faut se connecter.
     expect(() => resolveCompany(null, null)).toThrow('Session expiree')
     // Utilisateur connu mais sans entreprise : il faut finir l'inscription.
-    expect(() => resolveCompany({ id: 'u1', email: 'a@b.fr' }, null)).toThrow('Aucune entreprise')
+    expect(() => resolveCompany(USER, null)).toThrow('Aucune entreprise')
   })
 })
 

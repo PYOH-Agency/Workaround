@@ -120,6 +120,13 @@
       "when": 1786310615433,
       "tag": "0016_greedy_smasher",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1786355094208,
+      "tag": "0017_careless_dragon_lord",
+      "breakpoints": true
     }
   ]
 }

@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { db } from '@/db/client'
 import { member } from '@/db/schema'
 import { resolveDestination } from '@/domain/requester'
+import { claimInvitation } from '@/services/membership'
 import { claimRequester } from '@/services/requesters'
 import { createServerSupabase } from '@/lib/supabase-server'
 
@@ -28,8 +29,20 @@ export async function GET(request: Request) {
         data: { user },
       } = await supabase.auth.getUser()
 
+      // La connexion est aussi le moment ou une invitation rencontre enfin un
+      // compte. **Avant** la lecture de l'appartenance, sans quoi celui qui
+      // vient de rejoindre serait envoye au formulaire SIRET de l'inscription.
+      if (user?.email) await claimInvitation(user.id, user.email).catch(() => null)
+
       const [company, account] = await Promise.all([
-        user ? db.query.member.findFirst({ where: eq(member.userId, user.id) }) : undefined,
+        // `removed_at IS NULL`, comme dans la session : un membre retire n'a
+        // plus d'entreprise, et l'envoyer vers l'atelier ne ferait que reporter
+        // le refus d'un ecran.
+        user
+          ? db.query.member.findFirst({
+              where: and(eq(member.userId, user.id), isNull(member.removedAt)),
+            })
+          : undefined,
         // La connexion est le moment ou le dossier cree par la signature
         // rencontre enfin un compte : c'est ici qu'il se rattache.
         //

@@ -12,7 +12,7 @@ export interface EventInput {
   type: string
   subjectType: string
   subjectId: string
-  actorType: 'company' | 'customer' | 'system'
+  actorType: 'company' | 'customer' | 'system' | 'staff'
   actorId?: string
   companyId?: string
   payload?: Record<string, unknown>

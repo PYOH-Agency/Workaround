@@ -16,7 +16,14 @@ export const event = pgTable(
     companyId: uuid('company_id'),
     subjectType: text('subject_type').notNull(),
     subjectId: uuid('subject_id').notNull(),
-    actorType: text('actor_type', { enum: ['company', 'customer', 'system'] }).notNull(),
+    /**
+     * `staff` a ete ajoute en M8 : une bascule d'abonnement est faite par un
+     * humain de chez nous. La ranger sous `system` aurait laisse croire qu'elle
+     * s'est produite toute seule, ce qui est precisement ce qu'elle n'est pas.
+     */
+    actorType: text('actor_type', {
+      enum: ['company', 'customer', 'system', 'staff'],
+    }).notNull(),
     actorId: text('actor_id'),
     payload: jsonb('payload').notNull().default({}),
     occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),

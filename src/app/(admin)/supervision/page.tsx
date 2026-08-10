@@ -40,9 +40,14 @@ export default async function SupervisionPage() {
               : 'Rien ne bloque.'}
           </Text>
         </div>
-        <Link href="/attestations" tone="bare">
-          <span className="text-sm">File des attestations</span>
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/attestations" tone="bare">
+            <span className="text-sm">File des attestations</span>
+          </Link>
+          <Link href="/entreprises" tone="bare">
+            <span className="text-sm">Entreprises</span>
+          </Link>
+        </div>
       </div>
 
       {anomalies.length === 0 ? (

@@ -1,7 +1,9 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { member } from '@/db/schema'
+import type { Access, Plan, Role } from '@/domain/authorization'
 import { claimRequester } from '@/services/requesters'
+import { claimInvitation } from '@/services/membership'
 import { createServerSupabase } from './supabase-server'
 
 export class SessionError extends Error {}
@@ -13,14 +15,20 @@ export interface AuthUser {
 
 export interface Membership {
   companyId: string
-  role: string
+  role: Role
+  plan: Plan
 }
 
-export interface Session {
+/**
+ * La session de l'artisan.
+ *
+ * Elle etend `Access` : passee telle quelle a `assertCan` ou a `can`, elle
+ * suffit. Rien a recomposer au point d'appel, donc rien a y oublier.
+ */
+export interface Session extends Access {
   userId: string
   email: string
   companyId: string
-  role: string
 }
 
 /**
@@ -38,7 +46,23 @@ export function resolveCompany(user: AuthUser | null, membership: Membership | n
     email: user.email,
     companyId: membership.companyId,
     role: membership.role,
+    plan: membership.plan,
   }
+}
+
+/**
+ * L'appartenance ACTIVE, jointe au plan de son entreprise.
+ *
+ * `removed_at IS NULL` est porteur : sans lui, retirer un membre ne lui
+ * retirerait rien. La jointure ne lit qu'une colonne d'une ligne par cle
+ * primaire — le cout est nul, et l'alternative (un second appel dans chaque
+ * page) se serait oubliee quelque part.
+ */
+async function activeMembership(userId: string) {
+  return db.query.member.findFirst({
+    where: and(eq(member.userId, userId), isNull(member.removedAt)),
+    with: { company: { columns: { plan: true } } },
+  })
 }
 
 export async function currentCompany(): Promise<Session> {
@@ -47,11 +71,19 @@ export async function currentCompany(): Promise<Session> {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const row = user ? await db.query.member.findFirst({ where: eq(member.userId, user.id) }) : null
+  const row = user ? await activeMembership(user.id) : null
+
+  // Une invitation acceptee APRES une premiere connexion se rattache ici, sans
+  // qu'il faille se reconnecter. Uniquement quand il n'y a pas d'appartenance :
+  // la tentative ne coute donc rien au cas courant, qui est tous les autres.
+  const joined =
+    !row && user?.email ? await claimInvitation(user.id, user.email).catch(() => null) : null
+
+  const found = row ?? (joined ? await activeMembership(user!.id) : null)
 
   return resolveCompany(
     user ? { id: user.id, email: user.email! } : null,
-    row ? { companyId: row.companyId, role: row.role } : null,
+    found ? { companyId: found.companyId, role: found.role, plan: found.company.plan } : null,
   )
 }
 
