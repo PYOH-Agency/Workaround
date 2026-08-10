@@ -196,4 +196,46 @@ describe('l argent en cours', () => {
     // pas : sans son exclusion, on lirait 420 000.
     expect(money.invoicedOnTime).toBe(360_000)
   })
+
+  it('ne double pas un chantier dont un maillon a ete refuse', async () => {
+    // Le filtre de statut appartient au domaine, pas a la requete : `signed` en
+    // SQL couperait la chaine au maillon refuse et compterait deux fois.
+    const before = (await moneyInFlight(COMPANY, now)).signedNotInvoiced
+
+    const v1 = await signedQuote(100_000)
+    const v2 = randomUUID()
+    await db.insert(quote).values({
+      id: v2,
+      companyId: COMPANY,
+      projectId: PROJECT,
+      number: 'D2026-9002',
+      version: 2,
+      supersedesQuoteId: v1,
+      status: 'refused',
+      totalExclTax: 150_000,
+      totalTax: 0,
+      totalInclTax: 150_000,
+      publicToken: randomUUID(),
+    })
+    await db.insert(quote).values({
+      id: randomUUID(),
+      companyId: COMPANY,
+      projectId: PROJECT,
+      number: 'D2026-9003',
+      version: 3,
+      supersedesQuoteId: v2,
+      status: 'signed',
+      signedAt: new Date('2026-07-01T09:00:00Z'),
+      totalExclTax: 200_000,
+      totalTax: 0,
+      totalInclTax: 200_000,
+      publicToken: randomUUID(),
+    })
+
+    const after = (await moneyInFlight(COMPANY, now)).signedNotInvoiced
+
+    // La troisieme version, et elle seule. Avec un filtre `signed` en SQL, la
+    // premiere s'ajouterait et l'ecart serait de 300 000.
+    expect(after - before).toBe(200_000)
+  })
 })

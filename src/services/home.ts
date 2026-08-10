@@ -60,6 +60,12 @@ async function settlements(companyId: string) {
  * En memoire et non par requete : `rootQuoteId` remonte la chaine d'un devis a
  * coups d'aller-retour, ce qui convient a une action mais pas a un ecran qui
  * les traite tous.
+ *
+ * **Tous les statuts, et c'est indispensable.** Un maillon refuse ou expire
+ * relie quand meme sa version suivante a la racine : filtrer `signed` dans la
+ * requete couperait la chaine en deux, et un chantier a trois versions dont la
+ * deuxieme fut refusee se compterait deux fois. `passport-metrics.ts` filtre le
+ * statut en SQL parce qu'il ne remonte aucune chaine — ne pas aligner les deux.
  */
 async function quoteChains(companyId: string): Promise<Map<string, QuoteVersion[]>> {
   const rows = await db
