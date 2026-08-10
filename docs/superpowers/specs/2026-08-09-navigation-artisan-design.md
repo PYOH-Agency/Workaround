@@ -1,6 +1,6 @@
 # La navigation de l'espace artisan
 
-> Spec de conception · Date : 2026-08-09 · Statut : à valider
+> Spec de conception · Date : 2026-08-09 · Statut : implémentée
 
 **Références :** [spec image de marque §6.1](2026-08-08-image-de-marque-design.md) · [plan M7·A, tâche 5](../plans/2026-08-09-m7a-rendez-vous.md) · [spec annuaire](2026-08-08-annuaire-design.md) · [plan M3 — vérification](../plans/2026-08-08-m3-verification.md)
 
