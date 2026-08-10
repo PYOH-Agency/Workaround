@@ -1,24 +1,28 @@
 import { describe, it, expect } from 'vitest'
 import {
-  quoteIsSilent,
+  quoteNeedsFollowUp,
   completionIsUnbilled,
   certificateIsExpiring,
   orderTasks,
   FOLLOW_UP_BUSINESS_DAYS,
   VALIDITY_ALERT_DAYS,
   type Task,
+  type Delay,
 } from '@/domain/home-queue'
 
 /** Jeudi 6 aout 2026. Les jours ouvres comptent, les week-ends non. */
 const now = new Date('2026-08-06T09:00:00Z')
 
-const task = (kind: Task['kind'], dueInDays: number): Task => ({
+const elapsed = (days: number): Delay => ({ sense: 'elapsed', days })
+const remaining = (days: number): Delay => ({ sense: 'remaining', days })
+
+const task = (kind: Task['kind'], delay: Delay): Task => ({
   kind,
-  id: `${kind}-${dueInDays}`,
+  id: `${kind}-${delay.sense}-${delay.days}`,
   title: kind,
   detail: '',
   amountInclTax: null,
-  dueInDays,
+  delay,
   href: '/',
   action: 'Ouvrir',
 })
@@ -30,33 +34,33 @@ describe('un devis qui attend', () => {
     // `businessDaysSince` compte ]depuis, maintenant] — le jour de l'envoi ne
     // compte pas, et c'est ce qui fait un mardi et non un mercredi.
     const sentAt = new Date('2026-07-28T09:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 90 }, now)).toBe(true)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 90 }, now)).toBe(true)
   })
 
   it("n'y entre pas au sixieme", () => {
     const sentAt = new Date('2026-07-29T09:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 90 }, now)).toBe(false)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 90 }, now)).toBe(false)
   })
 
   it('ne compte pas le week-end', () => {
     // Un devis parti vendredi soir ne traine pas le lundi matin : entre le
     // vendredi 31 juillet et le jeudi 6 aout il n'y a que quatre jours ouvres.
     const sentAt = new Date('2026-07-31T18:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 90 }, now)).toBe(false)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 90 }, now)).toBe(false)
   })
 
   it('y entre aussi quand sa validite expire bientot', () => {
     expect(VALIDITY_ALERT_DAYS).toBe(15)
     // Envoye il y a deux jours ouvres — donc muet, non — mais valable 5 jours.
     const sentAt = new Date('2026-08-04T09:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 5 }, now)).toBe(true)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 5 }, now)).toBe(true)
   })
 
   it('sort de la file une fois la validite passee', () => {
     // Un devis expire n'appelle plus de relance : il appelle un nouveau devis,
     // et ce n'est pas la meme conversation.
     const sentAt = new Date('2026-06-01T09:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 30 }, now)).toBe(false)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 30 }, now)).toBe(false)
   })
 })
 
@@ -96,10 +100,10 @@ describe('l ordre de la file', () => {
     // attestation qui expire dans trois semaines, et les deux ne coutent pas
     // la meme chose.
     const ordered = orderTasks([
-      task('unbilled_completion', 4),
-      task('silent_quote', 18),
-      task('overdue_invoice', 12),
-      task('certificate', 21),
+      task('unbilled_completion', elapsed(4)),
+      task('silent_quote', elapsed(18)),
+      task('overdue_invoice', elapsed(12)),
+      task('certificate', elapsed(21)),
     ])
 
     expect(ordered.map((t) => t.kind)).toEqual([
@@ -110,15 +114,28 @@ describe('l ordre de la file', () => {
     ])
   })
 
-  it('classe le plus ancien en premier a nature egale', () => {
-    const ordered = orderTasks([task('silent_quote', 8), task('silent_quote', 30)])
-    expect(ordered.map((t) => t.dueInDays)).toEqual([30, 8])
+  it('classe le plus ancien en premier sur un temps ecoule', () => {
+    const ordered = orderTasks([task('silent_quote', elapsed(8)), task('silent_quote', elapsed(30))])
+    expect(ordered.map((t) => t.delay.days)).toEqual([30, 8])
+  })
+
+  it('classe le plus proche en premier sur un temps restant', () => {
+    // Le sens inverse, et c'est tout l'interet de le porter dans le type : une
+    // attestation qui expire dans sept jours passe devant celle qui expire dans
+    // soixante, alors que sur un temps ecoule c'est le grand nombre qui presse.
+    const ordered = orderTasks([
+      task('certificate', remaining(60)),
+      task('certificate', remaining(7)),
+      task('certificate', remaining(-3)),
+    ])
+
+    expect(ordered.map((t) => t.delay.days)).toEqual([-3, 7, 60])
   })
 
   it('ne touche pas au tableau qu on lui donne', () => {
     // `sort` trie en place. Sans la copie, l'ordre d'un tableau relu ailleurs
     // dependrait de qui a appele cette fonction en premier.
-    const given = [task('silent_quote', 8), task('certificate', 21)]
+    const given = [task('silent_quote', elapsed(8)), task('certificate', elapsed(21))]
     orderTasks(given)
 
     expect(given.map((t) => t.kind)).toEqual(['silent_quote', 'certificate'])
