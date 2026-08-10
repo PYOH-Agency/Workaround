@@ -130,6 +130,7 @@ Vitest tourne en environnement `node`, sans jsdom : `tests/ui/status-badge.test.
 | `/devis/42/chantier` allume Devis, `/devis-types` non | `tests/ui/app-nav.test.ts` |
 | `showsNav` est faux sous `/supervision` et `/attestations` | `tests/ui/app-nav.test.ts` |
 | `/verification` s'atteint **par la navigation**, avec `aria-current` | `tests/e2e/verification-journey.spec.ts` |
+| À 375 px : cinq entrées, 44 px chacune, plus d'une ligne, rien hors écran | `tests/e2e/verification-journey.spec.ts` |
 | Le backoffice n'affiche aucune navigation d'artisan | `tests/e2e/verification-journey.spec.ts` |
 | Le passeport pointe vers `/artisan/`, jamais vers `/p/` | `tests/e2e/verification-journey.spec.ts` |
 | L'inventaire accepte `AppNav` | `pnpm check:ds`, dans `pnpm validate` |
