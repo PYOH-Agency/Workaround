@@ -183,6 +183,27 @@ function InvoiceDocument({ invoice }: { invoice: PublicInvoice }) {
         )}
 
         {/*
+          La retenue de garantie — loi n° 71-584 du 16 juillet 1971.
+          Le document imprime la REGLE, jamais une date qu'on ignore : sans
+          reception declaree, annoncer une echeance serait inventer un fait.
+        */}
+        {invoice.retention.amount > 0 && (
+          <View style={styles.penalties}>
+            <Text style={{ fontFamily: 'Helvetica-Bold' }}>Retenue de garantie</Text>
+            <Text>
+              Conformément à la loi n° 71-584 du 16 juillet 1971 et au devis, une retenue de{' '}
+              {format(invoice.retention.amount)} € peut être prélevée sur le règlement de la
+              présente facture. Cette somme est consignée par le maître d’ouvrage auprès d’un tiers
+              convenu entre les parties, et restituée un an après la réception des travaux
+              {invoice.retention.releasesOn
+                ? `, soit le ${invoice.retention.releasesOn.toLocaleDateString('fr-FR')}`
+                : ''}
+              . Montant à régler à ce jour : {format(invoice.dueNowInclTax)} €.
+            </Text>
+          </View>
+        )}
+
+        {/*
           Mentions imposees par l'article L243-2 du Code des assurances sur tout
           devis et toute facture du batiment.
         */}

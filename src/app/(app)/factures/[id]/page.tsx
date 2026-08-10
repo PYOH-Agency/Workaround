@@ -2,9 +2,10 @@ import { notFound, redirect } from 'next/navigation'
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { invoice } from '@/db/schema'
-import { outstanding, paymentStatus } from '@/domain/payment-status'
+import { amountDueNow, outstanding, paymentStatus } from '@/domain/payment-status'
 import { computeTotals } from '@/domain/quote-totals'
 import { can } from '@/domain/authorization'
+import { retentionOf } from '@/services/retention'
 import { currentCompany, SessionError } from '@/lib/session'
 import { TYPE_LABELS } from '@/pdf/invoice-pdf'
 import { DateText } from '@/ui/atoms/date-text'
@@ -62,16 +63,16 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   const lines = [...found.lines].sort((a, b) => a.position - b.position)
   const { byRate } = computeTotals(found.lines)
   const received = found.payments.map((p) => p.amount)
+  const now = new Date()
+  const retention = await retentionOf(found, now)
+  const settlement = {
+    totalInclTax: found.totalInclTax,
+    payments: received,
+    dueAt: found.dueAt,
+    withheld: retention.withheld,
+  }
   const due = outstanding(found.totalInclTax, received)
-  const status = paymentStatus(
-    {
-      totalInclTax: found.totalInclTax,
-      payments: received,
-      dueAt: found.dueAt,
-      withheld: 0,
-    },
-    new Date(),
-  )
+  const status = paymentStatus(settlement, now)
 
   return (
     <AppShell access={session}>
@@ -104,6 +105,35 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           />
           <div className="ml-auto w-full max-w-xs">
             <SummaryLine label="Reste dû" cents={due} emphasis="total" testId="reste-du" />
+
+            {retention.amount > 0 && (
+              <div className="mt-3 flex flex-col gap-1">
+                <SummaryLine
+                  label="Dont retenue de garantie"
+                  cents={retention.amount}
+                  testId="retenue"
+                />
+                <Text size="sm" tone="muted">
+                  {retention.releasesOn ? (
+                    <>
+                      Libérable le <DateText value={retention.releasesOn} format="short" /> — un an
+                      après la réception déclarée par votre client.
+                    </>
+                  ) : (
+                    /*
+                      Le blocage se MONTRE. Il se regle par un coup de telephone,
+                      et l'artisan doit savoir qu'il a un appel a passer.
+                    */
+                    <>
+                      Votre client n’a pas encore déclaré la réception des travaux : la date de
+                      libération reste inconnue, et cette somme n’est pas exigible.
+                    </>
+                  )}{' '}
+                  Elle est consignée par le maître d’ouvrage auprès d’un tiers —{' '}
+                  <strong>nous ne détenons aucun fonds</strong>.
+                </Text>
+              </div>
+            )}
           </div>
         </div>
       </Card>
@@ -143,7 +173,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </ul>
         )}
 
-        {due > 0 && <PaymentForm invoiceId={found.id} />}
+        {amountDueNow(settlement) > 0 && <PaymentForm invoiceId={found.id} />}
       </section>
 
       <Text size="sm" tone="soft">

@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { invoice } from '@/db/schema'
-import { outstanding, paymentStatus } from '@/domain/payment-status'
+import { invoice, quote } from '@/db/schema'
+import { amountDueNow, paymentStatus } from '@/domain/payment-status'
+import { retentionState } from '@/domain/retention'
 import { can } from '@/domain/authorization'
 import { currentCompany, SessionError } from '@/lib/session'
 import { TYPE_LABELS } from '@/pdf/invoice-pdf'
@@ -39,6 +40,19 @@ export default async function InvoicesPage() {
 
   const now = new Date()
 
+  // Les receptions des devis concernes, en UNE requete. Appeler `retentionOf`
+  // par ligne en ferait N ; `retentionState` est pure, l'appeler en boucle
+  // ensuite ne coute rien.
+  const quoteIds = [...new Set(rows.map((row) => row.quoteId).filter((id) => id !== null))]
+  const receptions = quoteIds.length
+    ? await db
+        .select({ id: quote.id, receivedAt: quote.receivedAt })
+        .from(quote)
+        .where(inArray(quote.id, quoteIds))
+    : []
+
+  const receivedAtOf = new Map(receptions.map((row) => [row.id, row.receivedAt]))
+
   return (
     <AppShell access={session}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -62,15 +76,21 @@ export default async function InvoicesPage() {
         <ul className="flex flex-col gap-3">
           {rows.map((row) => {
             const received = row.payments.map((p) => p.amount)
-            const status = paymentStatus(
+            const { withheld } = retentionState(
               {
                 totalInclTax: row.totalInclTax,
-                payments: received,
-                dueAt: row.dueAt,
-                withheld: 0,
+                rate: row.retentionRate,
+                receivedAt: row.quoteId ? (receivedAtOf.get(row.quoteId) ?? null) : null,
               },
               now,
             )
+            const settlement = {
+              totalInclTax: row.totalInclTax,
+              payments: received,
+              dueAt: row.dueAt,
+              withheld,
+            }
+            const status = paymentStatus(settlement, now)
 
             return (
               <li key={row.id}>
@@ -87,7 +107,7 @@ export default async function InvoicesPage() {
                       <div className="flex flex-col items-end gap-0.5">
                         <Money cents={row.totalInclTax} emphasis="strong" />
                         <Text size="sm" tone="muted" as="span">
-                          <Money cents={outstanding(row.totalInclTax, received)} /> dus
+                          <Money cents={amountDueNow(settlement)} /> dus
                         </Text>
                       </div>
                     </div>

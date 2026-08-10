@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { loadInvoiceByToken } from '@/services/invoice-public'
 import { TYPE_LABELS } from '@/pdf/invoice-pdf'
 import { ButtonLink } from '@/ui/atoms/button-link'
+import { DateText } from '@/ui/atoms/date-text'
 import { Heading } from '@/ui/atoms/heading'
 import { Money } from '@/ui/atoms/money'
 import { Text } from '@/ui/atoms/text'
@@ -85,6 +86,22 @@ export default async function PublicInvoicePage({
               emphasis="total"
               testId="reste-du"
             />
+
+            {found.retention.amount > 0 && (
+              <div className="mt-3 flex flex-col gap-1">
+                <SummaryLine
+                  label="Dont retenue de garantie"
+                  cents={found.retention.amount}
+                  testId="retenue"
+                />
+                <SummaryLine
+                  label="À régler aujourd’hui"
+                  cents={found.dueNowInclTax}
+                  emphasis="total"
+                  testId="a-regler"
+                />
+              </div>
+            )}
           </div>
         </div>
       </Card>
@@ -92,6 +109,28 @@ export default async function PublicInvoicePage({
       <div>
         <StatusBadge kind="payment" status={found.status} testId="statut-reglement" />
       </div>
+
+      {/*
+        Redige POUR LE CLIENT, et non recopie de l'ecran de l'artisan : c'est
+        lui qui doit consigner, et il doit lire ce que la loi lui demande.
+      */}
+      {found.retention.amount > 0 && (
+        <Text size="sm" tone="soft">
+          Vous pouvez retenir <Money cents={found.retention.amount} /> € au titre de la garantie
+          (loi n° 71-584 du 16 juillet 1971). Cette somme est à consigner auprès d’un tiers convenu
+          entre vous et l’entreprise —{' '}
+          <strong>elle n’est détenue ni par l’entreprise ni par d’équerre</strong>. Elle lui sera
+          due{' '}
+          {found.retention.releasesOn ? (
+            <>
+              le <DateText value={found.retention.releasesOn} format="short" />
+            </>
+          ) : (
+            'un an après la réception des travaux, que vous n’avez pas encore déclarée'
+          )}
+          .
+        </Text>
+      )}
 
       <Text size="sm" tone="soft">
         Modalités de paiement : {legal.paymentTerms}

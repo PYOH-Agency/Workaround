@@ -2,7 +2,14 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { invoice } from '@/db/schema'
 import { computeTotals, type Totals } from '@/domain/quote-totals'
-import { outstanding, paymentStatus, type PaymentStatus } from '@/domain/payment-status'
+import {
+  amountDueNow,
+  outstanding,
+  paymentStatus,
+  type PaymentStatus,
+} from '@/domain/payment-status'
+import type { RetentionState } from '@/domain/retention'
+import { retentionOf } from '@/services/retention'
 import { passportUrl } from '@/services/passport'
 import type { InvoiceType } from '@/domain/invoice-balance'
 import type { CompanyLegalDetails } from '@/domain/legal-mentions'
@@ -33,6 +40,10 @@ export interface PublicInvoice {
   lines: InvoiceLineView[]
   totals: Totals
   outstandingInclTax: number
+  /** Ce que le client a le droit de retenir, et le jour ou il ne l'a plus. */
+  retention: RetentionState
+  /** Ce qu'on lui demande de regler AUJOURD'HUI — retenue deduite. */
+  dueNowInclTax: number
   status: PaymentStatus
   latePaymentRate: string
   recoveryIndemnity: number
@@ -61,6 +72,15 @@ export async function loadInvoiceByToken(token: string): Promise<PublicInvoice |
 
   const { company, customer, property } = found.project
   const received = found.payments.map((p) => p.amount)
+
+  const now = new Date()
+  const retention = await retentionOf(found, now)
+  const settlement = {
+    totalInclTax: found.totalInclTax,
+    payments: received,
+    dueAt: found.dueAt,
+    withheld: retention.withheld,
+  }
 
   return {
     id: found.id,
@@ -110,15 +130,9 @@ export async function loadInvoiceByToken(token: string): Promise<PublicInvoice |
       byRate: computeTotals(found.lines).byRate,
     },
     outstandingInclTax: outstanding(found.totalInclTax, received),
-    status: paymentStatus(
-      {
-        totalInclTax: found.totalInclTax,
-        payments: received,
-        dueAt: found.dueAt,
-        withheld: 0,
-      },
-      new Date(),
-    ),
+    retention,
+    dueNowInclTax: amountDueNow(settlement),
+    status: paymentStatus(settlement, now),
     latePaymentRate: found.latePaymentRate,
     recoveryIndemnity: found.recoveryIndemnity,
   }
