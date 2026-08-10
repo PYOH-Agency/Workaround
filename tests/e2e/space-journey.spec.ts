@@ -94,11 +94,19 @@ test('de la signature du devis à la réception déclarée', async ({ page, brow
     await expect(page.getByTestId('fil')).toContainText('Devis signé')
   })
 
+  // Calcules a l'execution, jamais figes. `assertReceivable` compare des
+  // minuits UTC : une date ecrite en dur devient anterieure a la signature des
+  // le lendemain, et ce test a casse une nuit pour cette raison. L'annee
+  // decennale suit le meme sort — figee, l'assertion negative ci-dessous
+  // cesserait de rien verifier a la fin de l'annee.
+  const declaredAt = new Date().toISOString().slice(0, 10)
+  const decennial = String(new Date().getUTCFullYear() + 10)
+
   await test.step('aucune date de garantie n’est affirmée', async () => {
     // La reception tacite exige deux criteres cumulatifs et nous n'en
     // connaissons qu'un : imprimer une date ferait manquer un delai.
     await expect(page.getByTestId('garanties')).toContainText('réception des travaux')
-    await expect(page.getByTestId('garanties')).not.toContainText('2036')
+    await expect(page.getByTestId('garanties')).not.toContainText(decennial)
   })
 
   await test.step('ses documents renvoient aux PDF déjà émis', async () => {
@@ -124,10 +132,10 @@ test('de la signature du devis à la réception déclarée', async ({ page, brow
 
   await test.step('le client déclare sa réception, et ses garanties s’ouvrent', async () => {
     await page.reload()
-    await page.getByTestId('date-reception').fill('2026-08-09')
+    await page.getByTestId('date-reception').fill(declaredAt)
     await page.getByRole('button', { name: 'Enregistrer la réception' }).click()
 
-    await expect(page.getByTestId('garanties')).toContainText('2036')
+    await expect(page.getByTestId('garanties')).toContainText(decennial)
     await expect(page.getByTestId('garanties')).toContainText('n’engage pas les parties')
   })
 
