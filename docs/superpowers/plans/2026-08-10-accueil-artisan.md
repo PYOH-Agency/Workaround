@@ -50,25 +50,29 @@
 // tests/domain/home-queue.test.ts
 import { describe, it, expect } from 'vitest'
 import {
-  quoteIsSilent,
+  quoteNeedsFollowUp,
   completionIsUnbilled,
   certificateIsExpiring,
   orderTasks,
   FOLLOW_UP_BUSINESS_DAYS,
   VALIDITY_ALERT_DAYS,
+  type Delay,
   type Task,
 } from '@/domain/home-queue'
 
 /** Jeudi 6 aout 2026. Les jours ouvres comptent, les week-ends non. */
 const now = new Date('2026-08-06T09:00:00Z')
 
-const task = (kind: Task['kind'], dueInDays: number): Task => ({
+const elapsed = (days: number): Delay => ({ sense: 'elapsed', days })
+const remaining = (days: number): Delay => ({ sense: 'remaining', days })
+
+const task = (kind: Task['kind'], delay: Delay): Task => ({
   kind,
-  id: `${kind}-${dueInDays}`,
+  id: `${kind}-${delay.sense}-${delay.days}`,
   title: kind,
   detail: '',
   amountInclTax: null,
-  dueInDays,
+  delay,
   href: '/',
   action: 'Ouvrir',
 })
@@ -80,33 +84,33 @@ describe('un devis qui attend', () => {
     // `businessDaysSince` compte ]depuis, maintenant] — le jour de l'envoi ne
     // compte pas, et c'est ce qui fait un mardi et non un mercredi.
     const sentAt = new Date('2026-07-28T09:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 90 }, now)).toBe(true)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 90 }, now)).toBe(true)
   })
 
   it("n'y entre pas au sixieme", () => {
     const sentAt = new Date('2026-07-29T09:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 90 }, now)).toBe(false)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 90 }, now)).toBe(false)
   })
 
   it('ne compte pas le week-end', () => {
     // Un devis parti vendredi soir ne traine pas le lundi matin : entre le
     // vendredi 31 juillet et le jeudi 6 aout il n'y a que quatre jours ouvres.
     const sentAt = new Date('2026-07-31T18:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 90 }, now)).toBe(false)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 90 }, now)).toBe(false)
   })
 
   it('y entre aussi quand sa validite expire bientot', () => {
     expect(VALIDITY_ALERT_DAYS).toBe(15)
     // Envoye il y a deux jours ouvres — donc muet, non — mais valable 5 jours.
     const sentAt = new Date('2026-08-04T09:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 5 }, now)).toBe(true)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 5 }, now)).toBe(true)
   })
 
   it('sort de la file une fois la validite passee', () => {
     // Un devis expire n'appelle plus de relance : il appelle un nouveau devis,
     // et ce n'est pas la meme conversation.
     const sentAt = new Date('2026-06-01T09:00:00Z')
-    expect(quoteIsSilent({ sentAt, validityDays: 30 }, now)).toBe(false)
+    expect(quoteNeedsFollowUp({ sentAt, validityDays: 30 }, now)).toBe(false)
   })
 })
 
@@ -146,10 +150,10 @@ describe('l ordre de la file', () => {
     // attestation qui expire dans trois semaines, et les deux ne coutent pas
     // la meme chose.
     const ordered = orderTasks([
-      task('unbilled_completion', 4),
-      task('silent_quote', 18),
-      task('overdue_invoice', 12),
-      task('certificate', 21),
+      task('unbilled_completion', elapsed(4)),
+      task('silent_quote', elapsed(18)),
+      task('overdue_invoice', elapsed(12)),
+      task('certificate', remaining(21)),
     ])
 
     expect(ordered.map((t) => t.kind)).toEqual([
@@ -160,15 +164,28 @@ describe('l ordre de la file', () => {
     ])
   })
 
-  it('classe le plus ancien en premier a nature egale', () => {
-    const ordered = orderTasks([task('silent_quote', 8), task('silent_quote', 30)])
-    expect(ordered.map((t) => t.dueInDays)).toEqual([30, 8])
+  it('classe le plus ancien en premier sur un temps ecoule', () => {
+    const ordered = orderTasks([task('silent_quote', elapsed(8)), task('silent_quote', elapsed(30))])
+    expect(ordered.map((t) => t.delay.days)).toEqual([30, 8])
+  })
+
+  it('classe le plus proche en premier sur un temps restant', () => {
+    // Le sens inverse, et c'est tout l'interet de le porter dans le type : une
+    // attestation qui expire dans sept jours passe devant celle qui expire dans
+    // soixante, alors que sur un temps ecoule c'est le grand nombre qui presse.
+    const ordered = orderTasks([
+      task('certificate', remaining(60)),
+      task('certificate', remaining(7)),
+      task('certificate', remaining(-3)),
+    ])
+
+    expect(ordered.map((t) => t.delay.days)).toEqual([-3, 7, 60])
   })
 
   it('ne touche pas au tableau qu on lui donne', () => {
     // `sort` trie en place. Sans la copie, l'ordre d'un tableau relu ailleurs
     // dependrait de qui a appele cette fonction en premier.
-    const given = [task('silent_quote', 8), task('certificate', 21)]
+    const given = [task('silent_quote', elapsed(8)), task('certificate', remaining(21))]
     orderTasks(given)
 
     expect(given.map((t) => t.kind)).toEqual(['silent_quote', 'certificate'])
@@ -232,6 +249,20 @@ export const TASK_ORDER: readonly TaskKind[] = [
   'unbilled_completion',
 ]
 
+/**
+ * Un delai, et le SENS dans lequel il se lit.
+ *
+ * Les deux sens ne se trient pas dans le meme ordre : sur un temps ecoule, le
+ * plus grand nombre est le plus urgent ; sur un temps restant, c'est le plus
+ * petit — et il devient negatif quand l'echeance est passee, donc plus urgent
+ * encore. Un seul champ de jours melangeait les deux et classait l'attestation
+ * la MOINS pressee en tete des attestations.
+ */
+export interface Delay {
+  sense: 'elapsed' | 'remaining'
+  days: number
+}
+
 export interface Task {
   kind: TaskKind
   id: string
@@ -239,8 +270,7 @@ export interface Task {
   detail: string
   /** `null` quand la ligne ne porte pas d'argent — une attestation, typiquement. */
   amountInclTax: Cents | null
-  /** L'anciennete, ou le delai restant. Sert au tri et a l'affichage. */
-  dueInDays: number
+  delay: Delay
   href: string
   /** Le verbe du bouton. « Relancer », « Facturer », « Deposer l'attestation ». */
   action: string
@@ -258,12 +288,18 @@ function daysBetween(from: Date, to: Date): number {
 }
 
 /**
- * Un devis envoye qui n'a pas recu de reponse, ou dont la validite s'achève.
+ * Un devis a relancer : sans reponse depuis assez longtemps, OU dont la
+ * validite s'acheve.
+ *
+ * `quoteNeedsFollowUp` et non `quoteIsSilent` : deux motifs distincts menent
+ * ici, et un devis remis avant-hier dont la validite expire dans trois jours
+ * n'a rien de silencieux. Le nom doit couvrir les deux, sinon le point d'appel
+ * croit ne tester que le silence.
  *
  * Un devis DEJA expire n'y figure plus : il appelle un nouveau devis, pas une
  * relance, et ce n'est pas la meme conversation.
  */
-export function quoteIsSilent(
+export function quoteNeedsFollowUp(
   input: { sentAt: Date; validityDays: number },
   now: Date,
 ): boolean {
@@ -295,11 +331,21 @@ export function certificateIsExpiring(validUntil: Date, now: Date): boolean {
   return daysBetween(now, validUntil) <= RENEWAL_ALERT_DAYS
 }
 
-/** Par nature, puis du plus ancien au plus recent. */
+/**
+ * L'urgence, ramenee a une seule echelle ou le plus grand est le plus presse.
+ *
+ * Un temps restant se lit a l'envers d'un temps ecoule : c'est ce changement de
+ * signe qui permet de trier les deux sens avec la meme comparaison.
+ */
+function urgency(task: Task): number {
+  return task.delay.sense === 'elapsed' ? task.delay.days : -task.delay.days
+}
+
+/** Par nature, puis du plus presse au moins presse. */
 export function orderTasks(tasks: Task[]): Task[] {
   return [...tasks].sort((a, b) => {
     const rank = TASK_ORDER.indexOf(a.kind) - TASK_ORDER.indexOf(b.kind)
-    return rank !== 0 ? rank : b.dueInDays - a.dueInDays
+    return rank !== 0 ? rank : urgency(b) - urgency(a)
   })
 }
 ```
@@ -712,7 +758,7 @@ Expected : FAIL — `pendingTasks is not a function`
 
 - [ ] **Step 3: Write the implementation**
 
-Ajouter `isNotNull` à l'import de `drizzle-orm` en tête du fichier, puis ajouter en fin de `src/services/home.ts` (les imports suivants remontent en tête, avec les autres) :
+Ajouter `isNotNull` et `desc` à l'import de `drizzle-orm` en tête du fichier, puis ajouter en fin de `src/services/home.ts` (les imports suivants remontent en tête, avec les autres) :
 
 ```ts
 import { can, type Access, type Capability } from '@/domain/authorization'
@@ -721,7 +767,7 @@ import {
   certificateIsExpiring,
   completionIsUnbilled,
   orderTasks,
-  quoteIsSilent,
+  quoteNeedsFollowUp,
   type Task,
 } from '@/domain/home-queue'
 
@@ -758,7 +804,14 @@ export async function pendingTasks(
   const tasks: Task[] = []
 
   if (can(access, REQUIRED.certificate)) {
-    const certificates = await db
+    /**
+     * La PLUS LOINTAINE des attestations validees, et elle seule.
+     *
+     * Une entreprise en accumule au fil des renouvellements : toutes les
+     * remonter afficherait quatre lignes pour une seule echeance, dont trois
+     * deja perimees. C'est la derniere qui dit si la couverture court encore.
+     */
+    const [certificate] = await db
       .select({ validUntil: insuranceCertificate.validUntil })
       .from(insuranceCertificate)
       .where(
@@ -769,22 +822,22 @@ export async function pendingTasks(
           isNotNull(insuranceCertificate.validUntil),
         ),
       )
+      .orderBy(desc(insuranceCertificate.validUntil))
+      .limit(1)
 
-    for (const certificate of certificates) {
-      const validUntil = certificate.validUntil!
-      if (!certificateIsExpiring(validUntil, now)) continue
-
-      const remaining = daysUntil(validUntil, now)
+    const validUntil = certificate?.validUntil
+    if (validUntil && certificateIsExpiring(validUntil, now)) {
+      const left = daysUntil(validUntil, now)
       tasks.push({
         kind: 'certificate',
         id: `certificate-${validUntil.toISOString()}`,
         title:
-          remaining >= 0
+          left >= 0
             ? `Votre attestation décennale expire le ${validUntil.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`
             : 'Votre attestation décennale a expiré',
         detail: 'Sans elle, votre page publique cesse d’être visible',
         amountInclTax: null,
-        dueInDays: remaining,
+        delay: { sense: 'remaining', days: left },
         href: '/verification',
         action: 'Déposer l’attestation',
       })
@@ -805,7 +858,7 @@ export async function pendingTasks(
 
     for (const row of sent) {
       const sentAt = row.sentAt!
-      if (!quoteIsSilent({ sentAt, validityDays: row.validityDays }, now)) continue
+      if (!quoteNeedsFollowUp({ sentAt, validityDays: row.validityDays }, now)) continue
 
       tasks.push({
         kind: 'silent_quote',
@@ -813,7 +866,7 @@ export async function pendingTasks(
         title: `${row.number} · sans réponse`,
         detail: `Envoyé il y a ${daysSince(sentAt, now)} jours`,
         amountInclTax: row.totalInclTax,
-        dueInDays: daysSince(sentAt, now),
+        delay: { sense: 'elapsed', days: daysSince(sentAt, now) },
         href: `/devis/${row.id}`,
         action: 'Relancer',
       })
@@ -846,7 +899,7 @@ export async function pendingTasks(
         title: `Facture échue`,
         detail: `Échue depuis ${daysSince(row.dueAt, now)} jours · retenue de garantie exclue`,
         amountInclTax: amountDueNow(settlement),
-        dueInDays: daysSince(row.dueAt, now),
+        delay: { sense: 'elapsed', days: daysSince(row.dueAt, now) },
         href: `/factures/${row.id}`,
         action: 'Relancer',
       })
@@ -881,7 +934,7 @@ export async function pendingTasks(
         title: `${root.number} · chantier terminé, reste à facturer`,
         detail: `Terminé il y a ${daysSince(completedAt, now)} jours`,
         amountInclTax: remaining,
-        dueInDays: daysSince(completedAt, now),
+        delay: { sense: 'elapsed', days: daysSince(completedAt, now) },
         href: `/devis/${root.id}`,
         action: 'Facturer',
       })
@@ -1288,9 +1341,15 @@ import type { Task } from '@/domain/home-queue'
 /** Au-dela, la file annonce le reste plutot que de le taire. */
 const VISIBLE = 8
 
+/**
+ * Le delai se lit sur son sens, pas sur la nature de la ligne.
+ *
+ * Brancher sur `kind` obligerait cet écran à savoir lesquelles des quatre
+ * natures comptent à rebours — un savoir qui vit déjà dans le domaine.
+ */
 function when(task: Task): string {
-  if (task.kind !== 'certificate') return `${task.dueInDays} j`
-  return task.dueInDays >= 0 ? `dans ${task.dueInDays} j` : 'expirée'
+  if (task.delay.sense === 'elapsed') return `${task.delay.days} j`
+  return task.delay.days >= 0 ? `dans ${task.delay.days} j` : 'expirée'
 }
 
 export function Queue({ tasks }: { tasks: Task[] }) {
