@@ -2,7 +2,9 @@
 
 > Spec de conception · Date : 2026-08-10 · Statut : à valider
 
-**Références :** [socle artisan](2026-08-07-socle-artisan-design.md) · [espace demandeur](2026-08-09-espace-demandeur-design.md) · [backoffice supervision](2026-08-08-backoffice-supervision-design.md) · [AIPD](../rgpd/2026-08-08-aipd-passeport.md)
+**Références :** [A1 — Les écrans des portes](2026-08-10-a1-ecrans-design.md) · [socle artisan](2026-08-07-socle-artisan-design.md) · [espace demandeur](2026-08-09-espace-demandeur-design.md) · [backoffice supervision](2026-08-08-backoffice-supervision-design.md) · [AIPD](../rgpd/2026-08-08-aipd-passeport.md)
+
+> Cette spec décide les **routes, les tables et l'aiguillage**. Ce que les gens voient — les six écrans, leur enchaînement, leurs mots — est décidé par [A1 — Les écrans des portes](2026-08-10-a1-ecrans-design.md).
 
 ---
 
@@ -207,7 +209,7 @@ Le SMTP conditionne l'ouverture de la porte demandeur. Les liens magiques parten
 
 ## 12. Ce que A1 ne fait pas
 
-- **La liste de premiers pas, le mot d'accueil par écran, les états vides qui enseignent, l'écran de confirmation après signature** → A2.
+- **La liste de premiers pas, le mot d'accueil par écran, les états vides qui enseignent, l'écran de confirmation après signature** → [A2 — L'arrivée](2026-08-10-a2-arrivee-design.md).
 - **Le mot de passe optionnel artisan, la passkey admin** → A3.
 - **Le tuto pas-à-pas en surbrillance.** Écarté au profit du mot d'accueil par écran, et la découverte sera instrumentée avant d'y revenir. Motifs consignés en A2.
 - **Aucune donnée fictive**, dans aucun compte. Un devis fictif signé entrerait dans `passport-metrics`, donc dans le taux affiché publiquement, donc dans `directory-ranking` — et journal, facture et publication de chantier sont immuables par déclencheur : « supprimable » n'est pas une option que le schéma propose.
