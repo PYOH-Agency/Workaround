@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor, mailboxHas } from './helpers'
+import { clearMailbox, mailboxHas, signIn } from './helpers'
 import { quoteFor, switchToPro } from './fixtures'
 
 /**
@@ -20,10 +20,7 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
   const patron = await shop.newPage()
 
   await test.step('connexion du patron', async () => {
-    await patron.goto('/connexion')
-    await patron.getByLabel('E-mail').fill(PATRON)
-    await patron.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await patron.goto(await magicLinkFor(PATRON))
+    await signIn(patron, PATRON)
   })
 
   await quoteFor(PATRON, 'draft')
@@ -56,10 +53,7 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
   const compagnon = await site.newPage()
 
   await test.step('le compagnon se connecte et rejoint l’entreprise', async () => {
-    await compagnon.goto('/connexion')
-    await compagnon.getByLabel('E-mail').fill(COMPAGNON)
-    await compagnon.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await compagnon.goto(await magicLinkFor(COMPAGNON))
+    await signIn(compagnon, COMPAGNON)
 
     // Il atterrit dans l'atelier, pas sur le formulaire SIRET de l'inscription.
     await expect(compagnon).toHaveURL(/\/devis$/)

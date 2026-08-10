@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor } from './helpers'
+import { clearMailbox, signIn } from './helpers'
 import { signedQuoteFor } from './fixtures'
 
 /**
@@ -15,10 +15,7 @@ test('de l’acompte au solde réglé', async ({ page }) => {
   await clearMailbox()
 
   await test.step('connexion par lien magique', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(ARTISAN)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(ARTISAN))
+    await signIn(page, ARTISAN)
   })
 
   const quote = await signedQuoteFor(ARTISAN)

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor } from './helpers'
+import { clearMailbox, signIn } from './helpers'
 import { companyWithActivities, makeStaff } from './fixtures'
 
 /**
@@ -21,10 +21,7 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
   await clearMailbox()
 
   await test.step('connexion de l’artisan', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(ARTISAN)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(ARTISAN))
+    await signIn(page, ARTISAN)
   })
 
   // Deux activites declarees : plomberie et electricite. Une seule sera couverte.
@@ -115,10 +112,7 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
   const reviewer = await reviewerContext.newPage()
 
   await test.step('un relecteur interne établit la correspondance', async () => {
-    await reviewer.goto('/connexion')
-    await reviewer.getByLabel('E-mail').fill(REVIEWER)
-    await reviewer.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await reviewer.goto(await magicLinkFor(REVIEWER))
+    await signIn(reviewer, REVIEWER)
     await makeStaff(REVIEWER)
 
     await reviewer.goto('/attestations')

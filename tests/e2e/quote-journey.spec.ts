@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor, quoteLinkFor, smsCodeFor } from './helpers'
+import { clearMailbox, quoteLinkFor, signIn, smsCodeFor } from './helpers'
 
 /**
  * Le parcours entier de M1, du premier e-mail a la signature.
@@ -20,21 +20,25 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
   await clearMailbox()
 
   await test.step('connexion par lien magique', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(ARTISAN)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await expect(page.getByRole('status')).toContainText(ARTISAN)
-
-    await page.goto(await magicLinkFor(ARTISAN))
+    await signIn(page, ARTISAN)
   })
 
-  await test.step('inscription par SIRET', async () => {
-    await expect(page.getByRole('heading', { name: 'Votre entreprise' })).toBeVisible()
+  await test.step('inscription par SIRET, en deux temps', async () => {
+    // Un compte sans entreprise atterrit ici, pas sur l'atelier.
+    await expect(page.getByText('Étape 1 sur 3')).toBeVisible()
     await page.getByLabel('SIRET').fill(SIRET)
     await page.getByRole('button', { name: 'Continuer' }).click()
 
-    // Raison sociale recuperee sur l'API, pas saisie a la main.
-    await expect(page.getByRole('heading', { name: /GARANCE PLOMBERIE/i })).toBeVisible()
+    // L'element signature : la raison sociale vient de l'API, pas de la saisie.
+    // Elle n'est pas un titre — c'est l'en-tete des futurs devis, pas un ecran.
+    await expect(page.getByText(/GARANCE PLOMBERIE/i)).toBeVisible()
+    // Et le travail restant, annonce avant l'engagement.
+    await expect(page.getByText('Assurance décennale')).toBeVisible()
+
+    // Deja connecte : pas de second aller-retour par la boite mail, l'atelier
+    // s'ouvre sur ce bouton.
+    await page.getByRole('button', { name: 'C’est bien mon entreprise' }).click()
+    await expect(page).toHaveURL(/\/devis$/)
   })
 
   await test.step('les mentions obligatoires sont exigees avant tout devis', async () => {

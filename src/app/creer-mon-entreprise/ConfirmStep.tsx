@@ -18,15 +18,25 @@ import type { Establishment } from '@/services/company-lookup'
  *
  * Aucun etat, aucun evenement autre que ceux du parent : le fichier n'a pas
  * besoin de 'use client', il entre dans le paquet client par son parent.
+ *
+ * **C'est ici que les deux publics de la page divergent.** Le visiteur anonyme
+ * passe a l'etape 3 pour prouver son adresse par la boite aux lettres ; celui
+ * qui est deja connecte l'a deja prouvee, et son entreprise se cree sur ce
+ * bouton. Le libelle ne change pas : il enonce le meme engagement.
  */
 export function ConfirmStep({
   establishment,
   missing,
+  error,
+  pending = false,
   onConfirm,
   onReject,
 }: {
   establishment: Establishment
   missing: MentionGroup[]
+  /** Le refus tardif : l'etablissement a cesse, ou l'entreprise vient d'etre prise. */
+  error?: string
+  pending?: boolean
   onConfirm: () => void
   onReject: () => void
 }) {
@@ -89,8 +99,17 @@ export function ConfirmStep({
         entré.
       </Text>
 
+      {error && (
+        <div
+          role="alert"
+          className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
+        >
+          {error}
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
-        <Button type="button" size="lg" onClick={onConfirm}>
+        <Button type="button" size="lg" pending={pending} onClick={onConfirm}>
           C’est bien mon entreprise
         </Button>
         <Button type="button" tone="ghost" onClick={onReject}>

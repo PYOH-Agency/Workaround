@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor } from './helpers'
+import { clearMailbox, signIn } from './helpers'
 import { companyWithActivities } from './fixtures'
 
 /**
@@ -15,10 +15,7 @@ test('de la prise de rendez-vous à la semaine', async ({ page }) => {
   await clearMailbox()
 
   await test.step('connexion de l’artisan', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(ARTISAN)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(ARTISAN))
+    await signIn(page, ARTISAN)
   })
 
   // L'inscription par SIRET appelle l'annuaire des entreprises, et

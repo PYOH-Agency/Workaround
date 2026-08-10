@@ -9,7 +9,7 @@ import { ConfirmStep } from './ConfirmStep'
 import { EmailStep } from './EmailStep'
 import { SentStep } from './SentStep'
 import { SiretStep } from './SiretStep'
-import { recordCompanyIntent } from './actions'
+import { createCompanyNow, recordCompanyIntent } from './actions'
 
 /**
  * L'inscription de l'artisan, en quatre temps.
@@ -26,12 +26,38 @@ export default function SignUpCompanyPage() {
   const [stage, setStage] = useState<Stage>('siret')
   const [found, setFound] = useState<Establishment | null>(null)
   const [missing, setMissing] = useState<MentionGroup[]>([])
+  const [signedIn, setSignedIn] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState('')
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
+
+  /**
+   * Le point ou les deux publics divergent.
+   *
+   * Deja connecte : l'adresse est prouvee, l'entreprise se cree, l'atelier
+   * s'ouvre — `createCompanyNow` redirige elle-meme. Anonyme : cap sur l'etape
+   * 3, ou la boite aux lettres fera la preuve.
+   */
+  async function confirm() {
+    if (!signedIn) {
+      setStage('email')
+      return
+    }
+
+    setError(null)
+    setCreating(true)
+    try {
+      const result = await createCompanyNow(found!.siret)
+      if (result?.error) setError(result.error)
+    } finally {
+      setCreating(false)
+    }
+  }
 
   async function resend() {
     await recordCompanyIntent(email, found!.siret)
@@ -49,6 +75,7 @@ export default function SignUpCompanyPage() {
           onFound={(state) => {
             setFound(state.found!)
             setMissing(state.missing ?? [])
+            setSignedIn(Boolean(state.signedIn))
             setStage('confirm')
           }}
         />
@@ -58,7 +85,9 @@ export default function SignUpCompanyPage() {
         <ConfirmStep
           establishment={found}
           missing={missing}
-          onConfirm={() => setStage('email')}
+          error={error ?? undefined}
+          pending={creating}
+          onConfirm={confirm}
           onReject={() => setStage('siret')}
         />
       )}

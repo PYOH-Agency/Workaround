@@ -6,6 +6,7 @@ import { Button } from '@/ui/atoms/button'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
 import { Input } from '@/ui/atoms/input'
+import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
 import { PublicShell } from '@/ui/shells/public-shell'
@@ -15,7 +16,13 @@ import { PublicShell } from '@/ui/shells/public-shell'
  *
  * L'artisan est sur un chantier, avec des gants et une 4G mediocre : lui
  * demander de retenir un mot de passe est le meilleur moyen qu'il n'ouvre
- * jamais l'outil.
+ * jamais l'outil. Ce choix ne tient que parce que la SESSION NE MEURT PAS —
+ * voir `supabase/config.toml`, section `[auth.sessions]`.
+ *
+ * **Porte de RETOUR seule.** `shouldCreateUser: false` : la creation de compte
+ * n'a lieu que derriere `/creer-mon-entreprise` et `/creer-mon-compte`. Sans
+ * cela, chaque adresse saisie ici creait un utilisateur Supabase, et les refus
+ * d'inscription tombaient apres — d'ou des orphelins que rien ne ramassait.
  */
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -33,11 +40,20 @@ export default function SignInPage() {
 
     const { error: sendError } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm` },
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm`,
+      },
     })
 
-    if (sendError) setError("L'envoi a échoué. Réessayez dans un instant.")
-    else setSent(true)
+    // **La meme reponse dans les deux cas**, y compris quand Supabase refuse
+    // parce que l'adresse est inconnue. Distinguer offrirait a quiconque de
+    // tester si telle personne est cliente, sur un formulaire public.
+    if (sendError && !/signups not allowed|not found/i.test(sendError.message)) {
+      setError("L'envoi a échoué. Réessayez dans un instant.")
+    } else {
+      setSent(true)
+    }
   }
 
   return (
@@ -56,7 +72,8 @@ export default function SignInPage() {
         >
           <Icon name="check" />
           <Text as="span">
-            Lien envoyé à <strong>{email}</strong>. Ouvrez-le depuis votre téléphone.
+            Si un compte existe pour <strong>{email}</strong>, le lien est parti. Ouvrez-le depuis
+            votre téléphone.
           </Text>
         </div>
       ) : (
@@ -87,6 +104,14 @@ export default function SignInPage() {
           </Button>
         </form>
       )}
+
+      <div className="flex flex-col gap-2 border-t border-rule pt-5">
+        <Text size="sm" tone="muted">
+          Pas encore de compte ?
+        </Text>
+        <Link href="/creer-mon-entreprise">Vous êtes artisan : créez votre entreprise</Link>
+        <Link href="/creer-mon-compte">Vous êtes particulier : créez votre compte</Link>
+      </div>
     </PublicShell>
   )
 }

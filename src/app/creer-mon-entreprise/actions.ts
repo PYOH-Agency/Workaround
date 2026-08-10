@@ -1,17 +1,32 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { company } from '@/db/schema'
 import { missingMentionGroups, type MentionGroup } from '@/domain/legal-mentions'
 import { findEstablishment, type Establishment } from '@/services/company-lookup'
+import { createCompanyFor, RegistrationError } from '@/services/registration'
 import { recordIntent } from '@/services/registration-intent'
+import { createServerSupabase } from '@/lib/supabase-server'
 
 export interface LookupState {
   error?: string
   found?: Establishment
   /** Ce qui restera a completer une fois entre. Annonce, jamais exige ici. */
   missing?: MentionGroup[]
+  /**
+   * Vrai si la personne est DEJA connectee.
+   *
+   * Cette page a deux publics, et on l'avait oublie. Le visiteur anonyme venu
+   * de la landing doit passer par le lien magique. Mais `resolveDestination`
+   * envoie ici un compte deja authentifie qui n'a ni entreprise, ni dossier,
+   * ni role interne — celui qui a abandonne en cours de route, ou dont
+   * l'invitation a ete revoquee. Lui redemander son adresse et un second
+   * aller-retour par la boite mail alors qu'il est deja chez nous serait
+   * absurde : pour lui, l'etape 2 cree l'entreprise et ouvre l'atelier.
+   */
+  signedIn?: boolean
 }
 
 /**
@@ -42,15 +57,52 @@ export async function lookupForSignUp(_state: LookupState, form: FormData): Prom
     return { error: 'Cette entreprise est déjà inscrite. Demandez une invitation à son responsable.' }
   }
 
+  const supabase = await createServerSupabase()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   // Ce que l'API a prerempli compte deja : la ligne « Coordonnees » n'est pas
   // vide au depart, et l'annoncer honnetement vaut mieux que partir de zero.
   return {
     found,
+    signedIn: Boolean(user),
     missing: missingMentionGroups({
       legalFormLabel: found.legalFormLabel,
       vatNumber: found.vatNumber,
     }),
   }
+}
+
+/**
+ * L'entreprise, tout de suite, pour qui est deja connecte.
+ *
+ * Le pendant de `recordCompanyIntent` : la ou le visiteur anonyme passe par la
+ * boite aux lettres pour prouver son adresse, celui-ci l'a deja prouvee en se
+ * connectant. Il n'y a donc aucune intention a memoriser — on cree, et on ouvre
+ * l'atelier.
+ *
+ * `createCompanyFor` rappelle l'API et refuse un etablissement cesse ou une
+ * entreprise deja prise : les memes garde-fous que par l'autre chemin, portes
+ * par le meme service.
+ */
+export async function createCompanyNow(siret: string): Promise<{ error?: string }> {
+  const supabase = await createServerSupabase()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user?.email) return { error: 'Session expirée. Reconnectez-vous.' }
+
+  try {
+    await createCompanyFor(user.id, user.email, siret)
+  } catch (e) {
+    if (e instanceof RegistrationError) return { error: e.message }
+    throw e
+  }
+
+  // Hors du bloc `try` : `redirect` signale la navigation en levant.
+  redirect('/devis')
 }
 
 /**

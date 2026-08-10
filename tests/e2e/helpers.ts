@@ -7,6 +7,8 @@
  * garantie voulue.
  */
 
+import type { Page } from '@playwright/test'
+
 const MAILBOX = process.env.MAILBOX_URL ?? 'http://127.0.0.1:54324'
 
 interface MailSummary {
@@ -142,4 +144,20 @@ export async function contactMailFor(email: string): Promise<string> {
     (mail) => mail.To.some((to) => to.Address === email) && /Demande reçue/.test(mail.Subject),
     `demande relayée à ${email}`,
   )
+}
+
+/**
+ * Cree le compte puis le connecte par lien magique.
+ *
+ * Une seule aide plutot que la sequence recopiee dans neuf parcours : le jour
+ * ou la porte change encore, elle change ici.
+ */
+export async function signIn(page: Page, email: string): Promise<void> {
+  const { createAccount } = await import('./fixtures-db')
+  await createAccount(email)
+
+  await page.goto('/connexion')
+  await page.getByLabel('E-mail').fill(email)
+  await page.getByRole('button', { name: 'Recevoir le lien' }).click()
+  await page.goto(await magicLinkFor(email))
 }

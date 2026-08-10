@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { test, expect } from '@playwright/test'
-import { clearMailbox, disputePathFor, magicLinkFor } from './helpers'
+import { clearMailbox, disputePathFor, signIn } from './helpers'
 import { lateChantierFor } from './fixtures-chantier'
 
 /**
@@ -25,10 +25,7 @@ test('d’un chantier en retard à une mesure arbitrée', async ({ page }) => {
   await clearMailbox()
 
   await test.step('connexion par lien magique', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(ARTISAN)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(ARTISAN))
+    await signIn(page, ARTISAN)
   })
 
   const chantier = await lateChantierFor(ARTISAN)
