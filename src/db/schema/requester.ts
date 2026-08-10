@@ -22,10 +22,14 @@ export const requester = pgTable('requester', {
   name: text('name').notNull(),
   /**
    * `signature` — il a signe un devis. `invitation` — un artisan l'a rattache a
-   * un logement existant, notamment un bailleur multi-lots. Seule la premiere
-   * est produite en M6·A.
+   * un logement existant, notamment un bailleur multi-lots. `self` — il a cree
+   * son compte de lui-meme, sans avoir jamais signe.
+   *
+   * `self` ne se confond pas avec `invitation` : les reunir ferait mentir la
+   * colonne sur son propre contenu, et c'est elle qui dira un jour d'ou viennent
+   * les comptes.
    */
-  source: text('source', { enum: ['signature', 'invitation'] })
+  source: text('source', { enum: ['signature', 'invitation', 'self'] })
     .notNull()
     .default('signature'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

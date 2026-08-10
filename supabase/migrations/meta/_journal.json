@@ -141,6 +141,13 @@
       "when": 1786362612710,
       "tag": "0019_smiling_wind_dancer",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1786387216245,
+      "tag": "0020_awesome_gorilla_man",
+      "breakpoints": true
     }
   ]
 }
