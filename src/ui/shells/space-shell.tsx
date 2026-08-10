@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Text } from '@/ui/atoms/text'
 import { Lockup } from '@/ui/brand/lockup'
+import { SignOut } from '@/ui/molecules/sign-out'
 import { ThemeToggle } from '@/ui/molecules/theme-toggle'
 
 /**
@@ -34,8 +35,9 @@ export function SpaceShell({
               </Text>
             </Link>
           ) : null}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
+            <SignOut />
           </div>
         </div>
       </header>

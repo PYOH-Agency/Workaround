@@ -3,6 +3,7 @@ import type { Access } from '@/domain/authorization'
 import { Text } from '@/ui/atoms/text'
 import { Lockup } from '@/ui/brand/lockup'
 import { AppNav } from '@/ui/molecules/app-nav'
+import { SignOut } from '@/ui/molecules/sign-out'
 import { ThemeToggle } from '@/ui/molecules/theme-toggle'
 
 /**
@@ -37,8 +38,9 @@ export function AppHeader({ companyName, access }: { companyName?: string; acces
           </Text>
         ) : null}
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
+          <SignOut />
         </div>
       </div>
     </header>

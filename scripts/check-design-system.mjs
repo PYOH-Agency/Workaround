@@ -27,6 +27,9 @@ const DS_DIR = 'src/ui/'
  * - `LandingShell` — navigation a lien croise. `PublicShell` est un gabarit de
  *   document : lui greffer une navigation commerciale le denaturerait.
  *
+ * - `SignOut` — la sortie, portee par les trois coquilles (spec A1 §7). Une
+ *   par coquille aurait triple le meme formulaire.
+ *
  * Toute autre addition doit passer par la spec avant d'arriver ici.
  */
 const INVENTORY = {
@@ -38,7 +41,7 @@ const INVENTORY = {
   molecules: [
     'Field', 'Card', 'StatusBadge', 'SealBadge', 'LogoLockup', 'EmptyState',
     'Toast', 'Tooltip', 'ButtonGroup', 'SummaryLine', 'Dialog', 'ThemeToggle',
-    'SectionHeader', 'StepCard', 'Reveal', 'Stagger', 'RevealTick',
+    'SectionHeader', 'StepCard', 'Reveal', 'Stagger', 'RevealTick', 'SignOut',
     // La navigation doit connaitre la page courante, et un composant serveur ne
     // peut pas lire l'URL. L'isoler garde `AppHeader` cote serveur au lieu d'y
     // verser `Lockup` et `Text` pour un seul `usePathname()`. Molecule et non
