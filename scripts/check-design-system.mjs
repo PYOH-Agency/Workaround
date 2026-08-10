@@ -27,6 +27,24 @@ const DS_DIR = 'src/ui/'
  * - `LandingShell` — navigation a lien croise. `PublicShell` est un gabarit de
  *   document : lui greffer une navigation commerciale le denaturerait.
  *
+ * Quatre entrees pour la reprise des treize ecrans (spec « reprise des treize
+ * ecrans » §5). Chacune etait DEJA ecrite a la main dans les ecrans : les
+ * nommer arrete une derive plutot qu'elle n'ouvre une extension.
+ *
+ * - `Notice` — l'encart d'alerte, recopie cinq fois avec la meme chaine de
+ *   classes et deja deux espacements divergents.
+ * - `PageHeader` — le bloc titre, recopie treize fois ; et le retour, qui
+ *   vivait en bas de page.
+ * - `Rail`, `RailItem` — la suite posee sur un filet, la ou la pile de cartes
+ *   ne disait pas qu'un evenement vient apres l'autre.
+ * - `DataTable` — le tableau de comparaison. Distinct de `QuoteLinesTable`
+ *   comme `QuoteLineEditor` l'est deja de lui : l'un connait les lignes d'un
+ *   devis, l'autre ne connait rien de son contenu.
+ *
+ * N'y figurent PAS, et c'est une decision : `WeekGrid`, `ProgressGauge` et
+ * `CopyField` n'ont qu'un seul ecran lecteur et restent aupres de lui, comme
+ * `SituationForm` ou `BusyNotice`.
+ *
  * Toute autre addition doit passer par la spec avant d'arriver ici.
  */
 const INVENTORY = {
@@ -39,6 +57,7 @@ const INVENTORY = {
     'Field', 'Card', 'StatusBadge', 'SealBadge', 'LogoLockup', 'EmptyState',
     'Toast', 'Tooltip', 'ButtonGroup', 'SummaryLine', 'Dialog', 'ThemeToggle',
     'SectionHeader', 'StepCard', 'Reveal', 'Stagger', 'RevealTick',
+    'Notice', 'PageHeader', 'Rail', 'RailItem',
     // La navigation doit connaitre la page courante, et un composant serveur ne
     // peut pas lire l'URL. L'isoler garde `AppHeader` cote serveur au lieu d'y
     // verser `Lockup` et `Text` pour un seul `usePathname()`. Molecule et non
@@ -48,7 +67,7 @@ const INVENTORY = {
   organisms: [
     'AppHeader', 'QuoteTable', 'QuoteLineEditor', 'QuoteLinesTable', 'TotalsPanel',
     'VatBreakdown', 'LegalMentionsPanel', 'PaymentTimeline', 'SignaturePanel',
-    'SiretLookup', 'QuoteLinkForm', 'PrinciplePanel',
+    'SiretLookup', 'QuoteLinkForm', 'PrinciplePanel', 'DataTable',
     // Ajoute en M6·B : le client et l'entreprise lisent la MEME chronologie.
     // La loger dans l'un des deux ecrans obligerait l'autre a importer une
     // fonctionnalite voisine, ce que l'autonomie des fonctionnalites interdit.

@@ -41,6 +41,18 @@ export function assertSituation(lines: SituationLine[]): void {
 }
 
 /**
+ * La valeur cumulee d'une ligne a un avancement donne.
+ *
+ * **L'arrondi se fait ici, et nulle part ailleurs.** L'ecran de saisie dessine
+ * la part que cette situation ajoute a chaque ligne ; recalculer cette part a
+ * cote ferait diverger le dessin de la facture d'un centime, exactement le
+ * defaut que l'aperçu partage avec le serveur existe pour empecher.
+ */
+export function lineValue(totalExclTax: Cents, percent: number): Cents {
+  return Math.round((totalExclTax * percent) / 100)
+}
+
+/**
  * La valeur cumulee des travaux declares, base de TVA par base de TVA.
  *
  * **L'arrondi se fait ligne par ligne**, jamais sur le total : deux situations
@@ -54,7 +66,7 @@ export function situationByRate(lines: SituationLine[]): TaxBreakdown[] {
   const bases = new Map<Rate, Cents>()
 
   for (const line of lines) {
-    const cumulative = Math.round((line.totalExclTax * line.percent) / 100)
+    const cumulative = lineValue(line.totalExclTax, line.percent)
     bases.set(line.taxRate, (bases.get(line.taxRate) ?? 0) + cumulative)
   }
 
