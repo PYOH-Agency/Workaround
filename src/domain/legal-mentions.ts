@@ -80,3 +80,60 @@ export function missingInvoiceMentions(details: InvoiceLegalDetails): string[] {
 
   return missing
 }
+
+/**
+ * Les trois lignes que l'artisan lit, la ou `missingLegalMentions` en rend onze.
+ *
+ * Afficher `registrationNumber`, `coverageArea` et `quoteValidityDays` tels
+ * quels donnerait un rapport d'erreurs, pas une liste de choses a faire.
+ *
+ * **Partagees entre l'inscription et l'atelier** : ce sont les memes trois
+ * lignes, annoncees a l'etape 2 de `/creer-mon-entreprise` puis actionnables
+ * dans la liste de premiers pas. C'est ce qui fait qu'arriver dans l'atelier ne
+ * surprend pas.
+ */
+export type MentionGroup = 'contact' | 'insurance' | 'terms'
+
+/**
+ * Ordre d'affichage, et il compte : c'est celui de la liste de premiers pas.
+ * Deux ordres differents entre l'annonce et l'action desorienteraient.
+ */
+const GROUP_ORDER: MentionGroup[] = ['contact', 'insurance', 'terms']
+
+export const MENTION_GROUP_LABELS: Record<MentionGroup, string> = {
+  contact: 'Coordonnées',
+  insurance: 'Assurance décennale',
+  terms: 'Conditions de règlement',
+}
+
+/**
+ * A quel groupe appartient chaque mention.
+ *
+ * **Exhaustive**, et un test l'exige : une mention ajoutee a
+ * `missingLegalMentions` sans etre classee ici deviendrait invisible a l'ecran,
+ * et l'artisan se verrait refuser l'emission sans savoir ce qui manque.
+ */
+export const MENTION_GROUP_OF = {
+  legalFormLabel: 'contact',
+  registrationNumber: 'contact',
+  phone: 'contact',
+  email: 'contact',
+  insurerName: 'insurance',
+  insurerAddress: 'insurance',
+  policyNumber: 'insurance',
+  coveredActivities: 'insurance',
+  coverageArea: 'insurance',
+  paymentTerms: 'terms',
+  vatNumber: 'terms',
+  quoteValidityDays: 'terms',
+} as const satisfies Record<string, MentionGroup>
+
+export function missingMentionGroups(details: CompanyLegalDetails): MentionGroup[] {
+  const missing = new Set(
+    missingLegalMentions(details).map(
+      (key) => MENTION_GROUP_OF[key as keyof typeof MENTION_GROUP_OF],
+    ),
+  )
+
+  return GROUP_ORDER.filter((group) => missing.has(group))
+}
