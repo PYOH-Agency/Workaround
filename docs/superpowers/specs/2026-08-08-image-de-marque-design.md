@@ -252,8 +252,8 @@ Piloté par un attribut `data-theme` sur `<html>` avec trois valeurs — `system
 |---|---|---|
 | **Tokens** | `src/ui/tokens.*` | Primitives (rampes) et rôles. Aucun JSX. |
 | **Atomes** | `src/ui/atoms/` | Button, **ButtonLink**, Input, Textarea, Select, Checkbox, Label, HelperText, FieldError, Badge, Icon, Spinner, Link, Heading, Text, Money, DateText, Separator, Skeleton |
-| **Molécules** | `src/ui/molecules/` | Field, Card, StatusBadge, SealBadge, LogoLockup, EmptyState, Toast, Tooltip, ButtonGroup, SummaryLine, Dialog, ThemeToggle, **SectionHeader, StepCard, Reveal, Stagger** |
-| **Organismes** | `src/ui/organisms/` | AppHeader, QuoteTable, QuoteLineEditor, **QuoteLinesTable**, TotalsPanel, VatBreakdown, LegalMentionsPanel, PaymentTimeline, SignaturePanel, **SiretLookup, QuoteLinkForm, PrinciplePanel** |
+| **Molécules** | `src/ui/molecules/` | Field, Card, StatusBadge, SealBadge, LogoLockup, EmptyState, Toast, Tooltip, ButtonGroup, SummaryLine, Dialog, ThemeToggle, **SectionHeader, StepCard, Reveal, Stagger**, **Notice, PageHeader, Rail, RailItem** |
+| **Organismes** | `src/ui/organisms/` | AppHeader, QuoteTable, QuoteLineEditor, **QuoteLinesTable**, TotalsPanel, VatBreakdown, LegalMentionsPanel, PaymentTimeline, SignaturePanel, **SiretLookup, QuoteLinkForm, PrinciplePanel**, **DataTable** |
 | **Gabarits** | `src/ui/shells/` | AppShell, PublicShell, PdfShell, **LandingShell** |
 
 Les trois gabarits correspondent aux trois publics : **AppShell** pour l'artisan connecté (dense, mode sombre disponible), **PublicShell** pour le demandeur qui signe et le passeport indexé (clair par défaut, terre cuite en conversion), **PdfShell** pour le devis et la facture (une seule encre).
@@ -267,6 +267,8 @@ Les trois gabarits correspondent aux trois publics : **AppShell** pour l'artisan
 - **`ButtonLink`** — le HTML distingue *agir* et *naviguer*. Imbriquer un `<button>` dans un `<a>` est invalide et fait annoncer un rôle incohérent par un lecteur d'écran. « Créer un devis » est une navigation.
 - **`QuoteLinesTable`** — distinct de `QuoteLineEditor` : l'un lit, l'autre saisit. Le premier est un `<table>` qui défile dans son conteneur, le second une grille de saisie à `aria-label`. Les confondre aurait dégradé les deux.
 - **`SectionHeader`, `StepCard`, `Reveal`, `Stagger`, `SiretLookup`, `QuoteLinkForm`, `PrinciplePanel`, `LandingShell`** — les huit composants réclamés par les deux pages publiques. Le détail de chacun, et pourquoi `LandingShell` ne réutilise pas `PublicShell`, est justifié dans la spec landing (§7.1).
+
+**Quatre entrées de plus, à la reprise des treize écrans.** `Notice`, `PageHeader`, `Rail`, `RailItem` et `DataTable` — chacune déjà écrite à la main dans les écrans, plusieurs fois. Le détail et la raison de chacune sont dans [la spec de reprise](2026-08-10-reprise-des-treize-ecrans-design.md) §5, qui consigne aussi ce qui a été refusé : `WeekGrid`, `ProgressGauge` et `CopyField` n'ont qu'un seul écran lecteur et restent auprès de lui.
 
 Toute autre addition passe par cette spec avant d'arriver dans le script.
 
