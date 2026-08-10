@@ -20,20 +20,37 @@ export function normalizeEmail(raw: string): string {
   return trimmed
 }
 
-export type Destination = '/devis' | '/mes-logements' | '/inscription'
+export type Destination =
+  | '/devis'
+  | '/mes-logements'
+  | '/mon-repertoire'
+  | '/supervision'
+  | '/creer-mon-entreprise'
 
 /**
  * Ou envoyer un compte qui vient de se connecter.
  *
- * **L'entreprise l'emporte** : un meme compte peut porter les deux roles — un
- * plombier fait aussi refaire sa toiture — et l'atelier est celui ou l'on
- * travaille tous les jours. L'en-tete propose le passage a l'autre cote.
+ * **L'entreprise l'emporte** : un meme compte peut porter plusieurs roles — un
+ * plombier fait aussi refaire sa toiture, et l'exploitant du produit est a la
+ * fois artisan d'essai et relecteur. L'atelier est celui ou l'on travaille tous
+ * les jours ; l'en-tete propose le passage a l'autre cote.
+ *
+ * `hasSignature` distingue le demandeur ne d'une signature de celui venu de
+ * lui-meme. Sans lui, l'inscription autonome atterrirait sur `/mes-logements`,
+ * que `myProperties` derive DES SIGNATURES — donc un ecran vide, et
+ * structurellement incapable de se remplir.
+ *
+ * Le repli n'est plus le formulaire SIRET nu : c'est la porte d'inscription
+ * artisan, qui explique ce qu'elle est a qui n'est pas artisan.
  */
 export function resolveDestination(input: {
   hasCompany: boolean
   hasRequester: boolean
+  hasSignature: boolean
+  hasStaff: boolean
 }): Destination {
   if (input.hasCompany) return '/devis'
-  if (input.hasRequester) return '/mes-logements'
-  return '/inscription'
+  if (input.hasRequester) return input.hasSignature ? '/mes-logements' : '/mon-repertoire'
+  if (input.hasStaff) return '/supervision'
+  return '/creer-mon-entreprise'
 }
