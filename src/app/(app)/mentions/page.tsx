@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { company } from '@/db/schema'
+import { can } from '@/domain/authorization'
 import { currentCompany, SessionError } from '@/lib/session'
 import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
@@ -18,6 +19,11 @@ export default async function LegalMentionsPage() {
     }
     throw e
   }
+
+  // Reserve au responsable : le compagnon ne touche pas a l'argent. La
+  // navigation ne le lui propose pas ; celui qui tape l'adresse est renvoye
+  // chez lui, sans discours.
+  if (!can(session, 'legal.write')) redirect('/devis')
 
   const [current] = await db.select().from(company).where(eq(company.id, session.companyId))
 

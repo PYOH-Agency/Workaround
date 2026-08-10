@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { db } from '@/db/client'
 import { activity } from '@/db/schema'
+import { can } from '@/domain/authorization'
 import { currentCompany, SessionError } from '@/lib/session'
 import { companyCertificates } from '@/services/certificates'
 import { companyCoverage } from '@/services/visibility'
@@ -30,6 +31,11 @@ export default async function VerificationPage() {
     }
     throw e
   }
+
+  // Reserve au responsable : le compagnon ne touche pas a l'argent. La
+  // navigation ne le lui propose pas ; celui qui tape l'adresse est renvoye
+  // chez lui, sans discours.
+  if (!can(session, 'legal.write')) redirect('/devis')
 
   const [coverage, certificates, referential] = await Promise.all([
     companyCoverage(session.companyId, new Date()),

@@ -3,6 +3,7 @@ import { desc, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { invoice } from '@/db/schema'
 import { outstanding, paymentStatus } from '@/domain/payment-status'
+import { can } from '@/domain/authorization'
 import { currentCompany, SessionError } from '@/lib/session'
 import { TYPE_LABELS } from '@/pdf/invoice-pdf'
 import { Heading } from '@/ui/atoms/heading'
@@ -24,6 +25,11 @@ export default async function InvoicesPage() {
     }
     throw e
   }
+
+  // Reserve au responsable : le compagnon ne touche pas a l'argent. La
+  // navigation ne le lui propose pas ; celui qui tape l'adresse est renvoye
+  // chez lui, sans discours.
+  if (!can(session, 'invoice.issue')) redirect('/devis')
 
   const rows = await db.query.invoice.findMany({
     where: eq(invoice.companyId, session.companyId),

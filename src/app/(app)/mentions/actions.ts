@@ -6,7 +6,7 @@ import { db } from '@/db/client'
 import { company } from '@/db/schema'
 import { missingLegalMentions } from '@/domain/legal-mentions'
 import { recordEvent } from '@/services/events'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 
 export interface LegalFormState {
   error?: string
@@ -16,7 +16,7 @@ export async function saveLegalMentions(
   _state: LegalFormState,
   form: FormData,
 ): Promise<LegalFormState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('legal.write')
 
   const text = (key: string) => String(form.get(key) ?? '').trim()
 

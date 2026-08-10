@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { createAmendment } from '@/services/amendments'
 import { declareCompleted } from '@/services/completion'
 import { openDispute } from '@/services/disputes'
@@ -23,7 +23,7 @@ export interface AmendState {
  * faire est d'ajouter ce qui a change, puis de le faire signer.
  */
 export async function amendQuote(quoteId: string, _state: AmendState): Promise<AmendState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('quote.write')
 
   let created
   try {
@@ -52,7 +52,7 @@ export async function completeChantier(
   _state: CompleteState,
   form: FormData,
 ): Promise<CompleteState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('chantier.complete')
 
   try {
     const at = new Date(String(form.get('date')))
@@ -82,7 +82,7 @@ export async function disputeLeadTime(
   _state: DisputeState,
   form: FormData,
 ): Promise<DisputeState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('passport.manage')
 
   try {
     await openDispute(companyId, quoteId, String(form.get('reason') ?? ''), new Date())
@@ -105,7 +105,7 @@ export async function writeStatement(
   _state: StatementState,
   form: FormData,
 ): Promise<StatementState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('passport.manage')
 
   try {
     await saveStatement(companyId, quoteId, String(form.get('body') ?? ''))
@@ -137,7 +137,7 @@ export async function bookWork(
   _state: BookWorkState,
   form: FormData,
 ): Promise<BookWorkState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('agenda.manage')
 
   try {
     const startsAt = new Date(String(form.get('debut')))

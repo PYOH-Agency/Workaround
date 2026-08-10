@@ -10,7 +10,7 @@ import { toCents } from '@/domain/money'
 import { nextQuoteNumber } from '@/services/quotes'
 import { createProject } from '@/services/projects'
 import { recordEvent } from '@/services/events'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { readLines, type LineFormInput } from './form-lines'
 
 export interface QuoteFormState {
@@ -21,7 +21,7 @@ export async function saveQuote(
   _state: QuoteFormState,
   form: FormData,
 ): Promise<QuoteFormState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('quote.write')
 
   let lines: LineFormInput[]
   try {

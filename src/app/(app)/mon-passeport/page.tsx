@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { db } from '@/db/client'
 import { company } from '@/db/schema'
 import { companySlug } from '@/domain/slug'
+import { can } from '@/domain/authorization'
 import { currentCompany, SessionError } from '@/lib/session'
 import { companyMetrics } from '@/services/passport-metrics'
 import { companyQuoteLeadTime } from '@/services/quote-lead-time'
@@ -36,6 +37,11 @@ export default async function PassportPage() {
     }
     throw e
   }
+
+  // Reserve au responsable : le compagnon ne touche pas a l'argent. La
+  // navigation ne le lui propose pas ; celui qui tape l'adresse est renvoye
+  // chez lui, sans discours.
+  if (!can(session, 'passport.manage')) redirect('/devis')
 
   const now = new Date()
   const [metrics, disputes, quoteLeadTime, coverage, [profile]] = await Promise.all([

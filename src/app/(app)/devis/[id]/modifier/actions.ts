@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { updateDraftQuote } from '@/services/quote-edit'
 import type { QuoteFormState } from '../../actions'
 import { readLines } from '../../form-lines'
@@ -11,7 +11,7 @@ export async function editQuote(
   _state: QuoteFormState,
   form: FormData,
 ): Promise<QuoteFormState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('quote.write')
 
   try {
     const delay = String(form.get('delai') ?? '').trim()

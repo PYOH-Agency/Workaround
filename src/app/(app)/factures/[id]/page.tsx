@@ -4,6 +4,7 @@ import { db } from '@/db/client'
 import { invoice } from '@/db/schema'
 import { outstanding, paymentStatus } from '@/domain/payment-status'
 import { computeTotals } from '@/domain/quote-totals'
+import { can } from '@/domain/authorization'
 import { currentCompany, SessionError } from '@/lib/session'
 import { TYPE_LABELS } from '@/pdf/invoice-pdf'
 import { DateText } from '@/ui/atoms/date-text'
@@ -38,6 +39,11 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     if (e instanceof SessionError) redirect('/connexion')
     throw e
   }
+
+  // Reserve au responsable : le compagnon ne touche pas a l'argent. La
+  // navigation ne le lui propose pas ; celui qui tape l'adresse est renvoye
+  // chez lui, sans discours.
+  if (!can(session, 'invoice.issue')) redirect('/devis')
 
   // Restreint a l'entreprise de la session : l'autorisation vit dans le code,
   // ou elle est lisible et testable.

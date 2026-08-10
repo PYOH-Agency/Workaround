@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { activity, companyActivity } from '@/db/schema'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { uploadCertificate } from '@/services/certificates'
 import type { InsuranceKind } from '@/domain/activity'
 
@@ -19,7 +19,7 @@ export async function declareActivity(
   state: VerificationState,
   form: FormData,
 ): Promise<VerificationState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('legal.write')
   const code = String(form.get('activite') ?? '')
 
   try {
@@ -36,7 +36,7 @@ export async function declareActivity(
 }
 
 export async function removeActivity(code: string): Promise<VerificationState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('legal.write')
 
   try {
     await db
@@ -54,7 +54,7 @@ export async function submitCertificate(
   state: VerificationState,
   form: FormData,
 ): Promise<VerificationState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('legal.write')
 
   try {
     const file = form.get('fichier')

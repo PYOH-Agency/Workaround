@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { createProject } from '@/services/projects'
 import { bookAppointment } from '@/services/appointments'
 
@@ -16,7 +16,7 @@ export interface BookVisitState {
  * visite precede le devis, et un rendez-vous ne se pose jamais dans le vide.
  */
 export async function bookVisit(_state: BookVisitState, form: FormData): Promise<BookVisitState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('agenda.manage')
 
   try {
     const startsAt = new Date(String(form.get('debut')))

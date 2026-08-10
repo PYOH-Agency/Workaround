@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { can } from '@/domain/authorization'
 import { currentCompany, SessionError } from '@/lib/session'
 import { agendaFeedToken } from '@/services/agenda-feed'
 import { linkedCalendars } from '@/services/calendar-links'
@@ -38,6 +39,11 @@ export default async function SyncPage({
     }
     throw e
   }
+
+  // Reserve au responsable : le compagnon ne touche pas a l'argent. La
+  // navigation ne le lui propose pas ; celui qui tape l'adresse est renvoye
+  // chez lui, sans discours.
+  if (!can(session, 'agenda.sync')) redirect('/devis')
 
   const { erreur } = await searchParams
   const [token, linked] = await Promise.all([

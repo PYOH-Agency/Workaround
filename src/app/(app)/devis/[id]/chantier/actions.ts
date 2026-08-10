@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { publishPost } from '@/services/chantier-posts'
 
 export interface PostState {
@@ -21,7 +21,7 @@ export async function publish(
   _state: PostState,
   form: FormData,
 ): Promise<PostState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('chantier.post')
 
   const photos = form
     .getAll('photos')

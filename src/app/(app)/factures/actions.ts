@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { recordPayment, type PaymentMethod } from '@/services/payments'
 import type { InvoiceFormState } from '@/actions/invoices'
 
@@ -16,7 +16,7 @@ export async function addPayment(
   state: InvoiceFormState,
   form: FormData,
 ): Promise<InvoiceFormState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('payment.record')
 
   try {
     await recordPayment({

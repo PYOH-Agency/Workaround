@@ -4,7 +4,7 @@ import { randomBytes } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { revokeAgendaFeed } from '@/services/agenda-feed'
 import { unlinkCalendar } from '@/services/calendar-links'
 import { providerById } from '@/services/calendar-registry'
@@ -16,7 +16,7 @@ export interface SyncState {
 
 /** Régénère l'adresse d'abonnement : l'ancienne cesse aussitôt de répondre. */
 export async function regenerateFeed(_state: SyncState): Promise<SyncState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('agenda.sync')
   await revokeAgendaFeed(companyId)
 
   revalidatePath('/agenda/synchronisation')
@@ -24,7 +24,7 @@ export async function regenerateFeed(_state: SyncState): Promise<SyncState> {
 }
 
 export async function unlink(provider: ProviderId, _state: SyncState): Promise<SyncState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('agenda.sync')
   await unlinkCalendar(companyId, provider)
 
   revalidatePath('/agenda/synchronisation')
@@ -39,7 +39,7 @@ export async function unlink(provider: ProviderId, _state: SyncState): Promise<S
  * l'artisan en lui faisant ouvrir une adresse fabriquee.
  */
 export async function startLink(providerId: ProviderId, _state: SyncState): Promise<SyncState> {
-  await currentCompany()
+  await requireCapability('agenda.sync')
 
   const provider = providerById(providerId)
   if (!provider) return { error: 'Fournisseur inconnu.' }

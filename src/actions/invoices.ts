@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { invoice, quote } from '@/db/schema'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { computeTotals } from '@/domain/quote-totals'
 import { remainingByRate, splitDepositByRate, type RatedAmount } from '@/domain/invoice-balance'
 import { issueInvoice, issuedAgainstQuote } from '@/services/invoices'
@@ -69,7 +69,7 @@ export async function issueDeposit(
   percent: number,
   _state: InvoiceFormState,
 ): Promise<InvoiceFormState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('invoice.issue')
 
   let created
   try {
@@ -99,7 +99,7 @@ export async function issueProgress(
   percent: number,
   _state: InvoiceFormState,
 ): Promise<InvoiceFormState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('invoice.issue')
 
   let created
   try {
@@ -134,7 +134,7 @@ export async function issueBalance(
   quoteId: string,
   _state: InvoiceFormState,
 ): Promise<InvoiceFormState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('invoice.issue')
 
   let created
   try {
@@ -167,7 +167,7 @@ export async function issueCreditNote(
   invoiceId: string,
   _state: InvoiceFormState,
 ): Promise<InvoiceFormState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('invoice.issue')
 
   let created
   try {

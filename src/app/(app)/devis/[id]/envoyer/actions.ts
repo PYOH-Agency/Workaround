@@ -9,7 +9,7 @@ import { hasLegalMentions } from '@/domain/legal-mentions'
 import { sendQuoteLink } from '@/services/email'
 import { recordEvent } from '@/services/events'
 import { passportUrl } from '@/services/passport'
-import { currentCompany } from '@/lib/session'
+import { requireCapability } from '@/lib/access'
 import { format } from '@/domain/money'
 
 export interface SendState {
@@ -18,7 +18,7 @@ export interface SendState {
 }
 
 export async function sendQuote(quoteId: string, _state: SendState): Promise<SendState> {
-  const { companyId } = await currentCompany()
+  const { companyId } = await requireCapability('quote.write')
 
   const found = await db.query.quote.findFirst({
     where: and(eq(quote.id, quoteId), eq(quote.companyId, companyId)),
