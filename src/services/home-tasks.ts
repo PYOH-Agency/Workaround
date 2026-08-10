@@ -24,10 +24,22 @@ const REQUIRED: Record<Task['kind'], Capability> = {
   unbilled_completion: 'invoice.issue',
 }
 
+/**
+ * `Math.ceil`, comme `daysBetween` du domaine — et c'est la meme frontiere.
+ *
+ * Avec un plancher, une attestation valable vingt jours et quinze heures
+ * s'afficherait a vingt jours alors que le seuil qui l'a fait entrer en file en
+ * a compte vingt-et-un. L'ecran contredirait la regle qui l'y a mise.
+ */
 function daysUntil(date: Date, now: Date): number {
-  return Math.floor((date.getTime() - now.getTime()) / DAY)
+  return Math.ceil((date.getTime() - now.getTime()) / DAY)
 }
 
+/**
+ * `Math.floor`, et l'ecart avec `daysUntil` est voulu : un temps ECOULE se
+ * compte revolu. Dix-huit jours et quinze heures d'attente font dix-huit jours
+ * d'attente, pas dix-neuf.
+ */
 function daysSince(date: Date, now: Date): number {
   return Math.floor((now.getTime() - date.getTime()) / DAY)
 }

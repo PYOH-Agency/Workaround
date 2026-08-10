@@ -56,6 +56,22 @@ beforeAll(async () => {
     storagePath: `${COMPANY}/attestation.pdf`,
   })
 
+  /**
+   * Un renouvellement anterieur, deja expire.
+   *
+   * Sans le tri decroissant sur `validUntil`, la requete pourrait remonter
+   * cette ligne-la au lieu de la couverture en cours : deux lignes
+   * `certificate` pour une seule echeance, dont une perimee depuis longtemps.
+   */
+  await db.insert(insuranceCertificate).values({
+    id: randomUUID(),
+    companyId: COMPANY,
+    kind: 'decennale',
+    status: 'validated',
+    validUntil: new Date('2026-05-01T00:00:00Z'),
+    storagePath: `${COMPANY}/attestation-precedente.pdf`,
+  })
+
   COMPANY2 = await createCompany()
   PROJECT2 = await createProject(COMPANY2)
 
@@ -169,6 +185,27 @@ describe('la file de l accueil', () => {
     expect(await pendingTasks(COMPANY, MEMBER, now)).toEqual([])
   })
 
+  it('compte le delai restant arrondi au jour superieur, comme le domaine', async () => {
+    // Du 10 aout 09:00 au 31 aout 00:00 il y a 20,625 jours. Le seuil qui fait
+    // entrer la ligne en file (`certificateIsExpiring`, dans le domaine) compte
+    // 21 jours avec `Math.ceil` ; un `Math.floor` sur l'ecran afficherait 20 et
+    // contredirait la regle qui l'y a mise.
+    const certificateTask = (await pendingTasks(COMPANY, OWNER, now)).find((t) => t.kind === 'certificate')
+
+    expect(certificateTask?.delay.days).toBe(21)
+  })
+
+  it('ne remonte qu une seule ligne d attestation, la plus lointaine', async () => {
+    // COMPANY porte deux attestations validees : celle en cours (31 aout) et un
+    // renouvellement anterieur deja expire (1er mai). Sans le tri decroissant,
+    // la requete pourrait remonter la premiere ligne trouvee plutot que la
+    // derniere en date.
+    const certificates = (await pendingTasks(COMPANY, OWNER, now)).filter((t) => t.kind === 'certificate')
+
+    expect(certificates).toHaveLength(1)
+    expect(certificates[0].delay.days).toBe(21)
+  })
+
   it('remonte la facture echue et le chantier non solde', async () => {
     // Les quatre natures existent : sans donnees pour les deux dernieres, leur
     // selection et leur garde de capacite ne sont prouvees par rien.
@@ -185,5 +222,13 @@ describe('la file de l accueil', () => {
     const kinds = (await pendingTasks(COMPANY2, OWNER, now)).map((t) => t.kind)
 
     expect(kinds).toEqual(['certificate', 'overdue_invoice', 'silent_quote', 'unbilled_completion'])
+  })
+
+  it('ne rend aucune ligne a un compagnon, sur l entreprise qui porte les quatre natures', async () => {
+    // COMPANY n'a ni facture en retard ni chantier non solde : y verifier le
+    // compagnon ne prouve rien sur ces deux gardes-la. COMPANY2 est la seule
+    // entreprise a porter les quatre natures a la fois, donc la seule ou une
+    // file vide prouve l'absence de capacite plutot que l'absence de donnees.
+    expect(await pendingTasks(COMPANY2, MEMBER, now)).toEqual([])
   })
 })
