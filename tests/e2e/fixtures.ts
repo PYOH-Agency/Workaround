@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { load, userIdFor } from './fixtures-db'
 
 /**
@@ -186,4 +186,24 @@ export async function companyWithActivities(email: string, codes: string[]) {
 export async function makeStaff(email: string) {
   const { db, schema } = await load()
   await db.insert(schema.staff).values({ userId: await userIdFor(email), email })
+}
+
+/**
+ * Bascule en Pro l'entreprise d'un artisan connecte.
+ *
+ * Passe par la base plutot que par le backoffice : la bascule elle-meme est
+ * couverte par `tests/services/plan.test.ts`, et ouvrir une session de
+ * relecteur ici doublerait la duree du parcours sans rien prouver de plus.
+ */
+export async function switchToPro(email: string): Promise<void> {
+  const { db, schema } = await load()
+
+  const userId = await userIdFor(email)
+  const [row] = await db.select().from(schema.member).where(eq(schema.member.userId, userId))
+  if (!row) throw new Error(`Aucune entreprise pour ${email}`)
+
+  await db
+    .update(schema.company)
+    .set({ plan: 'pro' })
+    .where(eq(schema.company.id, row.companyId))
 }
