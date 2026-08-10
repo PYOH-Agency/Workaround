@@ -9,7 +9,7 @@ import {
   type Task,
 } from '@/domain/home-queue'
 
-/** Jeudi 6 août 2026. Les jours ouvrés comptent, les week-ends non. */
+/** Jeudi 6 aout 2026. Les jours ouvres comptent, les week-ends non. */
 const now = new Date('2026-08-06T09:00:00Z')
 
 const task = (kind: Task['kind'], dueInDays: number): Task => ({
@@ -113,5 +113,14 @@ describe('l ordre de la file', () => {
   it('classe le plus ancien en premier a nature egale', () => {
     const ordered = orderTasks([task('silent_quote', 8), task('silent_quote', 30)])
     expect(ordered.map((t) => t.dueInDays)).toEqual([30, 8])
+  })
+
+  it('ne touche pas au tableau qu on lui donne', () => {
+    // `sort` trie en place. Sans la copie, l'ordre d'un tableau relu ailleurs
+    // dependrait de qui a appele cette fonction en premier.
+    const given = [task('silent_quote', 8), task('certificate', 21)]
+    orderTasks(given)
+
+    expect(given.map((t) => t.kind)).toEqual(['silent_quote', 'certificate'])
   })
 })
