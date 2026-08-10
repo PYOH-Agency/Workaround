@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { format } from '@/domain/money'
+import { can } from '@/domain/authorization'
 import { disputeStanding } from '@/domain/dispute'
 import { currentCompany, SessionError } from '@/lib/session'
 import { quoteDetail } from '@/services/quote-detail'
@@ -138,7 +139,11 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
       {(quote.status === 'signed' || invoices.length > 0) && (
         <Section title="Facturation">
           {quote.status === 'signed' && (
-            <InvoiceActions quoteId={quote.id} remaining={format(detail.remaining)} />
+            <InvoiceActions
+              quoteId={quote.id}
+              remaining={format(detail.remaining)}
+              canIssueSituation={can(session, 'situation.issue')}
+            />
           )}
           {invoices.length > 0 && <InvoiceList invoices={invoices} />}
         </Section>

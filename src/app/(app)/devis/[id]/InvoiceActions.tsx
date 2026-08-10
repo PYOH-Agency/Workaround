@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { issueBalance, issueDeposit, issueProgress, type InvoiceFormState } from '@/actions/invoices'
 import { Button } from '@/ui/atoms/button'
+import { ButtonLink } from '@/ui/atoms/button-link'
 import { Input } from '@/ui/atoms/input'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
@@ -14,7 +15,17 @@ import { Field } from '@/ui/molecules/field'
  * montant libre garantirait des ecarts avec le devis, or l'ecart devis/facture
  * est la metrique reine du passeport.
  */
-export function InvoiceActions({ quoteId, remaining }: { quoteId: string; remaining: string }) {
+export function InvoiceActions({
+  quoteId,
+  remaining,
+  canIssueSituation,
+}: {
+  quoteId: string
+  remaining: string
+  /** L'offre Pro ouvre la situation ligne par ligne. Le pourcentage global
+   *  reste ouvert a tous : le retirer serait une regression du gratuit. */
+  canIssueSituation: boolean
+}) {
   const [state, setState] = useState<InvoiceFormState>({})
   const [percent, setPercent] = useState('30')
   const [pending, startTransition] = useTransition()
@@ -73,6 +84,13 @@ export function InvoiceActions({ quoteId, remaining }: { quoteId: string; remain
         <Button tone="secondary" disabled={pending} onClick={() => run(() => issueBalance(quoteId, {}))}>
           Facture de solde
         </Button>
+
+        {/* `ButtonLink`, pas `Button` : le HTML distingue agir et naviguer. */}
+        {canIssueSituation && (
+          <ButtonLink href={`/devis/${quoteId}/situation`} tone="secondary">
+            Nouvelle situation
+          </ButtonLink>
+        )}
       </div>
 
       {state.error && (
