@@ -45,6 +45,13 @@ const DS_DIR = 'src/ui/'
  * `CopyField` n'ont qu'un seul ecran lecteur et restent aupres de lui, comme
  * `SituationForm` ou `BusyNotice`.
  *
+ * Deux entrees pour l'accueil (spec « accueil artisan » §9) :
+ *
+ * - `TaskRow` — une ligne echeance / objet / geste. `RailItem` porte une suite
+ *   chronologique et n'a ni colonne d'action ni colonne de montant.
+ * - `MoneyFlow` — la barre segmentee de l'argent en cours. Ni `DataTable`
+ *   (aucune comparaison) ni `SummaryLine` (aucun total a additionner).
+ *
  * Toute autre addition doit passer par la spec avant d'arriver ici.
  */
 const INVENTORY = {
@@ -57,7 +64,7 @@ const INVENTORY = {
     'Field', 'Card', 'StatusBadge', 'SealBadge', 'LogoLockup', 'EmptyState',
     'Toast', 'Tooltip', 'ButtonGroup', 'SummaryLine', 'Dialog', 'ThemeToggle',
     'SectionHeader', 'StepCard', 'Reveal', 'Stagger', 'RevealTick',
-    'Notice', 'PageHeader', 'Rail', 'RailItem',
+    'Notice', 'PageHeader', 'Rail', 'RailItem', 'TaskRow',
     // La navigation doit connaitre la page courante, et un composant serveur ne
     // peut pas lire l'URL. L'isoler garde `AppHeader` cote serveur au lieu d'y
     // verser `Lockup` et `Text` pour un seul `usePathname()`. Molecule et non
