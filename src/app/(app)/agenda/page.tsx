@@ -69,7 +69,7 @@ export default async function AgendaPage({
   ])
 
   return (
-    <AppShell>
+    <AppShell access={session}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <Heading level={1}>Agenda</Heading>

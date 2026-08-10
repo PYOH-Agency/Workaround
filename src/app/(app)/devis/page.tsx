@@ -40,7 +40,7 @@ export default async function QuotesPage() {
     .orderBy(desc(quote.createdAt))
 
   return (
-    <AppShell companyName={myCompany.legalName}>
+    <AppShell access={session} companyName={myCompany.legalName}>
       <div className="flex flex-col gap-1">
         <Heading level={1}>{myCompany.legalName}</Heading>
         <Text size="sm" tone="muted">

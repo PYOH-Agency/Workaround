@@ -28,7 +28,7 @@ export default async function LegalMentionsPage() {
   const [current] = await db.select().from(company).where(eq(company.id, session.companyId))
 
   return (
-    <AppShell companyName={current.legalName}>
+    <AppShell access={session} companyName={current.legalName}>
       {/* Un formulaire long reste lisible en colonne etroite, meme sous un gabarit large. */}
       <div className="flex w-full max-w-xl flex-col gap-8">
         <div className="flex flex-col gap-2">

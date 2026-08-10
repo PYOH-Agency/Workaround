@@ -14,8 +14,9 @@ import { VisitForm } from './VisitForm'
  * precede le devis. Le formulaire cree donc les deux.
  */
 export default async function NewVisitPage() {
+  let session
   try {
-    await currentCompany()
+    session = await currentCompany()
   } catch (e) {
     if (e instanceof SessionError) {
       redirect(e.message.includes('Aucune entreprise') ? '/inscription' : '/connexion')
@@ -24,7 +25,7 @@ export default async function NewVisitPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell access={session}>
       <div className="flex flex-col gap-1">
         <Heading level={1}>Prendre un rendez-vous</Heading>
         <Text size="sm" tone="soft">

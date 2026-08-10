@@ -12,9 +12,20 @@
  * figure pas dans sa table.
  */
 
+import { can, type Access, type Capability } from '@/domain/authorization'
+
 export interface NavEntry {
   href: string
   label: string
+  /**
+   * Ce que l'entree exige, s'il y a lieu.
+   *
+   * **La navigation lit la MEME table que la garde.** Une seconde liste — « ce
+   * qu'on affiche » a cote de « ce qu'on autorise » — divergerait en trois
+   * jalons, et l'ecran finirait par proposer ce que le serveur refuse. Un lien
+   * qui mene a un refus est pire que pas de lien.
+   */
+  capability?: Capability
 }
 
 export interface NavGroup {
@@ -38,18 +49,38 @@ export const navGroups: NavGroup[] = [
     label: 'Suivi quotidien',
     entries: [
       { href: '/devis', label: 'Devis' },
-      { href: '/factures', label: 'Factures' },
+      { href: '/factures', label: 'Factures', capability: 'invoice.issue' },
       { href: '/agenda', label: 'Agenda' },
     ],
   },
   {
     label: 'Mon entreprise',
     entries: [
-      { href: '/mon-passeport', label: 'Passeport' },
-      { href: '/verification', label: 'Vérification' },
+      { href: '/mon-passeport', label: 'Passeport', capability: 'passport.manage' },
+      { href: '/verification', label: 'Vérification', capability: 'legal.write' },
+      { href: '/equipe', label: 'Équipe', capability: 'team.manage' },
     ],
   },
 ]
+
+/**
+ * Les groupes que cette personne-la peut voir.
+ *
+ * Un groupe dont toutes les entrees tombent disparait : une etiquette de
+ * groupe annoncee sur une liste vide est un bruit pour le lecteur d'ecran.
+ *
+ * Sans `access` — le backoffice, ou toute page qui ne le transmet pas —, seules
+ * les entrees sans exigence subsistent. C'est volontairement le repli le plus
+ * pauvre : mieux vaut un lien manquant qu'un lien qui refuse.
+ */
+export function visibleGroups(access: Access | undefined): NavGroup[] {
+  return navGroups
+    .map((group) => ({
+      ...group,
+      entries: group.entries.filter((entry) => !entry.capability || can(access, entry.capability)),
+    }))
+    .filter((group) => group.entries.length > 0)
+}
 
 /**
  * Le backoffice partage `AppShell` avec l'artisan, donc son en-tete.
@@ -59,7 +90,7 @@ export const navGroups: NavGroup[] = [
  * inscrit pas. Une route d'artisan nouvelle est un evenement bien plus
  * frequent, et c'est elle qu'on protege de l'oubli.
  */
-const BACKOFFICE = ['/supervision', '/attestations']
+const BACKOFFICE = ['/supervision', '/attestations', '/entreprises']
 
 /**
  * Une entree est courante si elle est la page, ou l'un de ses sous-chemins.

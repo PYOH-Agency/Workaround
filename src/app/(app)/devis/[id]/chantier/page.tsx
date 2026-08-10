@@ -39,7 +39,7 @@ export default async function ChantierFollowUpPage({
   const photoUrls = await signedPhotoUrls(file.timeline.flatMap((e) => e.photoPaths ?? []))
 
   return (
-    <AppShell>
+    <AppShell access={session}>
       <div className="flex flex-col gap-1">
         <Heading level={1}>Ce que voit votre client</Heading>
         <Text size="sm" tone="soft">

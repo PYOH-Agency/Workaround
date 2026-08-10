@@ -40,7 +40,7 @@ export default async function InvoicesPage() {
   const now = new Date()
 
   return (
-    <AppShell>
+    <AppShell access={session}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Heading level={1}>Vos factures</Heading>
         <Link href="/devis" tone="bare">

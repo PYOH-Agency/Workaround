@@ -25,7 +25,7 @@ export default async function NewQuotePage() {
   if (!hasLegalMentions(current)) redirect('/mentions')
 
   return (
-    <AppShell companyName={current.legalName}>
+    <AppShell access={session} companyName={current.legalName}>
       <NewQuoteForm validityDays={current.quoteValidityDays ?? 90} />
     </AppShell>
   )

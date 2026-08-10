@@ -70,7 +70,7 @@ export default async function PassportPage() {
       : null
 
   return (
-    <AppShell>
+    <AppShell access={session}>
       <div className="flex flex-col gap-2">
         <Heading level={1}>Votre passeport</Heading>
         <Card elevation="flat">

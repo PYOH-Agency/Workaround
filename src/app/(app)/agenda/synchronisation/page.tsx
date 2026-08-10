@@ -54,7 +54,7 @@ export default async function SyncPage({
   const feedUrl = `${process.env.NEXT_PUBLIC_APP_URL}/abonnement/${token}/dequerre.ics`
 
   return (
-    <AppShell>
+    <AppShell access={session}>
       <div className="flex flex-col gap-1">
         <Heading level={1}>Synchronisation</Heading>
         <Text size="sm" tone="soft">

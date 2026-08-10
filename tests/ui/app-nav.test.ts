@@ -1,12 +1,27 @@
 import { describe, expect, it } from 'vitest'
-import { isCurrent, navGroups, showsNav } from '@/ui/molecules/app-nav-routes'
+import type { Access } from '@/domain/authorization'
+import { isCurrent, navGroups, showsNav, visibleGroups } from '@/ui/molecules/app-nav-routes'
 
 /** Tous les liens de la barre, dans l'ordre d'affichage. */
 const hrefs = navGroups.flatMap((group) => group.entries.map((entry) => entry.href))
 
+const linksFor = (access: Access | undefined) =>
+  visibleGroups(access).flatMap((group) => group.entries.map((entry) => entry.href))
+
+const PATRON: Access = { plan: 'free', role: 'owner' }
+const PATRON_PRO: Access = { plan: 'pro', role: 'owner' }
+const COMPAGNON: Access = { plan: 'free', role: 'member' }
+
 describe('les entrées de la navigation', () => {
-  it('couvre les cinq écrans de l’artisan', () => {
-    expect(hrefs).toEqual(['/devis', '/factures', '/agenda', '/mon-passeport', '/verification'])
+  it('couvre les six écrans de l’artisan', () => {
+    expect(hrefs).toEqual([
+      '/devis',
+      '/factures',
+      '/agenda',
+      '/mon-passeport',
+      '/verification',
+      '/equipe',
+    ])
   })
 
   it('ne pose aucun préfixe qui en recouvre un autre', () => {
@@ -43,6 +58,38 @@ describe('la page courante', () => {
   })
 })
 
+describe('ce que la navigation propose', () => {
+  it('donne au patron tout sauf ce qu’il n’a pas payé', () => {
+    expect(linksFor(PATRON)).toEqual([
+      '/devis',
+      '/factures',
+      '/agenda',
+      '/mon-passeport',
+      '/verification',
+    ])
+  })
+
+  it('ouvre l’équipe une fois l’entreprise en Pro', () => {
+    expect(linksFor(PATRON_PRO)).toContain('/equipe')
+  })
+
+  it('ne propose au compagnon RIEN qui le refuserait', () => {
+    // La regle du jalon : un lien qui mene a un refus est pire que pas de lien.
+    expect(linksFor(COMPAGNON)).toEqual(['/devis', '/agenda'])
+  })
+
+  it('efface le groupe dont toutes les entrées tombent', () => {
+    // Une etiquette de groupe annoncee sur une liste vide est un bruit pour le
+    // lecteur d'ecran.
+    expect(visibleGroups(COMPAGNON).map((group) => group.label)).toEqual(['Suivi quotidien'])
+  })
+
+  it('se replie au plus pauvre sans accès connu', () => {
+    // Le backoffice partage cet en-tete et n'a aucune appartenance artisanale.
+    expect(linksFor(undefined)).toEqual(['/devis', '/agenda'])
+  })
+})
+
 describe('les écrans qui portent la navigation', () => {
   it('la portent sur les écrans de l’artisan', () => {
     expect(showsNav('/devis')).toBe(true)
@@ -53,5 +100,6 @@ describe('les écrans qui portent la navigation', () => {
     expect(showsNav('/supervision')).toBe(false)
     expect(showsNav('/attestations')).toBe(false)
     expect(showsNav('/attestations/8f2a')).toBe(false)
+    expect(showsNav('/entreprises')).toBe(false)
   })
 })

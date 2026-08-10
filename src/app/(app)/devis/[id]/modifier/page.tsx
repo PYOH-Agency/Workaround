@@ -35,7 +35,7 @@ export default async function EditQuotePage({ params }: { params: Promise<{ id: 
     .orderBy(asc(quoteLine.position))
 
   return (
-    <AppShell>
+    <AppShell access={session}>
       <EditQuoteForm
         quoteId={found.id}
         number={found.number}

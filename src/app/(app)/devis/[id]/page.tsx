@@ -78,7 +78,7 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
   const declarable = detail.reference !== null && completedAt === null
 
   return (
-    <AppShell>
+    <AppShell access={session}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <Heading level={1}>Devis {quote.number}</Heading>

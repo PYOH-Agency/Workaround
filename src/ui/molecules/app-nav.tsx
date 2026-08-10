@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Text } from '@/ui/atoms/text'
 import { cn } from '@/ui/cn'
-import { isCurrent, navGroups, showsNav } from './app-nav-routes'
+import type { Access } from '@/domain/authorization'
+import { isCurrent, showsNav, visibleGroups } from './app-nav-routes'
 
 /**
  * La navigation de l'artisan.
@@ -29,16 +30,18 @@ import { isCurrent, navGroups, showsNav } from './app-nav-routes'
  * Passage a la ligne plutot qu'un menu : l'artisan est sur un chantier, une
  * main prise. Un menu cache exactement ce que ce composant existe pour montrer.
  */
-export function AppNav() {
+export function AppNav({ access }: { access?: Access }) {
   const pathname = usePathname()
   if (!showsNav(pathname)) return null
+
+  const groups = visibleGroups(access)
 
   return (
     <nav
       aria-label="Navigation principale"
       className="flex flex-wrap items-center gap-x-6 gap-y-1"
     >
-      {navGroups.map((group) => (
+      {groups.map((group) => (
         <ul
           key={group.label}
           aria-label={group.label}
