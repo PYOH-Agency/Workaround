@@ -96,9 +96,17 @@ for (const path of PAGES) {
 test('la verification d’un SIRET inconnu ne dit pas pourquoi', async ({ page }) => {
   await page.goto('/verifier')
 
-  // SIRET valide au sens de Luhn, absent de la base : la reponse doit etre la
-  // meme que pour une entreprise connue mais non publiee.
-  await page.getByLabel('SIRET de l’entreprise').fill('50769820700036')
+  /*
+    SIRET valide au sens de Luhn, absent de la base : la reponse doit etre la
+    meme que pour une entreprise connue mais non publiee.
+
+    Le SIREN 999 999 999 est choisi parce qu'il ne peut appartenir a personne.
+    Le test utilisait auparavant celui du seed, absent de la page publique
+    seulement parce qu'aucune attestation ne l'y publiait : le jour ou le seed
+    lui en a donne une, le test s'est mis a echouer sur une premisse devenue
+    fausse, sans que rien du produit n'ait bouge.
+  */
+  await page.getByLabel('SIRET de l’entreprise').fill('99999999900009')
   await page.getByRole('button', { name: 'Vérifier' }).click()
 
   await expect(
