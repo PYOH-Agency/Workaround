@@ -47,6 +47,28 @@ export interface RatedAmount {
   unitPriceExclTax: Cents
 }
 
+const formatRate = (rate: Rate) => `${(rate / 100).toFixed(1).replace('.', ',')} %`
+
+/**
+ * Des montants ventiles, transformes en lignes de facture.
+ *
+ * Un devis multi-taux produit une ligne par taux. Sans le taux dans le libelle,
+ * le client lit deux lignes identiques aux montants differents.
+ *
+ * Vit ici plutot que dans `src/actions/invoices.ts`, ou elle est nee : les
+ * situations en ont besoin aussi, et un service ne doit pas importer d'une
+ * action.
+ */
+export function ratedLines(lines: RatedAmount[], base: string) {
+  return lines.map((line) => ({
+    label: lines.length > 1 ? `${base} — base TVA ${formatRate(line.rate)}` : base,
+    unit: 'u',
+    quantity: '1',
+    unitPriceExclTax: line.unitPriceExclTax,
+    taxRate: line.rate,
+  }))
+}
+
 /**
  * Ventile un acompte ou une situation sur les taux de TVA du devis finance.
  *

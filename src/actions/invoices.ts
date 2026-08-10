@@ -6,7 +6,7 @@ import { db } from '@/db/client'
 import { invoice, quote } from '@/db/schema'
 import { requireCapability } from '@/lib/access'
 import { computeTotals } from '@/domain/quote-totals'
-import { remainingByRate, splitDepositByRate, type RatedAmount } from '@/domain/invoice-balance'
+import { ratedLines, remainingByRate, splitDepositByRate } from '@/domain/invoice-balance'
 import { issueInvoice, issuedAgainstQuote } from '@/services/invoices'
 
 /**
@@ -25,22 +25,6 @@ export interface InvoiceFormState {
    * enregistrements successifs produisent bien deux valeurs differentes.
    */
   saved?: number
-}
-
-const formatRate = (rate: number) => `${(rate / 100).toFixed(1).replace('.', ',')} %`
-
-/**
- * Un devis multi-taux produit une ligne de facture par taux. Sans le taux dans
- * le libelle, le client lit deux lignes identiques aux montants differents.
- */
-function labelled(lines: RatedAmount[], base: string) {
-  return lines.map((line) => ({
-    label: lines.length > 1 ? `${base} — base TVA ${formatRate(line.rate)}` : base,
-    unit: 'u',
-    quantity: '1',
-    unitPriceExclTax: line.unitPriceExclTax,
-    taxRate: line.rate,
-  }))
 }
 
 /** Charge le devis, ce qu'il a deja produit, et ses totaux. */
@@ -79,7 +63,7 @@ export async function issueDeposit(
       quoteId,
       type: 'deposit',
       dueInDays: 30,
-      lines: labelled(
+      lines: ratedLines(
         splitDepositByRate(totals.byRate, percent),
         `Acompte de ${percent} % sur devis ${source.number}`,
       ),
@@ -109,7 +93,7 @@ export async function issueProgress(
       quoteId,
       type: 'progress',
       dueInDays: 30,
-      lines: labelled(
+      lines: ratedLines(
         splitDepositByRate(totals.byRate, percent),
         `Situation de travaux — ${percent} % d’avancement`,
       ),
@@ -148,7 +132,7 @@ export async function issueBalance(
       quoteId,
       type: 'balance',
       dueInDays: 30,
-      lines: labelled(balance, 'Solde du devis'),
+      lines: ratedLines(balance, 'Solde du devis'),
     })
   } catch (e) {
     return { error: (e as Error).message }
