@@ -1,9 +1,10 @@
-import { and, eq, gte, isNull } from 'drizzle-orm'
+import { and, eq, gte } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { invoice, payment, quote } from '@/db/schema'
 import type { Cents } from '@/domain/money'
 import { remainingToInvoice } from '@/domain/invoice-balance'
 import { amountDueNow, paymentStatus, type Settlement } from '@/domain/payment-status'
+import { referenceVersion, type QuoteVersion } from '@/domain/quote-versions'
 import { retentionState } from '@/domain/retention'
 
 /**
@@ -53,27 +54,72 @@ async function settlements(companyId: string) {
   return { rows, paid }
 }
 
-export async function moneyInFlight(companyId: string, now: Date): Promise<MoneyInFlight> {
-  const signed = await db
-    .select({ id: quote.id, totalInclTax: quote.totalInclTax })
+/**
+ * Les devis d'une entreprise, ranges par chaine de versions.
+ *
+ * En memoire et non par requete : `rootQuoteId` remonte la chaine d'un devis a
+ * coups d'aller-retour, ce qui convient a une action mais pas a un ecran qui
+ * les traite tous.
+ */
+async function quoteChains(companyId: string): Promise<Map<string, QuoteVersion[]>> {
+  const rows = await db
+    .select({
+      id: quote.id,
+      version: quote.version,
+      status: quote.status,
+      totalInclTax: quote.totalInclTax,
+      signedAt: quote.signedAt,
+      supersedesQuoteId: quote.supersedesQuoteId,
+    })
     .from(quote)
-    .where(
-      and(
-        eq(quote.companyId, companyId),
-        eq(quote.status, 'signed'),
-        // La racine seule : un avenant n'est pas une commande de plus.
-        isNull(quote.supersedesQuoteId),
-      ),
-    )
+    .where(eq(quote.companyId, companyId))
 
+  const supersedes = new Map(rows.map((row) => [row.id, row.supersedesQuoteId]))
+
+  /** La racine : c'est a elle que les factures restent attachees. */
+  const rootOf = (id: string): string => {
+    let current = id
+    // Borne identique a celle de `rootQuoteId` : une donnee corrompue ne doit
+    // pas faire tourner l'accueil en boucle.
+    for (let hop = 0; hop < 50 && supersedes.get(current); hop++) {
+      current = supersedes.get(current)!
+    }
+    return current
+  }
+
+  const chains = new Map<string, QuoteVersion[]>()
+  for (const row of rows) {
+    const root = rootOf(row.id)
+    chains.set(root, [...(chains.get(root) ?? []), row])
+  }
+
+  return chains
+}
+
+export async function moneyInFlight(companyId: string, now: Date): Promise<MoneyInFlight> {
+  const chains = await quoteChains(companyId)
   const { rows, paid } = await settlements(companyId)
 
   let signedNotInvoiced = 0
-  for (const root of signed) {
+  for (const versions of chains.values()) {
+    /**
+     * Le dernier avenant SIGNE fait foi.
+     *
+     * Un avenant remplace le total precedent, il ne s'y ajoute pas. Prendre la
+     * version d'origine — celle dont `supersedesQuoteId` est nul — sous-
+     * estimerait le carnet de commandes de tout ce qu'un avenant a ajoute ;
+     * les additionner le doublerait. `quote-detail.ts` fait deja ce calcul, et
+     * `initialTotal` n'existe que pour la metrique du passeport.
+     */
+    const engaged = referenceVersion(versions)?.totalInclTax
+    if (engaged === undefined) continue
+
+    const chain = new Set(versions.map((version) => version.id))
     const issued = rows
-      .filter((row) => row.quoteId === root.id)
+      .filter((row) => row.quoteId !== null && chain.has(row.quoteId))
       .map((row) => ({ type: row.type, totalInclTax: row.totalInclTax }))
-    signedNotInvoiced += Math.max(0, remainingToInvoice(root.totalInclTax, issued))
+
+    signedNotInvoiced += Math.max(0, remainingToInvoice(engaged, issued))
   }
 
   let invoicedOnTime = 0

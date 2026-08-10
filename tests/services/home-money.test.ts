@@ -137,4 +137,63 @@ describe('l argent en cours', () => {
 
     expect(money.cashedLast12Months).toBe(50_000)
   })
+
+  it('retient le dernier avenant signe, jamais le devis d origine', async () => {
+    // Un avenant REMPLACE le total precedent. L'additionner doublerait le
+    // chantier ; retenir l'origine sous-estimerait le carnet de commandes de
+    // tout ce que l'avenant a ajoute.
+    const root = await signedQuote(400_000)
+    await db.insert(quote).values({
+      id: randomUUID(),
+      companyId: COMPANY,
+      projectId: PROJECT,
+      number: 'D2026-9001',
+      version: 2,
+      supersedesQuoteId: root,
+      status: 'signed',
+      signedAt: new Date('2026-06-15T09:00:00Z'),
+      totalExclTax: 450_000,
+      totalTax: 0,
+      totalInclTax: 450_000,
+      publicToken: randomUUID(),
+    })
+
+    const money = await moneyInFlight(COMPANY, now)
+
+    // 500 000 des cas precedents, plus les 450 000 de l'avenant — et non les
+    // 400 000 de l'origine, ni les 850 000 des deux additionnes.
+    expect(money.signedNotInvoiced).toBe(950_000)
+  })
+
+  it('ne compte pas un avoir comme une creance', async () => {
+    // Un avoir diminue ce qui est du. Le compter parmi les factures gonflerait
+    // l'encours du montant qu'il annule.
+    const quoteId = await signedQuote(60_000)
+    await issuedInvoice({ quoteId, totalInclTax: 60_000, dueAt: new Date('2026-09-01T00:00:00Z') })
+
+    const credit = randomUUID()
+    await db.insert(invoice).values({
+      id: credit,
+      companyId: COMPANY,
+      projectId: PROJECT,
+      quoteId,
+      number: `A2026-${credit.slice(0, 4)}`,
+      type: 'credit_note',
+      dueAt: new Date('2026-09-01T00:00:00Z'),
+      totalExclTax: 60_000,
+      totalTax: 0,
+      totalInclTax: 60_000,
+      latePaymentRate: '10',
+      recoveryIndemnity: 4000,
+      retentionRate: 0,
+      operationType: 'services',
+      publicToken: randomUUID(),
+    })
+
+    const money = await moneyInFlight(COMPANY, now)
+
+    // 300 000 du deuxieme cas, plus les 60 000 de la facture. L'avoir n'y est
+    // pas : sans son exclusion, on lirait 420 000.
+    expect(money.invoicedOnTime).toBe(360_000)
+  })
 })
