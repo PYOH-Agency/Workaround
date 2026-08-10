@@ -8,10 +8,7 @@ import { currentCompany, SessionError } from '@/lib/session'
 import { quoteDetail } from '@/services/quote-detail'
 import { issuedAgainstQuote } from '@/services/invoices'
 import { previousProgress } from '@/services/situations'
-import { Heading } from '@/ui/atoms/heading'
-import { Icon } from '@/ui/atoms/icon'
-import { Link } from '@/ui/atoms/link'
-import { Text } from '@/ui/atoms/text'
+import { PageHeader } from '@/ui/molecules/page-header'
 import { AppShell } from '@/ui/shells/app-shell'
 import { SituationForm } from './SituationForm'
 
@@ -60,25 +57,13 @@ export default async function SituationPage({ params }: { params: Promise<{ id: 
 
   return (
     <AppShell access={session}>
-      <div className="flex w-full max-w-2xl flex-col gap-8">
-        <div className="flex flex-col gap-2">
-          <Heading level={1}>Situation de travaux</Heading>
-          <Text size="sm" tone="soft">
-            Devis {detail.quote.number} · {detail.quote.project.customer.name}
-          </Text>
-        </div>
+      <PageHeader
+        back={{ href: `/devis/${id}`, label: `Retour au devis ${detail.quote.number}` }}
+        title="Situation de travaux"
+        subtitle={`${detail.quote.project.customer.name} · avancement déclaré en cumulé depuis le début du chantier`}
+      />
 
-        <SituationForm quoteId={detail.quote.id} rows={rows} issued={issued} />
-
-        <div className="mt-2">
-          <Link href={`/devis/${id}`} tone="bare">
-            <span className="inline-flex items-center gap-1.5 text-sm">
-              <Icon name="back" />
-              Retour au devis
-            </span>
-          </Link>
-        </div>
-      </div>
+      <SituationForm quoteId={detail.quote.id} rows={rows} issued={issued} />
     </AppShell>
   )
 }

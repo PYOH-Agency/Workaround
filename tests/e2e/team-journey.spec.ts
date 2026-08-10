@@ -36,6 +36,17 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
     // passe derriere la porte.
     await expect(patron.getByText(/reste gratuit, et le restera/)).toBeVisible()
     await expect(patron.getByLabel('E-mail')).toHaveCount(0)
+
+    /*
+      La seule surface payante du produit doit avoir une porte.
+
+      Elle a ete livree avec `action={null}` : « Ecrivez-nous », et rien a
+      cliquer. Un cul-de-sac sur cet ecran-la ne coute pas une friction, il
+      coute la vente — d'ou une assertion plutot qu'une relecture.
+    */
+    const enquiry = patron.getByRole('link', { name: 'Demander l’offre Pro' })
+    await expect(enquiry).toBeVisible()
+    expect(await enquiry.getAttribute('href')).toMatch(/^mailto:.+@.+\?subject=/)
   })
 
   await test.step('passée en Pro, l’entreprise peut inviter', async () => {

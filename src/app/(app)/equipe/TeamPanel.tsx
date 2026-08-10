@@ -8,23 +8,13 @@ import { Icon } from '@/ui/atoms/icon'
 import { Input } from '@/ui/atoms/input'
 import { Select } from '@/ui/atoms/select'
 import { Text } from '@/ui/atoms/text'
-import { Card } from '@/ui/molecules/card'
 import { Field } from '@/ui/molecules/field'
+import { Notice } from '@/ui/molecules/notice'
+import { DataTable } from '@/ui/organisms/data-table'
 import type { Team } from '@/services/team'
 import { invite, remove, revoke, type TeamState } from './actions'
 
 const initialState: TeamState = {}
-
-function Alert({ message }: { message: string }) {
-  return (
-    <div
-      role="alert"
-      className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
-    >
-      {message}
-    </div>
-  )
-}
 
 /**
  * Retirer un membre, annuler une invitation.
@@ -51,8 +41,28 @@ function RowAction({
           {pending ? pendingLabel : label}
         </Button>
       </form>
-      {state.error && <Alert message={state.error} />}
+      {state.error && (
+        <Notice tone="danger" alert>
+          {state.error}
+        </Notice>
+      )}
     </div>
+  )
+}
+
+/**
+ * Deux glyphes, et non deux fois le meme.
+ *
+ * Le ton reste `neutral` dans les deux cas : un role n'est pas un statut, et
+ * lui donner le vert de « verifie » ferait croire que le responsable est valide
+ * et le compagnon en attente. C'est le picto qui distingue — la cle ouvre, le
+ * marteau travaille.
+ */
+function RoleBadge({ role }: { role: string }) {
+  return (
+    <Badge tone="neutral" icon={<Icon name={role === 'owner' ? 'key' : 'hammer'} size="sm" />}>
+      {role === 'owner' ? 'Responsable' : 'Compagnon'}
+    </Badge>
   )
 }
 
@@ -76,7 +86,11 @@ function InviteForm() {
         </Field>
       </div>
 
-      {state.error && <Alert message={state.error} />}
+      {state.error && (
+        <Notice tone="danger" alert>
+          {state.error}
+        </Notice>
+      )}
 
       <div className="self-start">
         <Button type="submit" pending={pending}>
@@ -87,70 +101,90 @@ function InviteForm() {
   )
 }
 
+/**
+ * L'equipe en tableau.
+ *
+ * On y cherche une ligne parmi d'autres — qui est responsable, qui reste a
+ * retirer —, ce qui est une comparaison et non une suite. Quatre cartes
+ * empilees obligeaient a relire quatre blocs pour repondre.
+ */
 export function TeamPanel({ team, meMemberId }: { team: Team; meMemberId: string }) {
   return (
     <div className="flex flex-col gap-8">
       <InviteForm />
 
-      <div className="flex flex-col gap-3" data-testid="equipe">
-        {team.members.map((row) => (
-          <Card key={row.id} elevation="e1">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-col gap-1">
-                <Text as="span">{row.name ?? row.email}</Text>
-                {row.name && (
-                  <Text size="sm" tone="muted" as="span">
-                    {row.email}
-                  </Text>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Badge tone="neutral" icon={<Icon name="check" size="sm" />}>
-                  {row.role === 'owner' ? 'Responsable' : 'Compagnon'}
-                </Badge>
-
-                {/* On ne se retire pas soi-meme : le geste existe, mais il se
-                    fait retirer par quelqu'un d'autre. */}
-                {row.id !== meMemberId && (
-                  <RowAction
-                    action={remove.bind(null, row.id)}
-                    label="Retirer"
-                    pendingLabel="Retrait…"
-                  />
-                )}
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+      <DataTable
+        testId="equipe"
+        caption="Les membres de votre équipe et leur rôle"
+        columns={[
+          { label: 'Membre' },
+          { label: 'Rôle' },
+          { label: 'Action', hideLabel: true, align: 'right' },
+        ]}
+        rows={team.members.map((row) => ({
+          id: row.id,
+          cells: [
+            <div key="who" className="flex flex-col gap-0.5">
+              <Text as="span">{row.name ?? row.email}</Text>
+              {row.name && (
+                <Text size="sm" tone="muted" as="span">
+                  {row.email}
+                </Text>
+              )}
+            </div>,
+            <RoleBadge key="role" role={row.role} />,
+            // On ne se retire pas soi-meme : le geste existe, mais il se fait
+            // retirer par quelqu'un d'autre.
+            row.id === meMemberId ? (
+              <Text key="do" size="sm" tone="muted" as="span">
+                Vous
+              </Text>
+            ) : (
+              <RowAction
+                key="do"
+                action={remove.bind(null, row.id)}
+                label="Retirer"
+                pendingLabel="Retrait…"
+              />
+            ),
+          ],
+        }))}
+      />
 
       {team.invitations.length > 0 && (
-        <div className="flex flex-col gap-3" data-testid="invitations">
+        <section className="flex flex-col gap-3">
           <Text size="label" tone="muted" as="h2">
             Invitations en attente
           </Text>
 
-          {team.invitations.map((row) => (
-            <Card key={row.id} elevation="e1">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-col gap-1">
+          <DataTable
+            testId="invitations"
+            caption="Les invitations envoyées et pas encore acceptées"
+            columns={[
+              { label: 'Adresse invitée' },
+              { label: 'Rôle proposé' },
+              { label: 'Action', hideLabel: true, align: 'right' },
+            ]}
+            rows={team.invitations.map((row) => ({
+              id: row.id,
+              cells: [
+                <div key="who" className="flex flex-col gap-0.5">
                   <Text as="span">{row.email}</Text>
                   <Text size="sm" tone="muted" as="span">
-                    Invité le <DateText value={row.invitedAt} /> comme{' '}
-                    {row.role === 'owner' ? 'responsable' : 'compagnon'}
+                    Invité le <DateText value={row.invitedAt} />
                   </Text>
-                </div>
-
+                </div>,
+                <RoleBadge key="role" role={row.role} />,
                 <RowAction
+                  key="do"
                   action={revoke.bind(null, row.id)}
                   label="Annuler l’invitation"
                   pendingLabel="Annulation…"
-                />
-              </div>
-            </Card>
-          ))}
-        </div>
+                />,
+              ],
+            }))}
+          />
+        </section>
       )}
     </div>
   )

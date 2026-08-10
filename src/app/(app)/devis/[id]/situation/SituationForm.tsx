@@ -7,9 +7,10 @@ import { situationByRate, type SituationLine } from '@/domain/situation'
 import { Button } from '@/ui/atoms/button'
 import { Input } from '@/ui/atoms/input'
 import { Text } from '@/ui/atoms/text'
-import { Card } from '@/ui/molecules/card'
 import { Field } from '@/ui/molecules/field'
+import { Notice } from '@/ui/molecules/notice'
 import { SummaryLine } from '@/ui/molecules/summary-line'
+import { ProgressGauge } from './ProgressGauge'
 import { submitSituation, type SituationState } from './actions'
 
 const initialState: SituationState = {}
@@ -29,6 +30,13 @@ export interface SituationRow {
  * `src/domain/situation.ts` est pur, sans I/O : ce composant l'importe tel
  * quel. Reecrire le calcul « juste pour l'apercu » finirait par annoncer 503,49
  * pour une facture de 503,50, et l'artisan cesserait de croire l'ecran.
+ *
+ * **Le dock est rendu ici et non par `AppShell aside`**, contrairement au suivi
+ * de chantier. La raison est technique et pas esthetique : le montant se
+ * recalcule a chaque frappe, donc le dock et les champs doivent partager un
+ * etat — or deux emplacements d'un gabarit sont deux sous-arbres frere, et
+ * aucun etat ne peut vivre entre eux sans remonter dans le gabarit lui-meme.
+ * La grille est donc dupliquee une fois, sciemment.
  */
 export function SituationForm({
   quoteId,
@@ -67,11 +75,11 @@ export function SituationForm({
   }, [rows, percents, issued])
 
   return (
-    <form action={action} className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3" data-testid="situation">
+    <form action={action} className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18.5rem]">
+      <div className="flex min-w-0 flex-col divide-y divide-rule" data-testid="situation">
         {rows.map((row) => (
-          <Card key={row.id} elevation="e1">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+          <div key={row.id} className="flex flex-col gap-3 py-4 first:pt-0">
+            <div className="flex flex-wrap items-end justify-between gap-x-5 gap-y-2">
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <Text as="span">{row.label}</Text>
                 <Text size="sm" tone="muted" as="span">
@@ -79,7 +87,12 @@ export function SituationForm({
                 </Text>
               </div>
 
-              <div className="w-28">
+              {/* 9 rem : la largeur a laquelle « Avancement (%) » tient sur une
+                  ligne. En dessous, l'etiquette passait a deux lignes et
+                  remontait au-dessus du libelle de la ligne, qu'elle avait
+                  alors l'air de titrer. Le libelle est fige — un parcours le
+                  designe mot pour mot —, c'est donc la colonne qui cede. */}
+              <div className="w-36">
                 <Field label="Avancement (%)">
                   {(p) => (
                     <Input
@@ -95,46 +108,48 @@ export function SituationForm({
                 </Field>
               </div>
             </div>
-          </Card>
+
+            <ProgressGauge
+              totalExclTax={row.totalExclTax}
+              previousPercent={row.previousPercent}
+              percent={Number(percents[row.id]) || 0}
+            />
+          </div>
         ))}
       </div>
 
-      <div className="ml-auto w-full max-w-xs">
-        <SummaryLine
-          label="Cette situation facturera"
-          cents={preview}
-          emphasis="total"
-          testId="montant-situation"
-        />
-      </div>
+      <aside className="flex flex-col gap-4 lg:sticky lg:top-8">
+        <div className="flex flex-col gap-4 rounded-card border border-rule bg-card p-5 shadow-e2 dark:shadow-none">
+          <SummaryLine
+            label="Cette situation facturera"
+            cents={preview}
+            emphasis="total"
+            testId="montant-situation"
+          />
 
-      <Text size="sm" tone="muted">
-        L’avancement se déclare en <strong>cumulé</strong> : 60 % veut dire « 60 % de cette ligne
-        est fait depuis le début », pas « 60 % de plus ». Le montant ci-dessus est la différence
-        avec ce qui a déjà été facturé, acompte compris.
-      </Text>
+          <Button type="submit" pending={pending} disabled={preview <= 0}>
+            {pending ? 'Émission…' : 'Établir la situation'}
+          </Button>
 
-      {state.error && (
-        <div
-          role="alert"
-          className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
-        >
-          {state.error}
+          {preview <= 0 && (
+            <Text size="sm" tone="muted">
+              Cette situation ne facturerait rien de plus que la précédente. Un recul se corrige
+              par un avoir, pas par une situation.
+            </Text>
+          )}
+
+          <Text size="sm" tone="muted">
+            L’avancement se déclare en <strong>cumulé</strong> : la part terre cuite est ce que
+            cette situation ajoute, et le montant ci-dessus en est la somme, acompte compris.
+          </Text>
         </div>
-      )}
 
-      <div className="self-start">
-        <Button type="submit" pending={pending} disabled={preview <= 0}>
-          {pending ? 'Émission…' : 'Établir la situation'}
-        </Button>
-      </div>
-
-      {preview <= 0 && (
-        <Text size="sm" tone="muted">
-          Cette situation ne facturerait rien de plus que la précédente. Un recul se corrige par un
-          avoir, pas par une situation.
-        </Text>
-      )}
+        {state.error && (
+          <Notice tone="danger" alert>
+            {state.error}
+          </Notice>
+        )}
+      </aside>
     </form>
   )
 }

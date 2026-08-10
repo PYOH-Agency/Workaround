@@ -70,6 +70,17 @@ test('de la prise de rendez-vous à la semaine', async ({ page }) => {
     await expect(page.getByTestId('agenda')).not.toContainText('Madame Rey')
     // Sept jours, meme vides : sauter les jours creux ferait sauter le lecteur.
     await expect(page.getByTestId('agenda').locator('> li')).toHaveCount(7)
+
+    /*
+      Et la bande de semaine en compte sept aussi.
+
+      Elle repond a la seule question que pose un agenda — ou est le trou — et
+      la garder synchrone avec la liste est exactement ce qui se casse en
+      silence : deux rendus du meme jeu de jours, dont un seul est relu.
+    */
+    const strip = page.getByRole('navigation', { name: 'Les jours de la semaine' })
+    await expect(strip.locator('li')).toHaveCount(7)
+    await expect(strip.getByRole('link', { name: /rien de prévu/ })).toHaveCount(7)
   })
 
   await test.step('il prend une seconde visite, pour demain', async () => {

@@ -5,11 +5,12 @@ import { agendaFeedToken } from '@/services/agenda-feed'
 import { linkedCalendars } from '@/services/calendar-links'
 import { PROVIDERS } from '@/services/calendar-registry'
 import { Heading } from '@/ui/atoms/heading'
-import { Icon } from '@/ui/atoms/icon'
-import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
+import { Notice } from '@/ui/molecules/notice'
+import { PageHeader } from '@/ui/molecules/page-header'
 import { AppShell } from '@/ui/shells/app-shell'
+import { CopyField } from './CopyField'
 import { LinkButton, RegenerateButton, UnlinkButton } from './SyncButtons'
 
 const MESSAGES: Record<string, string> = {
@@ -55,20 +56,16 @@ export default async function SyncPage({
 
   return (
     <AppShell access={session}>
-      <div className="flex flex-col gap-1">
-        <Heading level={1}>Synchronisation</Heading>
-        <Text size="sm" tone="soft">
-          Vos rendez-vous dans l’agenda que vous consultez déjà.
-        </Text>
-      </div>
+      <PageHeader
+        back={{ href: '/agenda', label: 'Retour à l’agenda' }}
+        title="Synchronisation"
+        subtitle="Vos rendez-vous dans l’agenda que vous consultez déjà."
+      />
 
       {erreur && (
-        <div
-          role="alert"
-          className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
-        >
+        <Notice tone="danger" alert>
           {MESSAGES[erreur] ?? 'Quelque chose n’a pas fonctionné.'}
-        </div>
+        </Notice>
       )}
 
       <Card elevation="e1">
@@ -81,27 +78,26 @@ export default async function SyncPage({
             apparaîtront, et se mettront à jour tout seuls.
           </Text>
 
-          <Text size="sm" as="span">
-            <code
-              className="break-all rounded-control bg-raised px-2 py-1 text-sm"
-              data-testid="abonnement"
-            >
-              {feedUrl}
-            </code>
-          </Text>
+          <CopyField value={feedUrl} label="Copier l’adresse" />
 
           {/*
             Le jeton EST l'autorisation : il n'y a pas de session derriere une
             adresse collee dans Google. L'artisan doit savoir ce qu'il deplace.
+
+            En `Notice` laiton et non en texte efface : c'est une mise en garde,
+            et le ton `muted` la rendait moins visible que la phrase d'aide qui
+            la precede. Sans `alert` — elle est permanente, pas survenue.
           */}
-          <Text size="sm" tone="muted">
+          <Notice tone="warning">
             Cette adresse donne accès à vos rendez-vous : nom du client, adresse et téléphone. La
             coller dans Google ou Apple, c’est leur confier ces informations.{' '}
             <strong>Toute personne qui l’obtient voit votre agenda</strong> — régénérez-la si vous
             l’avez partagée par erreur.
-          </Text>
+          </Notice>
 
-          <RegenerateButton />
+          <div className="self-start">
+            <RegenerateButton />
+          </div>
         </div>
       </Card>
 
@@ -156,14 +152,6 @@ export default async function SyncPage({
         </div>
       </Card>
 
-      <div className="mt-2">
-        <Link href="/agenda" tone="bare">
-          <span className="inline-flex items-center gap-1.5 text-sm">
-            <Icon name="back" />
-            Retour à l’agenda
-          </span>
-        </Link>
-      </div>
     </AppShell>
   )
 }

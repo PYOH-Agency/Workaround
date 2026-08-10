@@ -3,10 +3,8 @@ import { currentCompany, SessionError } from '@/lib/session'
 import { companyChantierFile } from '@/services/chantier-file'
 import { signedPhotoUrls } from '@/services/chantier-posts'
 import { Heading } from '@/ui/atoms/heading'
-import { Icon } from '@/ui/atoms/icon'
-import { Link } from '@/ui/atoms/link'
-import { Text } from '@/ui/atoms/text'
-import { Card } from '@/ui/molecules/card'
+import { Notice } from '@/ui/molecules/notice'
+import { PageHeader } from '@/ui/molecules/page-header'
 import { AppShell } from '@/ui/shells/app-shell'
 import { ChantierTimeline } from '@/ui/organisms/chantier-timeline'
 import { PostForm } from './PostForm'
@@ -40,43 +38,45 @@ export default async function ChantierFollowUpPage({
 
   return (
     <AppShell access={session}>
-      <div className="flex flex-col gap-1">
-        <Heading level={1}>Ce que voit votre client</Heading>
-        <Text size="sm" tone="soft">
-          Devis {file.number}
-          {file.committedLeadTimeDays !== null &&
-            ` · délai engagé : ${file.committedLeadTimeDays} jours ouvrés`}
-        </Text>
-      </div>
+      <PageHeader
+        back={{ href: `/devis/${file.quoteId}`, label: `Retour au devis ${file.number}` }}
+        title="Ce que voit votre client"
+        subtitle={
+          file.committedLeadTimeDays !== null
+            ? `Délai engagé : ${file.committedLeadTimeDays} jours ouvrés`
+            : undefined
+        }
+      />
 
-      <PostForm quoteId={file.quoteId} />
+      {/*
+        La reception declaree remonte avant le fil : c'est un fait qui change ce
+        qu'on publie ensuite — on ne poste pas la meme chose sur un chantier que
+        le client considere comme receptionne.
+      */}
+      {file.receivedAt && (
+        <Notice tone="verified">
+          Votre client a déclaré la réception des travaux au{' '}
+          <strong>{file.receivedAt.toLocaleDateString('fr-FR')}</strong>. C’est sa déclaration, pas
+          un constat de notre part — mais elle vous est montrée parce qu’un fait partagé ne se
+          consigne pas en secret.
+        </Notice>
+      )}
 
       <section className="flex flex-col gap-3">
-        <Heading level={3} as="h2">
-          Le fil
-        </Heading>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Heading level={3} as="h2">
+            Le fil
+          </Heading>
+        </div>
         <ChantierTimeline entries={file.timeline} photoUrls={photoUrls} />
       </section>
 
-      {file.receivedAt && (
-        <Card elevation="flat">
-          <Text size="sm" tone="soft">
-            Votre client a déclaré la réception des travaux au{' '}
-            <strong>{file.receivedAt.toLocaleDateString('fr-FR')}</strong>. C’est sa déclaration,
-            pas un constat de notre part — mais elle vous est montrée parce qu’un fait partagé ne
-            se consigne pas en secret.
-          </Text>
-        </Card>
-      )}
-
-      <div className="mt-2">
-        <Link href={`/devis/${file.quoteId}`} tone="bare">
-          <span className="inline-flex items-center gap-1.5 text-sm">
-            <Icon name="back" />
-            Retour au devis
-          </span>
-        </Link>
-      </div>
+      {/*
+        Le formulaire passe SOUS le fil. Il occupait le haut de l'ecran alors
+        que le titre promet « ce que voit votre client » : on vient d'abord
+        relire la page telle qu'elle est lue, on publie ensuite.
+      */}
+      <PostForm quoteId={file.quoteId} />
     </AppShell>
   )
 }

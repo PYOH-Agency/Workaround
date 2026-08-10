@@ -5,11 +5,27 @@ import { company } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
 import { denial } from '@/domain/authorization'
 import { teamOf } from '@/services/team'
-import { Heading } from '@/ui/atoms/heading'
+import { ButtonLink } from '@/ui/atoms/button-link'
 import { Text } from '@/ui/atoms/text'
 import { EmptyState } from '@/ui/molecules/empty-state'
+import { PageHeader } from '@/ui/molecules/page-header'
 import { AppShell } from '@/ui/shells/app-shell'
 import { TeamPanel } from './TeamPanel'
+
+/**
+ * La demande d'offre Pro, adressee par courriel.
+ *
+ * Pas de formulaire : l'encaissement n'est pas automatise (le backoffice
+ * bascule le plan a la main), donc un formulaire promettrait une souscription
+ * qui n'existe pas. Un courriel dit la verite sur ce qui va se passer.
+ */
+function proEnquiry(legalName: string, siret: string): string {
+  const subject = encodeURIComponent('Offre Pro — activation')
+  const body = encodeURIComponent(
+    `Bonjour,\n\nNous souhaitons activer l’offre Pro.\n\n${legalName}\nSIRET ${siret}\n`,
+  )
+  return `mailto:bonjour@dequerre.fr?subject=${subject}&body=${body}`
+}
 
 /**
  * L'equipe.
@@ -49,12 +65,26 @@ export default async function TeamPage() {
   if (missing === 'plan') {
     return (
       <AppShell companyName={current.legalName} access={session}>
-        <Heading level={1}>Votre équipe</Heading>
+        <PageHeader title="Votre équipe" />
 
+        {/*
+          `action` n'est plus `null`, et c'est la correction la plus rentable de
+          l'ecran : c'est la SEULE surface payante du produit, et elle finissait
+          sur « Ecrivez-nous » sans rien a cliquer. Un vide sans porte de sortie
+          est un cul-de-sac — la regle qu'`EmptyState` enonce dans son propre
+          commentaire, et que cet ecran-la enfreignait.
+
+          `PRO_ENQUIRY` porte l'objet et le SIRET : la reponse arrive avec de
+          quoi identifier l'entreprise, sans un aller-retour de plus.
+        */}
         <EmptyState
           title="L’équipe fait partie de l’offre Pro"
-          description="Invitez vos compagnons : ils tiennent l’agenda et publient au fil de chantier, sans jamais toucher à la facturation. Écrivez-nous pour activer l’offre Pro."
-          action={null}
+          description="Invitez vos compagnons : ils tiennent l’agenda et publient au fil de chantier, sans jamais toucher à la facturation."
+          action={
+            <ButtonLink href={proEnquiry(current.legalName, current.siret)} tone="conversion">
+              Demander l’offre Pro
+            </ButtonLink>
+          }
         />
 
         <Text size="sm" tone="muted">
@@ -72,17 +102,17 @@ export default async function TeamPage() {
 
   return (
     <AppShell companyName={current.legalName} access={session}>
-      <div className="flex w-full max-w-xl flex-col gap-8">
-        <div className="flex flex-col gap-2">
-          <Heading level={1}>Votre équipe</Heading>
-          <Text size="sm" tone="soft">
-            Un <strong>compagnon</strong> tient l’agenda, publie au fil de chantier et consulte
-            les devis. Il ne facture pas, n’encaisse pas et ne voit pas le passeport.
-          </Text>
-        </div>
+      <PageHeader
+        title="Votre équipe"
+        subtitle={
+          <>
+            Un <strong>compagnon</strong> tient l’agenda, publie au fil de chantier et consulte les
+            devis. Il ne facture pas, n’encaisse pas et ne voit pas le passeport.
+          </>
+        }
+      />
 
-        <TeamPanel team={team} meMemberId={me!.id} />
-      </div>
+      <TeamPanel team={team} meMemberId={me!.id} />
     </AppShell>
   )
 }

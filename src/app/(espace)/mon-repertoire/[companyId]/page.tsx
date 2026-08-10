@@ -2,10 +2,10 @@ import { notFound, redirect } from 'next/navigation'
 import { currentRequester, SessionError } from '@/lib/session'
 import { bookedCompany } from '@/services/address-book'
 import { Heading } from '@/ui/atoms/heading'
-import { Icon } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
+import { PageHeader } from '@/ui/molecules/page-header'
 import { SpaceShell } from '@/ui/shells/space-shell'
 import { ContactForm } from './ContactForm'
 
@@ -40,13 +40,11 @@ export default async function BookedCompanyPage({
 
   return (
     <SpaceShell>
-      <div className="flex flex-col gap-1">
-        <Heading level={1}>{sheet.name}</Heading>
-        <Text size="sm" tone="soft">
-          Dernière intervention : {sheet.lastChantier.label},{' '}
-          {sheet.lastChantier.at.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-        </Text>
-      </div>
+      <PageHeader
+        back={{ href: '/mon-repertoire', label: 'Retour au répertoire' }}
+        title={sheet.name}
+        subtitle={`Dernière intervention : ${sheet.lastChantier.label}, ${sheet.lastChantier.at.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`}
+      />
 
       <Card elevation="e1">
         <div className="flex flex-col gap-2" data-testid="verification">
@@ -64,7 +62,17 @@ export default async function BookedCompanyPage({
             </Text>
           )}
 
-          {sheet.phone && <Text size="sm">Téléphone : {sheet.phone}</Text>}
+          {/*
+            Le numero se compose, il ne se recopie pas. Sur la page qui
+            s'appelle « Recontacter », le laisser en texte obligeait a le
+            selectionner a la main pour l'appeler — et c'est souvent depuis un
+            telephone que cette page se lit.
+          */}
+          {sheet.phone && (
+            <Text size="sm" as="span">
+              Téléphone : <Link href={`tel:${sheet.phone}`}>{sheet.phone}</Link>
+            </Text>
+          )}
 
           {passportPath && (
             <Link href={passportPath} newTab>
@@ -80,15 +88,6 @@ export default async function BookedCompanyPage({
         </Heading>
         <ContactForm companyId={companyId} companyName={sheet.name} />
       </section>
-
-      <div className="mt-2">
-        <Link href="/mon-repertoire" tone="bare">
-          <span className="inline-flex items-center gap-1.5 text-sm">
-            <Icon name="back" />
-            Retour au répertoire
-          </span>
-        </Link>
-      </div>
     </SpaceShell>
   )
 }

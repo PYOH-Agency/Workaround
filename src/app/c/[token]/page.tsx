@@ -3,7 +3,6 @@ import { loadDisputeByToken } from '@/services/disputes'
 import { Heading } from '@/ui/atoms/heading'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
-import { Card } from '@/ui/molecules/card'
 import { PublicShell } from '@/ui/shells/public-shell'
 import { ArbitrationForm } from './ArbitrationForm'
 
@@ -33,72 +32,42 @@ export default async function ArbitrationPage({ params }: { params: Promise<{ to
         </Text>
       </div>
 
-      <Card elevation="flat">
-        <div className="flex flex-col gap-2">
-          <Text size="sm" tone="soft">
-            Vous avez signé ce devis. À ce titre, votre signature sert à mesurer si{' '}
-            {found.companyName} a tenu le délai qu’elle avait annoncé — c’est ce qui rend ce
-            chiffre vérifiable plutôt que déclaratif.
-          </Text>
-          <Text size="sm" tone="soft">
-            <strong>{found.companyName} conteste cette mesure</strong>, et vous êtes la seule
-            personne à savoir ce qui s’est passé.
-          </Text>
-          <Text size="sm" tone="muted">
-            <Link href="/confidentialite" newTab>
-              Comment vos données sont utilisées
-            </Link>
-          </Text>
-        </div>
-      </Card>
+      {/*
+        Trois cartes empilees separaient le client de sa question : il arrive
+        d'un courriel pour repondre a UNE chose, et la traversait sur deux
+        ecrans de telephone avant de la voir.
+
+        L'ordre, lui, ne change pas et ne peut pas changer : les faits precedent
+        le motif, et le motif precede la question — qui porte litteralement sur
+        « cette explication ». Ce sont les boites qui partent, pas la logique.
+      */}
+      <div className="flex flex-col gap-2">
+        <Text size="sm" tone="soft">
+          Vous avez signé ce devis. À ce titre, votre signature sert à mesurer si{' '}
+          {found.companyName} a tenu le délai qu’elle avait annoncé — c’est ce qui rend ce chiffre
+          vérifiable plutôt que déclaratif.
+        </Text>
+        <Text size="sm" tone="soft">
+          <strong>{found.companyName} conteste cette mesure</strong>, et vous êtes la seule
+          personne à savoir ce qui s’est passé.
+        </Text>
+      </div>
 
       {/* Les faits, sans commentaire : ils precedent le motif de l'entreprise. */}
-      <Card elevation="e1">
-        <dl className="flex flex-col gap-2">
-          <div className="flex flex-wrap justify-between gap-2">
-            <Text size="sm" tone="muted" as="dt">
-              Devis signé le
-            </Text>
-            <Text size="sm" as="dd">
-              {found.signedOn}
-            </Text>
-          </div>
-          <div className="flex flex-wrap justify-between gap-2">
-            <Text size="sm" tone="muted" as="dt">
-              Chantier terminé le
-            </Text>
-            <Text size="sm" as="dd">
-              {found.completedOn}
-            </Text>
-          </div>
-          <div className="flex flex-wrap justify-between gap-2">
-            <Text size="sm" tone="muted" as="dt">
-              Délai annoncé
-            </Text>
-            <Text size="sm" as="dd">
-              {found.committedLeadTimeDays} jours ouvrés
-            </Text>
-          </div>
-          <div className="flex flex-wrap justify-between gap-2">
-            <Text size="sm" tone="muted" as="dt">
-              Délai constaté
-            </Text>
-            <Text size="sm" as="dd">
-              {found.businessDaysUsed} jours ouvrés
-            </Text>
-          </div>
-        </dl>
-      </Card>
+      <dl className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
+        <Fact label="Devis signé le" value={found.signedOn} />
+        <Fact label="Chantier terminé le" value={found.completedOn} />
+        <Fact label="Délai annoncé" value={`${found.committedLeadTimeDays} jours ouvrés`} />
+        <Fact label="Délai constaté" value={`${found.businessDaysUsed} jours ouvrés`} />
+      </dl>
 
-      <Card elevation="flat">
-        <div className="flex flex-col gap-1" data-testid="motif">
-          {/* Sans le nom : « Ce que Entreprise explique » demanderait une elision. */}
-          <Text size="label" tone="muted">
-            L’explication de l’entreprise
-          </Text>
-          <Text size="sm">{found.reason}</Text>
-        </div>
-      </Card>
+      <div className="flex flex-col gap-1 border-l-2 border-rule pl-4" data-testid="motif">
+        {/* Sans le nom : « Ce que Entreprise explique » demanderait une elision. */}
+        <Text size="label" tone="muted">
+          L’explication de l’entreprise
+        </Text>
+        <Text size="sm">{found.reason}</Text>
+      </div>
 
       <section className="flex flex-col gap-4">
         {/*
@@ -123,6 +92,30 @@ export default async function ArbitrationPage({ params }: { params: Promise<{ to
           </div>
         )}
       </section>
+
+      {/*
+        La mention d'information descend sous la reponse : elle doit etre
+        atteignable, pas s'interposer entre le client et son geste.
+      */}
+      <Text size="sm" tone="muted">
+        <Link href="/confidentialite" newTab>
+          Comment vos données sont utilisées
+        </Link>
+      </Text>
     </PublicShell>
+  )
+}
+
+/** Un fait du dossier : l'intitule au-dessus, la valeur en dessous. */
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-0.5 border-b border-rule pb-2">
+      <Text size="label" tone="muted" as="dt">
+        {label}
+      </Text>
+      <Text size="sm" as="dd">
+        {value}
+      </Text>
+    </div>
   )
 }

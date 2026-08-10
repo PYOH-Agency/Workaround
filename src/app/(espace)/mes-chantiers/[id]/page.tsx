@@ -3,10 +3,8 @@ import { currentRequester, SessionError } from '@/lib/session'
 import { chantierFileFor } from '@/services/chantier-file'
 import { signedPhotoUrls } from '@/services/chantier-posts'
 import { Heading } from '@/ui/atoms/heading'
-import { Icon } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
-import { Text } from '@/ui/atoms/text'
-import { Card } from '@/ui/molecules/card'
+import { PageHeader } from '@/ui/molecules/page-header'
 import { SpaceShell } from '@/ui/shells/space-shell'
 import { ChantierTimeline } from '@/ui/organisms/chantier-timeline'
 import { Guarantees } from './Guarantees'
@@ -36,15 +34,44 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
   const photoUrls = await signedPhotoUrls(file.timeline.flatMap((e) => e.photoPaths ?? []))
 
   return (
-    <SpaceShell>
-      <div className="flex flex-col gap-1">
-        <Heading level={1}>Devis {file.number}</Heading>
-        <Text size="sm" tone="soft">
-          {file.companyName}
-          {file.committedLeadTimeDays !== null &&
-            ` · délai engagé : ${file.committedLeadTimeDays} jours ouvrés`}
-        </Text>
-      </div>
+    <SpaceShell
+      /*
+        Les documents se dockent, le reste non.
+
+        Le demandeur ouvre son chantier pour deux raisons : voir ou ca en est,
+        et retrouver une piece. Empiler la seconde sous la premiere l'obligeait
+        a traverser tout le fil pour atteindre son devis signe.
+
+        Les garanties restent dans la colonne : elles portent un texte juridique
+        et un formulaire de reception, et 16 rem ne sont pas une largeur de
+        lecture.
+      */
+      aside={
+        <section className="flex flex-col gap-3 rounded-card border border-rule bg-card p-5">
+          <Heading level={3} as="h2">
+            Vos documents
+          </Heading>
+          <ul className="flex flex-col gap-2" data-testid="documents">
+            {file.documents.map((document) => (
+              <li key={document.href}>
+                <Link href={document.href}>{document.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      }
+    >
+      <PageHeader
+        back={{ href: '/mes-logements', label: 'Retour à mes logements' }}
+        title={`Devis ${file.number}`}
+        subtitle={
+          <>
+            {file.companyName}
+            {file.committedLeadTimeDays !== null &&
+              ` · délai engagé : ${file.committedLeadTimeDays} jours ouvrés`}
+          </>
+        }
+      />
 
       <section className="flex flex-col gap-3">
         <Heading level={3} as="h2">
@@ -59,30 +86,6 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
         receivedAt={file.receivedAt}
         completed={file.completedAt !== null}
       />
-
-      <section className="flex flex-col gap-3">
-        <Heading level={3} as="h2">
-          Vos documents
-        </Heading>
-        <Card elevation="e1">
-          <ul className="flex flex-col gap-2" data-testid="documents">
-            {file.documents.map((document) => (
-              <li key={document.href}>
-                <Link href={document.href}>{document.label}</Link>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      </section>
-
-      <div className="mt-2">
-        <Link href="/mes-logements" tone="bare">
-          <span className="inline-flex items-center gap-1.5 text-sm">
-            <Icon name="back" />
-            Retour à mes logements
-          </span>
-        </Link>
-      </div>
     </SpaceShell>
   )
 }

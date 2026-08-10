@@ -4,12 +4,15 @@ import { db } from '@/db/client'
 import { member } from '@/db/schema'
 import { currentRequester, SessionError } from '@/lib/session'
 import { myProperties } from '@/services/my-properties'
+import { Badge } from '@/ui/atoms/badge'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
+import { Icon } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
-import { Card } from '@/ui/molecules/card'
 import { EmptyState } from '@/ui/molecules/empty-state'
+import { PageHeader } from '@/ui/molecules/page-header'
+import { Rail, RailItem } from '@/ui/molecules/rail'
 import { SpaceShell } from '@/ui/shells/space-shell'
 
 /**
@@ -40,12 +43,10 @@ export default async function MyPropertiesPage() {
 
   return (
     <SpaceShell alsoCompany={company !== undefined}>
-      <div className="flex flex-col gap-1">
-        <Heading level={1}>Mes logements</Heading>
-        <Text size="sm" tone="soft">
-          Les chantiers que vous avez signés, regroupés par adresse.
-        </Text>
-      </div>
+      <PageHeader
+        title="Mes logements"
+        subtitle="Les chantiers que vous avez signés, regroupés par adresse."
+      />
 
       {properties.length === 0 ? (
         <EmptyState
@@ -58,30 +59,48 @@ export default async function MyPropertiesPage() {
           }
         />
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-8">
           {properties.map((item) => (
-            <Card key={item.id} elevation="e1">
-              <div className="flex flex-col gap-3" data-testid={`logement-${item.id}`}>
-                <Heading level={3} as="h2">
-                  {item.address}
-                </Heading>
-                <ul className="flex flex-col gap-2">
-                  {item.chantiers.map((chantier) => (
-                    <li key={chantier.quoteId}>
-                      <Link href={`/mes-chantiers/${chantier.quoteId}`} tone="bare">
-                        <Text size="sm" tone="soft" as="span">
-                          <strong>{chantier.companyName}</strong> · devis {chantier.number} · signé
-                          le {chantier.signedAt.toLocaleDateString('fr-FR')}
-                          {chantier.completedAt
-                            ? ` · terminé le ${chantier.completedAt.toLocaleDateString('fr-FR')}`
-                            : ' · en cours'}
-                        </Text>
+            <section key={item.id} className="flex flex-col gap-2" data-testid={`logement-${item.id}`}>
+              <Heading level={3} as="h2">
+                {item.address}
+              </Heading>
+
+              {/*
+                Sur la regle et non en cartes : les chantiers d'une adresse sont
+                une suite, et l'etat de chacun se lit desormais en pastille
+                plutot qu'a la fin d'une phrase suivie — « en cours » y etait le
+                dernier mot d'une ligne de quatre informations.
+              */}
+              <Rail as="ul">
+                {item.chantiers.map((chantier) => (
+                  <RailItem key={chantier.quoteId} current={chantier.completedAt === null}>
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      {/* Souligne, et non `bare` : c'est la porte du dossier de
+                          chantier, et rien d'autre sur la ligne ne l'ouvre. */}
+                      <Link href={`/mes-chantiers/${chantier.quoteId}`}>
+                        <strong className="text-sm">{chantier.companyName}</strong>
                       </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Card>
+
+                      {chantier.completedAt ? (
+                        <Badge tone="neutral" icon={<Icon name="check" size="sm" />}>
+                          Terminé le {chantier.completedAt.toLocaleDateString('fr-FR')}
+                        </Badge>
+                      ) : (
+                        <Badge tone="warning" icon={<Icon name="clock" size="sm" />}>
+                          En cours
+                        </Badge>
+                      )}
+                    </div>
+
+                    <Text size="sm" tone="muted">
+                      Devis {chantier.number} · signé le{' '}
+                      {chantier.signedAt.toLocaleDateString('fr-FR')}
+                    </Text>
+                  </RailItem>
+                ))}
+              </Rail>
+            </section>
           ))}
         </div>
       )}
