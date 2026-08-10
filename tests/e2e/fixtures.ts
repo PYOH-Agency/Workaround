@@ -15,7 +15,12 @@ import { load, userIdFor } from './fixtures-db'
  * Le devis porte deux taux de TVA : un acompte sur devis mono-taux ne
  * revelerait jamais une erreur de ventilation.
  */
-export async function quoteFor(email: string, status: 'draft' | 'signed' = 'signed') {
+export async function quoteFor(
+  email: string,
+  status: 'draft' | 'signed' = 'signed',
+  /** La retenue de garantie stipulee au devis, en points de pourcentage. */
+  retentionRate = 0,
+) {
   const { db, schema } = await load()
   const { company, customer, member, project, property, quote, quoteLine } = schema
 
@@ -95,6 +100,7 @@ export async function quoteFor(email: string, status: 'draft' | 'signed' = 'sign
       number: 'D2026-0001',
       status,
       committedLeadTimeDays: 5,
+      retentionRate,
       totalExclTax: 91000,
       totalTax: 9700,
       totalInclTax: 100700,

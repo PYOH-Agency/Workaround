@@ -82,6 +82,19 @@ describe('etablir une situation', () => {
     ).rejects.toThrow(/rien de plus/)
   })
 
+  it('REFUSE une situation qui RECULE, et le dit clairement', async () => {
+    // Sans le filtre des deltas negatifs, l'erreur remonterait de
+    // `assertInvoiceable` sous la forme « le montant doit etre positif » — vrai,
+    // mais incomprehensible pour qui vient de saisir des pourcentages.
+    // Un recul se corrige par un avoir, pas par une situation.
+    const { companyId, quoteId, lines } = await chantier()
+    await issueSituation({ companyId, quoteId, progress: at(lines, 50, 50) })
+
+    await expect(
+      issueSituation({ companyId, quoteId, progress: at(lines, 30, 30) }),
+    ).rejects.toThrow(/rien de plus/)
+  })
+
   it('refuse un avancement au-dela de cent pour cent', async () => {
     const { companyId, quoteId, lines } = await chantier()
 

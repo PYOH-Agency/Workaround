@@ -54,6 +54,11 @@ async function referenceLines(
   quoteId: string,
   progress: DeclaredProgress[],
 ): Promise<{ root: string; lines: SituationLine[] }> {
+  // **Redondant avec la garde de `issueInvoice`, et gardé.** La verification par
+  // mutation l'a montre : retirer cette ligne laisse la suite verte, parce que
+  // `issueInvoice` refuse ensuite. Mais elle refuse APRES, et d'ici la les
+  // lignes de devis d'une autre entreprise auraient ete lues en memoire. Le
+  // perimetre se porte par la requete, au plus tot.
   const [owned] = await db
     .select({ id: quote.id })
     .from(quote)
