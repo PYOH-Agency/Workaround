@@ -4,11 +4,17 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Text } from '@/ui/atoms/text'
 import { cn } from '@/ui/cn'
-import type { Access } from '@/domain/authorization'
-import { isCurrent, showsNav, visibleGroups } from './app-nav-routes'
+import { isBackoffice, isCurrent, staffNavGroups, type NavGroup } from './app-nav-routes'
 
 /**
- * La navigation de l'artisan.
+ * La navigation d'un espace connecte — celui de l'artisan, celui du demandeur.
+ *
+ * Elle recoit ses entrees plutot qu'elle ne les deduit : c'est ce qui lui a
+ * permis de servir les deux publics sans qu'un second composant n'apparaisse.
+ * Ce qu'elle sait faire — marquer la page courante, tenir la cible tactile,
+ * passer a la ligne — ne depend pas de qui la regarde ; ce que chacun peut
+ * atteindre, si. L'appelant tranche donc la seconde question, et `AppHeader`
+ * reste le seul a connaitre la table des capacites.
  *
  * Cliente, et c'est sa raison d'etre : `AppHeader` est un composant serveur, et
  * un composant serveur ne peut pas lire l'URL. La sortir dans son propre
@@ -30,18 +36,28 @@ import { isCurrent, showsNav, visibleGroups } from './app-nav-routes'
  * Passage a la ligne plutot qu'un menu : l'artisan est sur un chantier, une
  * main prise. Un menu cache exactement ce que ce composant existe pour montrer.
  */
-export function AppNav({ access }: { access?: Access }) {
+export function AppNav({ groups }: { groups: NavGroup[] }) {
   const pathname = usePathname()
-  if (!showsNav(pathname)) return null
 
-  const groups = visibleGroups(access)
+  /*
+    Le backoffice partage `AppShell` avec l'artisan, donc son en-tete, et ne
+    peut pas se distinguer de lui cote serveur : ses ecrans n'ont aucune
+    appartenance artisanale a transmettre. C'est donc l'URL qui tranche, ici,
+    au seul endroit du produit qui la lit.
+
+    Substitution et non effacement : l'ancienne regle masquait la navigation
+    dans le backoffice, ce qui laissait le relecteur sans aucun moyen d'aller
+    d'un ecran a l'autre.
+  */
+  const shown = isBackoffice(pathname) ? staffNavGroups : groups
+  if (shown.length === 0) return null
 
   return (
     <nav
       aria-label="Navigation principale"
       className="flex flex-wrap items-center gap-x-6 gap-y-1"
     >
-      {groups.map((group) => (
+      {shown.map((group) => (
         <ul
           key={group.label}
           aria-label={group.label}

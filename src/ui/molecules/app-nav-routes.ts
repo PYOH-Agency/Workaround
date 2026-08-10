@@ -64,6 +64,31 @@ export const navGroups: NavGroup[] = [
 ]
 
 /**
+ * Les entrees de l'espace du demandeur.
+ *
+ * Deux, et un seul groupe : il n'y a pas de frequence d'usage a distinguer
+ * entre elles. Le dossier se consulte quand un chantier bouge, le repertoire
+ * quand un probleme arrive — les deux sont des destinations de premier rang.
+ *
+ * Aucune capacite : le demandeur n'en a pas. La table des capacites regit ce
+ * qu'une personne peut faire DANS une entreprise, et il n'appartient a aucune.
+ *
+ * `/verifier` n'y figure pas, bien qu'elle lui serve : c'est une page publique,
+ * et la meler aux deux ecrans de son dossier laisserait croire que ce qu'il y
+ * cherche est archive chez nous. Le lien vit dans le repertoire, a l'endroit ou
+ * la question se pose.
+ */
+export const spaceNavGroups: NavGroup[] = [
+  {
+    label: 'Mon dossier',
+    entries: [
+      { href: '/mes-logements', label: 'Mes logements' },
+      { href: '/mon-repertoire', label: 'Mon répertoire' },
+    ],
+  },
+]
+
+/**
  * Les groupes que cette personne-la peut voir.
  *
  * Un groupe dont toutes les entrees tombent disparait : une etiquette de
@@ -81,6 +106,28 @@ export function visibleGroups(access: Access | undefined): NavGroup[] {
     }))
     .filter((group) => group.entries.length > 0)
 }
+
+/**
+ * Les entrees du backoffice.
+ *
+ * Elles n'existaient pas : les trois ecrans internes ne se rejoignaient que par
+ * deux liens poses a la main dans l'en-tete de la supervision, et depuis la
+ * file des attestations on ne revenait nulle part. Le relecteur passe pourtant
+ * sa journee a faire l'aller-retour entre la file et la fiche d'une entreprise.
+ *
+ * Aucune capacite : `currentStaff` est une garde binaire — on est relecteur ou
+ * on ne l'est pas —, et elle ne connait pas les roles de l'artisan.
+ */
+export const staffNavGroups: NavGroup[] = [
+  {
+    label: 'Backoffice',
+    entries: [
+      { href: '/supervision', label: 'Supervision' },
+      { href: '/attestations', label: 'Attestations' },
+      { href: '/entreprises', label: 'Entreprises' },
+    ],
+  },
+]
 
 /**
  * Le backoffice partage `AppShell` avec l'artisan, donc son en-tete.
@@ -102,7 +149,18 @@ export function isCurrent(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-/** L'en-tete de l'artisan ne porte pas sa navigation dans le backoffice. */
-export function showsNav(pathname: string): boolean {
-  return !BACKOFFICE.some((prefix) => isCurrent(pathname, prefix))
+/**
+ * Vrai sur un ecran interne.
+ *
+ * S'appelait `showsNav`, et rendait alors « faut-il afficher la navigation de
+ * l'artisan ». Le backoffice ayant desormais la sienne, la question n'est plus
+ * d'afficher ou non mais **laquelle** — et un nom qui repond a l'ancienne
+ * question aurait menti sur la nouvelle.
+ *
+ * La garantie, elle, ne bouge pas : une route interne ajoutee plus tard
+ * n'heritera jamais de la navigation de l'artisan tant qu'on ne l'aura pas
+ * inscrite ici.
+ */
+export function isBackoffice(pathname: string): boolean {
+  return BACKOFFICE.some((prefix) => isCurrent(pathname, prefix))
 }

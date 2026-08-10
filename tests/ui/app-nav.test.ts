@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { Access } from '@/domain/authorization'
-import { isCurrent, navGroups, showsNav, visibleGroups } from '@/ui/molecules/app-nav-routes'
+import {
+  isBackoffice,
+  isCurrent,
+  navGroups,
+  spaceNavGroups,
+  staffNavGroups,
+  visibleGroups,
+} from '@/ui/molecules/app-nav-routes'
 
 /** Tous les liens de la barre, dans l'ordre d'affichage. */
 const hrefs = navGroups.flatMap((group) => group.entries.map((entry) => entry.href))
@@ -90,16 +97,58 @@ describe('ce que la navigation propose', () => {
   })
 })
 
-describe('les écrans qui portent la navigation', () => {
-  it('la portent sur les écrans de l’artisan', () => {
-    expect(showsNav('/devis')).toBe(true)
-    expect(showsNav('/mentions')).toBe(true)
+describe('la navigation du demandeur', () => {
+  const spaceHrefs = spaceNavGroups.flatMap((group) => group.entries.map((entry) => entry.href))
+
+  it('mène aux deux destinations de son dossier', () => {
+    expect(spaceHrefs).toEqual(['/mes-logements', '/mon-repertoire'])
   })
 
-  it('ne la portent pas dans le backoffice', () => {
-    expect(showsNav('/supervision')).toBe(false)
-    expect(showsNav('/attestations')).toBe(false)
-    expect(showsNav('/attestations/8f2a')).toBe(false)
-    expect(showsNav('/entreprises')).toBe(false)
+  it('n’exige aucune capacité', () => {
+    // Le demandeur n'appartient a aucune entreprise : une entree qui exigerait
+    // une capacite disparaitrait pour tout le monde, sans que rien le dise.
+    const entries = spaceNavGroups.flatMap((group) => group.entries)
+    expect(entries.filter((entry) => entry.capability)).toEqual([])
+  })
+
+  it('ne propose aucun écran de l’artisan', () => {
+    // Les deux tables vivent dans le meme fichier : une entree copiee d'un
+    // groupe a l'autre mènerait le demandeur droit sur un refus de session.
+    expect(spaceHrefs.filter((href) => hrefs.includes(href))).toEqual([])
+  })
+
+  it('ne pose aucun préfixe qui en recouvre un autre', () => {
+    for (const href of spaceHrefs) {
+      const others = spaceHrefs.filter((candidate) => candidate !== href)
+      expect(others.filter((candidate) => isCurrent(candidate, href))).toEqual([])
+    }
+  })
+})
+
+describe('la navigation du backoffice', () => {
+  const staffHrefs = staffNavGroups.flatMap((group) => group.entries.map((entry) => entry.href))
+
+  it('couvre les trois écrans internes', () => {
+    expect(staffHrefs).toEqual(['/supervision', '/attestations', '/entreprises'])
+  })
+
+  it('reconnaît un écran interne, et ses sous-chemins', () => {
+    expect(isBackoffice('/supervision')).toBe(true)
+    expect(isBackoffice('/attestations')).toBe(true)
+    expect(isBackoffice('/attestations/8f2a')).toBe(true)
+    expect(isBackoffice('/entreprises')).toBe(true)
+  })
+
+  it('laisse les écrans de l’artisan à l’artisan', () => {
+    expect(isBackoffice('/devis')).toBe(false)
+    expect(isBackoffice('/mentions')).toBe(false)
+    expect(isBackoffice('/mes-logements')).toBe(false)
+  })
+
+  it('inscrit chaque entrée dans la liste qui la reconnaît', () => {
+    // Les deux vivent dans le meme fichier et doivent bouger ensemble : une
+    // entree ajoutee sans son prefixe donnerait au relecteur la navigation de
+    // l'artisan, sur un ecran ou aucun de ses liens ne repond.
+    for (const href of staffHrefs) expect(isBackoffice(href)).toBe(true)
   })
 })

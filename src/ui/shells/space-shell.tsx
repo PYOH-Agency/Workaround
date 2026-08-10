@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { cn } from '@/ui/cn'
 import { Text } from '@/ui/atoms/text'
 import { Lockup } from '@/ui/brand/lockup'
+import { AppNav } from '@/ui/molecules/app-nav'
+import { spaceNavGroups } from '@/ui/molecules/app-nav-routes'
 import { ThemeToggle } from '@/ui/molecules/theme-toggle'
 
 /**
@@ -51,6 +53,19 @@ export function SpaceShell({
           <Link href="/mes-logements" className="rounded-badge" aria-label="Accueil">
             <Lockup size="sm" />
           </Link>
+
+          {/*
+            L'espace n'avait aucune navigation : on n'atteignait le repertoire
+            que par un lien en fin de page des logements, et on n'en revenait
+            que par le retour de l'en-tete d'ecran. Deux destinations de premier
+            rang qui ne se voyaient pas l'une l'autre.
+
+            C'est `AppNav`, la meme que l'atelier, et non une seconde : elle
+            recoit ses entrees au lieu de les deduire, donc rien de l'artisan
+            n'a eu besoin d'etre recopie.
+          */}
+          <AppNav groups={spaceNavGroups} />
+
           {alsoCompany ? (
             <Link href="/devis" className="rounded-badge">
               <Text size="sm" tone="muted" as="span">
