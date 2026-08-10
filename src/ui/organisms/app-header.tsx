@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Text } from '@/ui/atoms/text'
 import { Lockup } from '@/ui/brand/lockup'
+import { AppNav } from '@/ui/molecules/app-nav'
 import { ThemeToggle } from '@/ui/molecules/theme-toggle'
 
 /**
@@ -10,18 +11,12 @@ import { ThemeToggle } from '@/ui/molecules/theme-toggle'
  * marque s'exprime. Le sceau n'apparaitra que sur le passeport d'une autre
  * entreprise.
  *
- * **Et il porte la navigation**, depuis M7 : un ecran qu'on ne peut pas
- * atteindre n'existe pas, et c'est exactement le sort qui attendait l'agenda.
- * Les trois ecrans quotidiens y figurent ; les autres — passeport,
- * verification, annuaire — n'ont toujours aucun point d'entree, ce qui est un
- * defaut anterieur a ce jalon et signale a part.
+ * **Et il porte la navigation** : un ecran qu'on ne peut pas atteindre n'existe
+ * pas, et c'etait le sort de l'agenda, du passeport et de la verification.
+ *
+ * `AppNav` se tient dans son propre fichier parce qu'elle est cliente — elle
+ * lit l'URL. L'en-tete, lui, reste serveur.
  */
-const NAV = [
-  { href: '/devis', label: 'Devis' },
-  { href: '/factures', label: 'Factures' },
-  { href: '/agenda', label: 'Agenda' },
-]
-
 export function AppHeader({ companyName }: { companyName?: string }) {
   return (
     <header className="border-b border-rule bg-card">
@@ -30,15 +25,7 @@ export function AppHeader({ companyName }: { companyName?: string }) {
           <Lockup size="sm" />
         </Link>
 
-        <nav aria-label="Navigation principale" className="flex items-center gap-4">
-          {NAV.map((entry) => (
-            <Link key={entry.href} href={entry.href} className="rounded-badge">
-              <Text size="sm" as="span">
-                {entry.label}
-              </Text>
-            </Link>
-          ))}
-        </nav>
+        <AppNav />
 
         {companyName ? (
           <Text size="sm" tone="muted" as="span">

@@ -30,10 +30,70 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
   // Deux activites declarees : plomberie et electricite. Une seule sera couverte.
   const company = await companyWithActivities(ARTISAN, ['30', '34'])
 
-  await test.step('aucune activité n’est visible avant vérification', async () => {
-    await page.goto('/verification')
+  await test.step('les cinq écrans s’atteignent depuis la navigation', async () => {
+    // Et non par `goto` : une URL en dur passerait meme si aucun ecran ne menait
+    // ici — c'est exactement le defaut que cette navigation corrige. Les cinq
+    // sont parcourues, pas une seule : une entree dont l'adresse ne repond plus
+    // apres un renommage de route est le meme defaut, revenu par la fenetre.
+    await page.goto('/devis')
+
+    const nav = page.getByRole('navigation', { name: 'Navigation principale' })
+
+    // Dans l'ordre d'affichage, pour finir sur la verification que la suite lit.
+    const ENTRIES = [
+      { label: 'Devis', path: '/devis' },
+      { label: 'Factures', path: '/factures' },
+      { label: 'Agenda', path: '/agenda' },
+      { label: 'Passeport', path: '/mon-passeport' },
+      { label: 'Vérification', path: '/verification' },
+    ]
+
+    for (const { label, path } of ENTRIES) {
+      await nav.getByRole('link', { name: label, exact: true }).click()
+
+      await expect(page).toHaveURL(new RegExp(`${path}(\\?|$)`))
+      // La barre est rendue par `AppShell` : la retrouver prouve que la route a
+      // repondu, et non qu'elle a rendu une page introuvable.
+      await expect(nav).toBeVisible()
+      await expect(nav.getByRole('link', { name: label, exact: true })).toHaveAttribute(
+        'aria-current',
+        'page',
+      )
+    }
+
     await expect(page.getByTestId('statut-30')).toHaveText('Attestation manquante')
     await expect(page.getByTestId('statut-34')).toHaveText('Attestation manquante')
+  })
+
+  await test.step('sur un téléphone, la navigation se replie sans rien perdre', async () => {
+    // L'artisan est sur un chantier, une main prise. Un menu ou un defilement
+    // horizontal cacherait exactement ce que cette navigation existe pour
+    // montrer — c'est le defaut corrige, qui reviendrait par la fenetre.
+    await page.setViewportSize({ width: 375, height: 812 })
+
+    const nav = page.getByRole('navigation', { name: 'Navigation principale' })
+    const links = nav.getByRole('link')
+    await expect(links).toHaveCount(5)
+
+    // 44 px : le seuil que le socle s'impose deja pour `Input`. La cible faisait
+    // la hauteur du texte, soit 20 px, avant ce lot.
+    for (const link of await links.all()) {
+      const box = await link.boundingBox()
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44)
+    }
+
+    // Une barre d'une seule ligne ferait exactement 44 px de haut : au-dela,
+    // c'est qu'elle s'est repliee.
+    const navBox = await nav.boundingBox()
+    expect(navBox?.height ?? 0).toBeGreaterThan(44)
+
+    // Et le repli est un vrai repli : rien ne part hors de l'ecran.
+    const fits = await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    )
+    expect(fits).toBe(true)
+
+    await page.setViewportSize({ width: 1280, height: 720 })
   })
 
   await test.step('la page publique n’existe pas encore', async () => {
@@ -97,9 +157,26 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
     await anonymous.close()
   })
 
-  await test.step('le relecteur voit la file de supervision', async () => {
+  await test.step('le passeport mène à la fiche publique', async () => {
+    // L'entreprise est couverte depuis l'etape precedente : le lien doit exister
+    // et pointer vers `/artisan/`, jamais vers `/p/` qui compterait la visite.
+    await page.goto('/mon-passeport')
+    await expect(page.getByTestId('voir-fiche-publique')).toHaveAttribute(
+      'href',
+      `/artisan/${company.slug}`,
+    )
+  })
+
+  await test.step('le relecteur voit la file de supervision, sans la nav artisan', async () => {
     await reviewer.goto('/supervision')
     await expect(reviewer.getByRole('heading', { name: 'Supervision' })).toBeVisible()
+
+    // Le backoffice partage `AppShell`, donc l'en-tete. Les liens « Devis » ou
+    // « Passeport » n'y ont rien a faire : ils menent a l'entreprise du
+    // relecteur, pas a celle qu'il examine.
+    await expect(
+      reviewer.getByRole('navigation', { name: 'Navigation principale' }),
+    ).toHaveCount(0)
   })
 
   await test.step('un artisan n’accède pas à la supervision', async () => {
