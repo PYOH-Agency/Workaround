@@ -6,7 +6,7 @@ import { Heading } from '@/ui/atoms/heading'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { EmptyState } from '@/ui/molecules/empty-state'
-import { AppShell } from '@/ui/shells/app-shell'
+import { AdminShell } from '@/ui/shells/admin-shell'
 import { AnomalyList } from './AnomalyList'
 
 /**
@@ -30,7 +30,7 @@ export default async function SupervisionPage() {
   const blocking = anomalies.filter((a) => a.severity === 'blocking').length
 
   return (
-    <AppShell>
+    <AdminShell>
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <div className="flex flex-col gap-1">
           <Heading level={1}>Supervision</Heading>
@@ -63,6 +63,6 @@ export default async function SupervisionPage() {
       ) : (
         <AnomalyList anomalies={anomalies} now={now} />
       )}
-    </AppShell>
+    </AdminShell>
   )
 }

@@ -11,7 +11,7 @@ import { Icon } from '@/ui/atoms/icon'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { EmptyState } from '@/ui/molecules/empty-state'
-import { AppShell } from '@/ui/shells/app-shell'
+import { AdminShell } from '@/ui/shells/admin-shell'
 import { setPlan } from './actions'
 
 /**
@@ -41,7 +41,7 @@ export default async function CompaniesPage() {
     .limit(200)
 
   return (
-    <AppShell>
+    <AdminShell>
       <div className="flex flex-col gap-1">
         <Heading level={1}>Entreprises</Heading>
         <Text size="sm" tone="soft">
@@ -89,6 +89,6 @@ export default async function CompaniesPage() {
           ))}
         </div>
       )}
-    </AppShell>
+    </AdminShell>
   )
 }

@@ -10,7 +10,7 @@ import { DateText } from '@/ui/atoms/date-text'
 import { Heading } from '@/ui/atoms/heading'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
-import { AppShell } from '@/ui/shells/app-shell'
+import { AdminShell } from '@/ui/shells/admin-shell'
 import { ReviewForm } from './ReviewForm'
 
 const KINDS = { decennale: 'Garantie décennale', rc_pro: 'RC professionnelle' } as const
@@ -43,7 +43,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   ])
 
   return (
-    <AppShell>
+    <AdminShell>
       <div className="flex flex-col gap-1">
         <Heading level={1}>{certificate.company.legalName}</Heading>
         <Text size="sm" tone="soft">
@@ -78,6 +78,6 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           <span className="text-sm">Retour à la file</span>
         </Link>
       </div>
-    </AppShell>
+    </AdminShell>
   )
 }

@@ -29,6 +29,8 @@ const DS_DIR = 'src/ui/'
  *
  * - `SignOut` — la sortie, portee par les trois coquilles (spec A1 §7). Une
  *   par coquille aurait triple le meme formulaire.
+ * - `AdminShell` — les ecrans internes (spec A1 §8). `AppShell` leur imposait
+ *   la navigation de l'artisan, masquee par un `access` facultatif.
  *
  * Toute autre addition doit passer par la spec avant d'arriver ici.
  */
@@ -57,7 +59,7 @@ const INVENTORY = {
     // fonctionnalite voisine, ce que l'autonomie des fonctionnalites interdit.
     'ChantierTimeline',
   ],
-  shells: ['AppShell', 'PublicShell', 'PdfShell', 'LandingShell', 'SpaceShell'],
+  shells: ['AppShell', 'PublicShell', 'PdfShell', 'LandingShell', 'SpaceShell', 'AdminShell'],
   brand: ['Mark', 'Seal', 'Lockup'],
 }
 
