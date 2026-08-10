@@ -4,7 +4,7 @@
 
 **Goal :** rendre `/mon-passeport` et `/verification` atteignables depuis l'en-tête de l'artisan, avec l'état actif de la page courante et un repli mobile, sans que le backoffice hérite de cette navigation.
 
-**Architecture :** la logique de navigation — les entrées, la correspondance de page courante, les écrans qui portent la barre — vit dans un `.ts` pur (`app-nav-routes.ts`), testable en environnement `node`. Le rendu vit dans une molécule cliente (`AppNav`) qui lit `usePathname()`. `AppHeader` reste un composant serveur et se contente de la poser. Aucune des quinze pages qui appellent `AppShell` n'est modifiée.
+**Architecture :** la logique de navigation — les entrées, la correspondance de page courante, les écrans qui portent la barre — vit dans un `.ts` pur (`app-nav-routes.ts`), testable en environnement `node`. Le rendu vit dans une molécule cliente (`AppNav`) qui lit `usePathname()`. `AppHeader` reste un composant serveur et se contente de la poser. Aucune des seize pages qui appellent `AppShell` n'est modifiée.
 
 **Tech Stack :** Next.js 16 (App Router), React 19, Tailwind v4 sur jetons sémantiques, Vitest (environnement `node`), Playwright.
 

@@ -30,19 +30,36 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
   // Deux activites declarees : plomberie et electricite. Une seule sera couverte.
   const company = await companyWithActivities(ARTISAN, ['30', '34'])
 
-  await test.step('la vérification s’atteint depuis la navigation', async () => {
+  await test.step('les cinq écrans s’atteignent depuis la navigation', async () => {
     // Et non par `goto` : une URL en dur passerait meme si aucun ecran ne menait
-    // ici — c'est exactement le defaut que cette navigation corrige.
+    // ici — c'est exactement le defaut que cette navigation corrige. Les cinq
+    // sont parcourues, pas une seule : une entree dont l'adresse ne repond plus
+    // apres un renommage de route est le meme defaut, revenu par la fenetre.
     await page.goto('/devis')
 
     const nav = page.getByRole('navigation', { name: 'Navigation principale' })
-    await nav.getByRole('link', { name: 'Vérification' }).click()
 
-    await expect(page).toHaveURL(/\/verification$/)
-    await expect(nav.getByRole('link', { name: 'Vérification' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
+    // Dans l'ordre d'affichage, pour finir sur la verification que la suite lit.
+    const ENTRIES = [
+      { label: 'Devis', path: '/devis' },
+      { label: 'Factures', path: '/factures' },
+      { label: 'Agenda', path: '/agenda' },
+      { label: 'Passeport', path: '/mon-passeport' },
+      { label: 'Vérification', path: '/verification' },
+    ]
+
+    for (const { label, path } of ENTRIES) {
+      await nav.getByRole('link', { name: label, exact: true }).click()
+
+      await expect(page).toHaveURL(new RegExp(`${path}(\\?|$)`))
+      // La barre est rendue par `AppShell` : la retrouver prouve que la route a
+      // repondu, et non qu'elle a rendu une page introuvable.
+      await expect(nav).toBeVisible()
+      await expect(nav.getByRole('link', { name: label, exact: true })).toHaveAttribute(
+        'aria-current',
+        'page',
+      )
+    }
 
     await expect(page.getByTestId('statut-30')).toHaveText('Attestation manquante')
     await expect(page.getByTestId('statut-34')).toHaveText('Attestation manquante')

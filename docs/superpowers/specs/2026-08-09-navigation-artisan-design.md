@@ -50,11 +50,11 @@ Le besoin réel derrière « l'annuaire » — *à quoi ressemble ma fiche vue d
 
 > **Décision.** Un fichier nouveau, `src/ui/molecules/app-nav.tsx`, en `'use client'`. `AppHeader` reste serveur.
 
-`AppHeader` est un composant serveur et il n'existe aucun `layout.tsx` de groupe : les quinze pages appellent `AppShell` elles-mêmes. Un composant serveur ne peut pas lire l'URL courante. Trois voies s'offraient :
+`AppHeader` est un composant serveur et il n'existe aucun `layout.tsx` de groupe : les seize pages appellent `AppShell` elles-mêmes. Un composant serveur ne peut pas lire l'URL courante. Trois voies s'offraient :
 
 | Voie | Coût | Verdict |
 |---|---|---|
-| Prop `current` transmise par chaque page | Quinze pages à modifier, et chaque écran futur doit y penser | **Rejetée** — c'est la classe de défaut qu'on corrige, déplacée d'un cran |
+| Prop `current` transmise par chaque page | Seize pages à modifier, et chaque écran futur doit y penser | **Rejetée** — c'est la classe de défaut qu'on corrige, déplacée d'un cran |
 | `'use client'` sur `app-header.tsx` | `Lockup` et `Text` partent au client pour un seul `usePathname()` | **Rejetée** — la frontière serveur/client devient implicite |
 | Molécule `AppNav` cliente | Une addition à l'inventaire, à justifier | **Retenue** |
 
@@ -129,7 +129,7 @@ Vitest tourne en environnement `node`, sans jsdom : `tests/ui/status-badge.test.
 | Cinq entrées, dans l'ordre, sans préfixe recouvrant | `tests/ui/app-nav.test.ts` |
 | `/devis/42/chantier` allume Devis, `/devis-types` non | `tests/ui/app-nav.test.ts` |
 | `showsNav` est faux sous `/supervision` et `/attestations` | `tests/ui/app-nav.test.ts` |
-| `/verification` s'atteint **par la navigation**, avec `aria-current` | `tests/e2e/verification-journey.spec.ts` |
+| Les **cinq** écrans s'atteignent par la navigation, chacun avec `aria-current` | `tests/e2e/verification-journey.spec.ts` |
 | À 375 px : cinq entrées, 44 px chacune, plus d'une ligne, rien hors écran | `tests/e2e/verification-journey.spec.ts` |
 | Le backoffice n'affiche aucune navigation d'artisan | `tests/e2e/verification-journey.spec.ts` |
 | Le passeport pointe vers `/artisan/`, jamais vers `/p/` | `tests/e2e/verification-journey.spec.ts` |
