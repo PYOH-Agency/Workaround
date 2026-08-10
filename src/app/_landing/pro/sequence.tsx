@@ -2,6 +2,7 @@ import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
 import { Reveal } from '@/ui/molecules/reveal'
 import { SectionHeader } from '@/ui/molecules/section-header'
+import { Stagger } from '@/ui/molecules/stagger'
 
 /**
  * Du devis a la reception.
@@ -16,9 +17,15 @@ import { SectionHeader } from '@/ui/molecules/section-header'
  * deroule. Leur donner la meme forme les ferait lire comme deux fois la meme
  * chose.
  *
- * Pas de `Stagger` : il ne compte que deux ou trois colonnes, et cette frise en
- * a cinq. Elargir le composant du design system pour un seul ecran couterait
- * plus que la cadence ne rapporte — un `Reveal` sur le bloc suffit.
+ * **La frise se pose au calepinage.** Elle s'en passait, faute d'un `Stagger` a
+ * cinq colonnes, et parce qu'une cadence de plus ne valait pas d'elargir le
+ * composant. Ce raisonnement tenait tant que la cadence n'etait qu'un
+ * agrement : ici elle dit quelque chose de vrai — un chantier avance pas a pas,
+ * et la signature precede la reception. C'est le geste du chantier, comme la
+ * mise d'equerre de l'accroche est celui du contrat.
+ *
+ * Les deux cohabitent sans se concurrencer : `Reveal` porte le titre, `Stagger`
+ * la frise. C'est la regle du regime — un geste, une cadence.
  */
 const STEPS = [
   { title: 'Devis', body: 'Rédigé aux mentions à jour, envoyé par lien.' },
@@ -39,9 +46,12 @@ export function Sequence() {
             lead="Un seul dossier, ouvert au signataire. Il n’a rien à installer, rien à créer : le lien qu’il a reçu pour signer reste celui qui lui montre où en est son chantier."
           />
 
-          <ol className="mt-12 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
+        </Reveal>
+
+        <div className="mt-12">
+          <Stagger cols={5} as="ol">
             {STEPS.map(({ title, body }, index) => (
-              <li key={title} className="flex flex-col gap-3">
+              <div key={title} className="flex flex-col gap-3">
                 {/*
                   Le filet est decoratif et ne porte donc aucune information
                   seul : le rang est ecrit en toutes lettres juste en dessous.
@@ -57,10 +67,10 @@ export function Sequence() {
                 <Text size="sm" tone="soft">
                   {body}
                 </Text>
-              </li>
+              </div>
             ))}
-          </ol>
-        </Reveal>
+          </Stagger>
+        </div>
       </div>
     </section>
   )

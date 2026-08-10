@@ -16,12 +16,21 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 }
 
+/**
+ * `Steps` passe devant `Mentions`, et c'est un changement d'accueil.
+ *
+ * La page enchainait l'accroche et une amende de 15 000 €. L'argument est juste
+ * — c'est la douleur reelle du metier —, mais le placer en deuxieme section
+ * faisait ouvrir la conversation sur une menace, a un artisan qui ne nous
+ * connait pas encore. On montre d'abord ce que l'outil fait, on dit ensuite ce
+ * qu'il evite. Aucun contenu n'est retire : seul l'ordre change.
+ */
 export default function Home() {
   return (
     <LandingShell audience="pro">
       <Hero />
-      <Mentions />
       <Steps />
+      <Mentions />
       <Sequence />
       <Passport />
       <Principles />
