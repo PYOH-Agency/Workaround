@@ -47,6 +47,7 @@
   --dq-danger-bg: #FBEAE8;
   --dq-danger-solid: #9B1C1C;
   --dq-on-danger: #FFFFFF;
+  --dq-hatch: rgba(255,255,255,.5);
 }
 
 [data-theme='dark'] {
@@ -73,6 +74,7 @@
   --dq-danger-bg: #2E1614;
   --dq-danger-solid: #9B1C1C;
   --dq-on-danger: #FFFFFF;
+  --dq-hatch: rgba(20,17,14,.4);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -100,6 +102,7 @@
     --dq-danger-bg: #2E1614;
     --dq-danger-solid: #9B1C1C;
     --dq-on-danger: #FFFFFF;
+    --dq-hatch: rgba(20,17,14,.4);
   }
 }
 

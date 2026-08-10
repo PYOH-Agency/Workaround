@@ -79,6 +79,7 @@ const INVENTORY = {
     // La loger dans l'un des deux ecrans obligerait l'autre a importer une
     // fonctionnalite voisine, ce que l'autonomie des fonctionnalites interdit.
     'ChantierTimeline',
+    'MoneyFlow',
   ],
   shells: ['AppShell', 'PublicShell', 'PdfShell', 'LandingShell', 'SpaceShell'],
   brand: ['Mark', 'Seal', 'Lockup'],
