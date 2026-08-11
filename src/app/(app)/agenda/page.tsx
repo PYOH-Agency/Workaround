@@ -51,7 +51,7 @@ export default async function AgendaPage({
     session = await currentCompany()
   } catch (e) {
     if (e instanceof SessionError) {
-      redirect(e.message.includes('Aucune entreprise') ? '/inscription' : '/connexion')
+      redirect(e.message.includes('Aucune entreprise') ? '/creer-mon-entreprise' : '/connexion')
     }
     throw e
   }

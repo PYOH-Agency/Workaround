@@ -83,6 +83,6 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
 
     await compagnon.goto('/agenda')
     // Le compte existe toujours, il n'appartient plus a aucune entreprise.
-    await expect(compagnon).toHaveURL(/\/inscription$/)
+    await expect(compagnon).toHaveURL(/\/creer-mon-entreprise$/)
   })
 })
