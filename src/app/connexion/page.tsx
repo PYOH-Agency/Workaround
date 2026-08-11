@@ -57,7 +57,6 @@ function Refusal() {
 export default function SignInPage() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -66,7 +65,6 @@ export default function SignInPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    setError(null)
 
     // L'invite d'abord : lui seul fait creer un compte par cette porte. La
     // reponse affichee, elle, reste la meme — le seul signal est l'arrivee d'un
@@ -76,7 +74,7 @@ export default function SignInPage() {
     // laisser une lecture defaillante ouvrir la creation de compte a tous.
     const invited = await invitationPending(email).catch(() => false)
 
-    const { error: sendError } = await supabase.auth.signInWithOtp({
+    await supabase.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: invited,
@@ -84,14 +82,19 @@ export default function SignInPage() {
       },
     })
 
-    // **La meme reponse dans les deux cas**, y compris quand Supabase refuse
-    // parce que l'adresse est inconnue. Distinguer offrirait a quiconque de
-    // tester si telle personne est cliente, sur un formulaire public.
-    if (sendError && !/signups not allowed|not found/i.test(sendError.message)) {
-      setError("L'envoi a échoué. Réessayez dans un instant.")
-    } else {
-      setSent(true)
-    }
+    // **La meme reponse quoi qu'il arrive**, et l'echec est avale ici, comme
+    // dans `resendQuoteLinks`.
+    //
+    // Trier les erreurs par leur libelle ne pouvait pas tenir : GoTrue ne leve
+    // sa limite de frequence qu'APRES avoir trouve l'utilisateur. Deux
+    // soumissions rapprochees rendaient donc « L'envoi a echoue » pour une
+    // adresse connue et « Si un compte existe » pour une inconnue — soit
+    // exactement l'oracle d'enumeration que ferme `shouldCreateUser: false`,
+    // rouvert par la reponse elle-meme.
+    //
+    // Les envois reellement en panne se constatent dans les journaux Supabase ;
+    // ils n'ont pas a se lire sur un formulaire public.
+    setSent(true)
   }
 
   return (
@@ -131,12 +134,6 @@ export default function SignInPage() {
               />
             )}
           </Field>
-
-          {error && (
-            <Notice tone="danger" alert>
-              {error}
-            </Notice>
-          )}
 
           <Button type="submit" size="lg">
             Recevoir le lien
