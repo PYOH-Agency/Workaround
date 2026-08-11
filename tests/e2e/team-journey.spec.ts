@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { test, expect } from '@playwright/test'
-import { clearMailbox, mailboxHas, signIn } from './helpers'
+import { clearMailbox, magicLinkFor, mailboxHas, signIn } from './helpers'
+import { accountExists } from './fixtures-db'
 import { quoteFor, switchToPro } from './fixtures'
 
 /**
@@ -12,6 +13,8 @@ import { quoteFor, switchToPro } from './fixtures'
  */
 const PATRON = `patron-m8-${randomUUID().slice(0, 8)}@test.local`
 const COMPAGNON = `compagnon-m8-${randomUUID().slice(0, 8)}@test.local`
+/** Celui qui n'a JAMAIS eu de compte. Il n'ira pas par `signIn`. */
+const NOUVEAU = `nouveau-m8-${randomUUID().slice(0, 8)}@test.local`
 
 test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) => {
   await clearMailbox()
@@ -84,5 +87,33 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
     await compagnon.goto('/agenda')
     // Le compte existe toujours, il n'appartient plus a aucune entreprise.
     await expect(compagnon).toHaveURL(/\/creer-mon-entreprise$/)
+  })
+
+  await test.step('un invité qui n’a JAMAIS eu de compte entre quand même', async () => {
+    // Le cas que les autres parcours masquaient : leur aide `signIn` cree le
+    // compte avant de frapper a la porte. Or `/connexion` n'envoie plus rien a
+    // une adresse inconnue, et l'invite n'a AUCUNE autre porte — celle de
+    // l'artisan lui ferait creer une entreprise concurrente.
+    await patron.goto('/equipe')
+    await patron.getByLabel('E-mail').fill(NOUVEAU)
+    await patron.getByRole('button', { name: 'Inviter' }).click()
+    await expect(patron.getByTestId('invitations')).toContainText(NOUVEAU)
+
+    expect(await accountExists(NOUVEAU)).toBe(false)
+
+    const ailleurs = await browser.newContext()
+    const nouveau = await ailleurs.newPage()
+
+    await nouveau.goto('/connexion')
+    await nouveau.getByLabel('E-mail').fill(NOUVEAU)
+    await nouveau.getByRole('button', { name: 'Recevoir le lien' }).click()
+    await nouveau.goto(await magicLinkFor(NOUVEAU))
+
+    // L'atelier de l'entreprise qui l'a invite, et son en-tete : la seule URL
+    // laisserait croire qu'il suffit d'y arriver.
+    await expect(nouveau).toHaveURL(/\/devis$/)
+    await expect(nouveau.getByRole('heading', { name: 'PLOMBERIE DU PARCOURS' })).toBeVisible()
+
+    await ailleurs.close()
   })
 })

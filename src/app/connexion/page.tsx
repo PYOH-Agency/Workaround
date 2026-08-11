@@ -10,6 +10,7 @@ import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
 import { PublicShell } from '@/ui/shells/public-shell'
+import { invitationPending } from './actions'
 
 /**
  * Connexion par lien magique, sans mot de passe.
@@ -23,6 +24,11 @@ import { PublicShell } from '@/ui/shells/public-shell'
  * n'a lieu que derriere `/creer-mon-entreprise` et `/creer-mon-compte`. Sans
  * cela, chaque adresse saisie ici creait un utilisateur Supabase, et les refus
  * d'inscription tombaient apres — d'ou des orphelins que rien ne ramassait.
+ *
+ * **Une exception, et une seule : l'invite.** Le compagnon que son patron vient
+ * d'inviter n'a jamais eu de compte, et aucune porte d'inscription ne lui
+ * convient. Son invitation en attente vaut autorisation — voir
+ * `invitationAwaits`, dans `services/membership`.
  */
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -38,10 +44,18 @@ export default function SignInPage() {
     e.preventDefault()
     setError(null)
 
+    // L'invite d'abord : lui seul fait creer un compte par cette porte. La
+    // reponse affichee, elle, reste la meme — le seul signal est l'arrivee d'un
+    // courriel, qui exige l'acces a la boite.
+    //
+    // En panne, `false` : mieux vaut qu'un invite doive reessayer que de
+    // laisser une lecture defaillante ouvrir la creation de compte a tous.
+    const invited = await invitationPending(email).catch(() => false)
+
     const { error: sendError } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        shouldCreateUser: false,
+        shouldCreateUser: invited,
         emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm`,
       },
     })

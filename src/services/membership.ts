@@ -5,6 +5,42 @@ import { normalizeEmail } from '@/domain/requester'
 import { recordEvent } from '@/services/events'
 
 /**
+ * Ni acceptee ni revoquee : elle attend.
+ *
+ * Ecrite une fois et partagee, parce que `claimInvitation` et
+ * `invitationAwaits` doivent dire EXACTEMENT la meme chose. Deux copies qui
+ * divergent, et la porte de retour cree un compte pour quelqu'un que le
+ * rattachement refusera ensuite — ou l'inverse.
+ */
+const pendingFor = (email: string) =>
+  and(
+    eq(memberInvitation.email, email),
+    isNull(memberInvitation.acceptedAt),
+    isNull(memberInvitation.revokedAt),
+  )
+
+/**
+ * Une invitation attend-elle cette adresse ?
+ *
+ * **Une invitation en attente EST une autorisation d'avoir un compte.** Depuis
+ * `shouldCreateUser: false`, `/connexion` n'envoie plus rien a une adresse
+ * inconnue — et c'est exactement le cas du compagnon que son patron vient
+ * d'inviter. Sans cette lecture, il n'a AUCUN chemin d'entree : `claimInvitation`
+ * exige un compte, et aucune porte d'inscription ne lui convient — celle de
+ * l'artisan creerait une entreprise concurrente, celle du particulier un
+ * dossier de demandeur.
+ *
+ * Rien ne fuit pour autant : la porte affiche la meme phrase dans les deux cas,
+ * et le seul signal est l'arrivee d'un courriel — qui exige l'acces a la boite.
+ */
+export async function invitationAwaits(rawEmail: string): Promise<boolean> {
+  const email = normalizeEmail(rawEmail)
+  const pending = await db.query.memberInvitation.findFirst({ where: pendingFor(email) })
+
+  return Boolean(pending)
+}
+
+/**
  * Rattache un compte a l'entreprise qui l'a invite.
  *
  * Meme discipline que `claimRequester` : la bascule de l'invitation est un
@@ -34,25 +70,13 @@ export async function claimInvitation(userId: string, rawEmail: string) {
 
   // Une seule invitation a la fois : `UPDATE` ne sait pas se limiter a une
   // ligne, et deux entreprises peuvent avoir invite la meme adresse.
-  const pending = await db.query.memberInvitation.findFirst({
-    where: and(
-      eq(memberInvitation.email, email),
-      isNull(memberInvitation.acceptedAt),
-      isNull(memberInvitation.revokedAt),
-    ),
-  })
+  const pending = await db.query.memberInvitation.findFirst({ where: pendingFor(email) })
   if (!pending) return null
 
   const [accepted] = await db
     .update(memberInvitation)
     .set({ acceptedAt: new Date() })
-    .where(
-      and(
-        eq(memberInvitation.id, pending.id),
-        isNull(memberInvitation.acceptedAt),
-        isNull(memberInvitation.revokedAt),
-      ),
-    )
+    .where(and(eq(memberInvitation.id, pending.id), pendingFor(email)))
     .returning()
 
   // Revoquee entre la lecture et l'ecriture : le patron a change d'avis, et il

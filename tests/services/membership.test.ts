@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { and, eq } from 'drizzle-orm'
 import { db, connection } from '@/db/client'
 import { member, memberInvitation } from '@/db/schema'
-import { claimInvitation } from '@/services/membership'
+import { claimInvitation, invitationAwaits } from '@/services/membership'
 import { inviteMember, revokeInvitation } from '@/services/team'
 import { switchPlan } from '@/services/plan'
 import { createCompany } from './invoice-fixtures'
@@ -80,5 +80,48 @@ describe('reclamer son invitation', () => {
     expect(
       await db.$count(member, and(eq(member.companyId, companyId), eq(member.userId, userId))),
     ).toBe(1)
+  })
+})
+
+describe('une invitation attend-elle cette adresse', () => {
+  it('vrai pour une invitation en attente', async () => {
+    // Le compagnon que son patron vient d'inviter n'a jamais eu de compte, et
+    // `/connexion` ne cree plus rien : sans cette lecture, il n'a AUCUN chemin
+    // d'entree.
+    const companyId = await proCompany()
+    const email = `attendu-${randomUUID().slice(0, 8)}@test.local`
+    await inviteMember({ companyId, email, role: 'member', by: randomUUID() })
+
+    // En majuscules : la porte recopie ce que la personne a tape.
+    expect(await invitationAwaits(email.toUpperCase())).toBe(true)
+  })
+
+  it('faux pour une invitation deja acceptee', async () => {
+    const companyId = await proCompany()
+    const email = `entre-${randomUUID().slice(0, 8)}@test.local`
+    await inviteMember({ companyId, email, role: 'member', by: randomUUID() })
+    await claimInvitation(randomUUID(), email)
+
+    expect(await invitationAwaits(email)).toBe(false)
+  })
+
+  it('faux pour une invitation revoquee', async () => {
+    // Le patron a le dernier mot : sa revocation ne doit pas laisser derriere
+    // elle une autorisation de creer un compte.
+    const companyId = await proCompany()
+    const email = `annulee-${randomUUID().slice(0, 8)}@test.local`
+    await inviteMember({ companyId, email, role: 'member', by: randomUUID() })
+
+    const [pending] = await db
+      .select()
+      .from(memberInvitation)
+      .where(eq(memberInvitation.companyId, companyId))
+    await revokeInvitation(companyId, pending.id)
+
+    expect(await invitationAwaits(email)).toBe(false)
+  })
+
+  it('faux pour une adresse inconnue', async () => {
+    expect(await invitationAwaits(`inconnu-${randomUUID()}@test.local`)).toBe(false)
   })
 })
