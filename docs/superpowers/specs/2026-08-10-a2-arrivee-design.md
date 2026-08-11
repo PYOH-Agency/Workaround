@@ -2,7 +2,9 @@
 
 > Spec de conception · Date : 2026-08-10 · Statut : à valider
 
-**Références :** [A1 — Les portes](2026-08-10-a1-portes-design.md) · [A1 — Les écrans des portes](2026-08-10-a1-ecrans-design.md) · [image de marque](2026-08-08-image-de-marque-design.md) · [espace demandeur](2026-08-09-espace-demandeur-design.md)
+**Références :** [A1 — Les portes](2026-08-10-a1-portes-design.md) · [A1 — Les écrans des portes](2026-08-10-a1-ecrans-design.md) · [accueil artisan](2026-08-10-accueil-artisan-design.md) · [image de marque](2026-08-08-image-de-marque-design.md) · [espace demandeur](2026-08-09-espace-demandeur-design.md)
+
+> **Amendée le 2026-08-11**, après la fusion avec `main`. Le §3 est annulé : l'accueil artisan a livré la mise en route, mieux découpée. Ce qui reste de A2 est ce que personne n'a construit — le mot d'accueil par écran, les états vides qui enseignent, l'écran de confirmation après signature, et la mesure.
 
 ---
 
@@ -30,7 +32,7 @@ Deux défauts ensuite, qu'aucun budget ne corrige :
 - **Le tutoriel s'exécute quand il n'y a rien à montrer.** Jour un, l'artisan a zéro devis. La surbrillance encadre un tableau vide et annonce « voici vos devis ».
 - **L'écran fait 375 pixels de large.** Un projecteur sur la navigation couvre la navigation. Les coach marks sont un motif de tableau de bord de bureau ; le terrain ici est un écran de poche, avec des gants.
 
-Et un doublon : la liste de premiers pas fait déjà le séquencement, en contexte, au moment où la personne a une raison d'agir.
+Et un doublon : la mise en route de l'accueil fait déjà le séquencement, en contexte, au moment où la personne a une raison d'agir.
 
 ### 2.2 Les données fictives
 
@@ -50,49 +52,31 @@ Trois raisons de ne pas en dévier :
 
 Si, dans deux mois, le journal montre que les artisans n'ouvrent toujours pas leur passeport, alors on construira — **en sachant quelles étapes couvrir au lieu de les deviner** — soit le tutoriel, soit un atelier d'exemple à part : une route en lecture seule, entièrement fictive, jamais rattachée à un compte, jamais comptée nulle part. Coût réel, risque nul. Après la mesure, pas avant.
 
-## 3. La liste de premiers pas
+## 3. La liste de premiers pas — **caduque, `main` l'a livrée**
 
-> **Décision.** Tant que le compte est neuf, `/devis` s'ouvre sur une liste de premiers pas. **Rien n'est bloquant.**
+> **Cette section est annulée.** Elle décrivait une liste de premiers pas sur `/devis`. Entre l'écriture de cette spec et son implémentation, `main` a livré [l'accueil artisan](2026-08-10-accueil-artisan-design.md), dont le §8 décide la même chose, mieux, et ailleurs.
 
-```
-│  Bienvenue chez PLOMBERIE MARTIN         │
-│  Trois choses avant votre premier devis. │
-│                                          │
-│  ┌────────────────────────────────────┐  │
-│  │ ✓  Votre entreprise                │  │
-│  │    SARL · SIRET · TVA · adresse    │  │
-│  ├────────────────────────────────────┤  │
-│  │ ○  Vos coordonnées          →      │  │
-│  │    Téléphone et immatriculation    │  │
-│  ├────────────────────────────────────┤  │
-│  │ ○  Votre assurance décennale →     │  │
-│  │    Assureur, police, activités     │  │
-│  ├────────────────────────────────────┤  │
-│  │ ○  Vos conditions de règlement →   │  │
-│  └────────────────────────────────────┘  │
-│                                          │
-│  ┌────────────────────────────────────┐  │
-│  │        Établir un devis            │  │
-│  └────────────────────────────────────┘  │
-│  Vous pourrez l'envoyer une fois les     │
-│  trois lignes cochées.                   │
-```
+| | Ce que A2 prévoyait | Ce que `main` a livré |
+|---|---|---|
+| Où | `/devis` | `/`, la racine, qui sert l'accueil à l'artisan |
+| Les étapes | *Coordonnées · Assurance décennale · Conditions de règlement*, depuis `missingMentionGroups` | *Mentions obligatoires · Attestation décennale · Premier devis* |
+| Disparition | mentions complètes **et** un devis | un devis suffit |
 
-> **Décision structurante.** Les lignes viennent de `missingMentionGroups`, jamais d'une liste écrite en dur.
+**Le découpage de `main` est meilleur, et c'est pourquoi il l'emporte.** Chacune de ses étapes mène à un écran — `/mentions`, `/verification`, `/devis/nouveau`. Les miennes désignaient des groupes de champs *à l'intérieur* d'un écran : une étape qui mène quelque part est actionnable, un groupe de champs ne l'est pas. Et `main` couvre l'attestation d'assurance, que mes trois lignes ignoraient — ce n'est pas une mention légale, c'est un autre objet, porté par un autre jalon.
 
-Ce sont **exactement** les trois lignes déjà vues à l'étape 2 de l'inscription, dans le même ordre. C'est ce qui fait qu'arriver dans l'atelier ne surprend pas : l'artisan reconnaît un travail qu'on lui a annoncé avant qu'il ne s'engage.
+Sa règle de disparition est également plus juste : *« un artisan qui a établi un devis a compris l'outil, même s'il n'a pas déposé son attestation — elle reviendra d'elle-même dans la file »*. La mienne l'aurait retenu sur une liste de courses.
 
-Deux listes de champs obligatoires divergeraient, et l'écran finirait par cocher ce que le serveur refuse — la même erreur que la table des capacités évite côté droits.
+### 3.1 Ce que cette annulation casse, et qu'il faut réparer
 
-> **Décision. La première ligne est déjà cochée.**
+La thèse de [l'inscription](2026-08-10-a1-ecrans-design.md) reposait sur une continuité : les lignes grises montrées à l'étape 2 sont **exactement** celles que l'artisan retrouvera en arrivant. « Personne n'est perdu parce que personne n'est surpris. »
 
-Forme juridique, SIRET, TVA, adresse arrivent de l'API. On commence à une sur quatre, pas à zéro, et c'est vrai. Une liste qui démarre vide donne l'impression d'un produit qui n'a rien fait ; celle-ci prouve le contraire dès la première seconde.
+Cette continuité est rompue. `ConfirmStep` affiche `missingMentionGroups` ; l'artisan atterrit sur trois étapes différemment nommées et différemment découpées.
 
-> **Décision. « Établir un devis » reste actif.**
+> **Décision. C'est `ConfirmStep` qui s'aligne, pas l'accueil.**
 
-Le refus tombe à l'envoi, où il tombe déjà. Interdire la rédaction reviendrait à faire le tunnel qu'on a écarté, en le déguisant.
+L'étape 2 de l'inscription doit annoncer les trois étapes de la mise en route, dans leurs mots et leur ordre. À l'inscription l'entreprise n'existe pas encore, donc les trois sont à faire — ce qui est honnête et correspond exactement à ce qui l'attend.
 
-**Disparition.** La liste s'efface quand `missingMentionGroups` rend un tableau vide **et** qu'un devis existe. Pas de préférence à stocker : l'état de la liste *est* l'état du compte.
+`missingMentionGroups` reste utile là où il a été conçu : il garde l'émission de devis, et `main` s'en sert déjà pour marquer l'étape « mentions » comme faite. Ce qui disparaît, c'est son usage comme **liste affichée** à l'inscription.
 
 ## 4. Le mot d'accueil par écran
 
@@ -102,7 +86,8 @@ Pas d'incrustation, pas de séquence, pas d'ancrage au DOM. Chaque page possède
 
 | Écran | Ce que dit la carte |
 |---|---|
-| `/devis` | Remplacée par la liste de premiers pas tant qu'elle existe |
+| `/` | Aucune : l'accueil se présente de lui-même, et sa mise en route dit déjà quoi faire |
+| `/devis` | « La liste de tout ce que vous avez établi. L'accueil, lui, ne montre que ce qui bouge. » |
 | `/mon-passeport` | « Cette page est publique. Vos clients y voient vos assurances vérifiées et vos délais tenus. » |
 | `/agenda` | « Vos rendez-vous, et ceux que vous pouvez proposer à vos clients. » |
 | `/verification` | « Déposez vos attestations : c'est ce qui fait passer votre passeport en vérifié. » |
@@ -184,11 +169,7 @@ Le seuil est écrit d'avance, pour que personne ne le négocie après coup : **s
 
 | Ce qui est vérifié | Comment |
 |---|---|
-| Les lignes de la liste viennent de `missingMentionGroups` | Test unitaire : une entreprise sans assurance affiche la ligne assurance, une entreprise complète n'affiche pas la liste |
-| La première ligne est cochée dès l'inscription | Parcours e2e : après création, « Votre entreprise » est cochée |
-| L'ordre est identique à celui de l'étape 2 de l'inscription | Test unitaire sur `missingMentionGroups`, déjà écrit en A1 |
-| La liste disparaît une fois les mentions complètes **et** un devis émis | Test d'intégration |
-| « Établir un devis » reste actif malgré des mentions manquantes | Parcours e2e |
+| L'étape 2 de l'inscription annonce les **mêmes** trois étapes que l'accueil, dans le même ordre | Test unitaire sur la liste partagée, et parcours e2e qui les compare de part et d'autre du lien magique |
 | Une carte rejetée ne revient pas sur un autre appareil | Test d'intégration : rejet, puis lecture avec une session neuve du même compte |
 | « Revoir les explications » fait revenir les cartes | Test d'intégration |
 | L'écran de signature nomme l'espace | Parcours e2e, dans `space-journey` |

@@ -2,7 +2,7 @@
 
 > Spec de conception · Date : 2026-08-10 · Statut : à valider
 
-**Références :** [A1 — Les portes](2026-08-10-a1-portes-design.md) · [image de marque](2026-08-08-image-de-marque-design.md) · [landing](2026-08-08-landing-design.md)
+**Références :** [A1 — Les portes](2026-08-10-a1-portes-design.md) · [accueil artisan](2026-08-10-accueil-artisan-design.md) · [image de marque](2026-08-08-image-de-marque-design.md) · [landing](2026-08-08-landing-design.md)
 
 ---
 
@@ -28,7 +28,7 @@ Cet écran fait trois choses d'un coup :
 - **il explique** — il comprend ce que fait le produit sans qu'on le lui dise ;
 - **il prépare** — les lignes manquantes, en gris, annoncent le travail restant.
 
-Cette troisième fonction est la réponse à « je ne veux pas que l'utilisateur soit perdu ». **Personne n'est perdu parce que personne n'est surpris** : la liste de premiers pas d'A2 est vue avant d'être demandée.
+Cette troisième fonction est la réponse à « je ne veux pas que l'utilisateur soit perdu ». **Personne n'est perdu parce que personne n'est surpris** : la mise en route de l'accueil est vue avant d'être demandée.
 
 ## 3. Les six écrans
 
@@ -84,9 +84,9 @@ Personne ne bloque sur « quatorze chiffres ». On bloque sur « c'est lequel, d
 │  │ TVA FR12345678900                  │  │
 │  │ 12 rue des Lilas, 44000 Nantes     │  │
 │  │ ·····························      │  │
-│  │ Coordonnées             à compléter│  │
-│  │ Assurance décennale     à compléter│  │
-│  │ Conditions de règlement à compléter│  │
+│  │ Mentions obligatoires   à compléter│  │
+│  │ Attestation décennale   à compléter│  │
+│  │ Premier devis           à établir  │  │
 │  └────────────────────────────────────┘  │
 │                                          │
 │  Voilà l'en-tête de vos devis. Les       │
@@ -107,7 +107,13 @@ Elles viennent de `missingLegalMentions` — la même fonction qui garde l'émis
 
 > **Décision.** Les champs sont regroupés en **trois groupes nommés** : *Coordonnées*, *Assurance décennale*, *Conditions de règlement*.
 
-`missingLegalMentions` rend onze clés techniques — `registrationNumber`, `coverageArea`, `quoteValidityDays`… Les afficher telles quelles noierait l'artisan sous une liste qui ressemble à un rapport d'erreurs. Le regroupement vit dans `domain/legal-mentions.ts`, à côté de la liste qu'il regroupe, et **il est partagé avec la liste de premiers pas d'A2** : ce sont les mêmes trois lignes, vues deux fois — annoncées ici, actionnables là-bas. C'est ce qui fait qu'arriver dans l'atelier ne surprend pas.
+**Amendé le 2026-08-11.** Cette section prescrivait `missingMentionGroups` — *Coordonnées · Assurance décennale · Conditions de règlement* — en promettant que ce seraient les lignes retrouvées à l'arrivée. `main` a livré entre-temps [l'accueil artisan](2026-08-10-accueil-artisan-design.md), dont la mise en route en montre trois autres, mieux découpées : chacune mène à un écran (`/mentions`, `/verification`, `/devis/nouveau`) là où les miennes désignaient des groupes de champs à l'intérieur d'un écran.
+
+> **Décision. L'étape 2 annonce les trois étapes de la mise en route, dans leurs mots et leur ordre.**
+
+La continuité est toute la thèse : ce qui est montré ici doit être *exactement* ce qui attend. Deux formulations différentes de part et d'autre du lien magique, et la promesse tombe. C'est donc cet écran qui s'aligne sur l'accueil, jamais l'inverse — voir [A2 §3.1](2026-08-10-a2-arrivee-design.md).
+
+`missingMentionGroups` reste utile là où il a été conçu : il garde l'émission de devis, et l'accueil s'en sert pour marquer l'étape « mentions » comme faite. Ce qui disparaît, c'est son usage comme liste affichée ici.
 
 Le badge RGE n'est **pas** un `SealBadge` : celui-ci exige une activité couverte et une adresse de passeport, dont aucune n'existe à l'inscription. Un `Badge` simple, sans prétention de vérification.
 
@@ -243,7 +249,7 @@ C'est le pari de toute la spec : dire le travail restant **avant** l'engagement 
 
 ## 8. Ce que cette spec ne fait pas
 
-- **La liste de premiers pas dans l'atelier, le mot d'accueil par écran, les états vides qui enseignent** → A2. L'étape 2 ne fait que les annoncer.
+- **Le mot d'accueil par écran, les états vides qui enseignent** → A2. La mise en route, elle, est livrée par l'accueil artisan ; l'étape 2 ne fait que l'annoncer.
 - **L'écran de confirmation après signature** → A2.
 - **Le mot de passe optionnel** → A3. Le jour où il existe, l'étape 3 gagne un lien secondaire, pas un embranchement.
 
