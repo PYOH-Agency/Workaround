@@ -72,8 +72,14 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
     await compagnon.getByRole('button', { name: 'Recevoir le lien' }).click()
     await compagnon.goto(await magicLinkFor(COMPAGNON))
 
-    // Il atterrit dans l'atelier, pas sur le formulaire SIRET de l'inscription.
-    await expect(compagnon).toHaveURL(/\/devis$/)
+    // Il atterrit dans l'espace connecte de l'entreprise, pas sur le
+    // formulaire SIRET de l'inscription. La destination d'un compte avec
+    // entreprise est desormais l'accueil — `resolveDestination` renvoie `/`
+    // pour quiconque a une entreprise, compagnon compris — donc c'est la
+    // navigation de l'atelier, et non plus `/devis`, qui atteste qu'il est
+    // bien arrive chez lui.
+    await expect(compagnon).toHaveURL(/\/$/)
+    await expect(compagnon.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible()
   })
 
   await test.step('l’argent ne lui est ni proposé, ni accessible', async () => {

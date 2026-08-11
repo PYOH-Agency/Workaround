@@ -33,8 +33,10 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
     await page.getByLabel('SIRET').fill(SIRET)
     await page.getByRole('button', { name: 'Continuer' }).click()
 
-    // Raison sociale recuperee sur l'API, pas saisie a la main.
-    await expect(page.getByRole('heading', { name: /GARANCE PLOMBERIE/i })).toBeVisible()
+    // Raison sociale recuperee sur l'API, pas saisie a la main. Elle n'est
+    // plus un titre de `/devis` — ce bloc en a ete retire — mais l'en-tete
+    // applicatif la porte toujours, sur tout ecran connecte.
+    await expect(page.getByText(/GARANCE PLOMBERIE/i)).toBeVisible()
   })
 
   await test.step('les mentions obligatoires sont exigees avant tout devis', async () => {
@@ -57,7 +59,8 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
     await page.getByLabel('Zone géographique couverte').fill('France métropolitaine')
     await page.getByRole('button', { name: 'Enregistrer' }).click()
 
-    await expect(page.getByRole('heading', { name: /GARANCE PLOMBERIE/i })).toBeVisible()
+    // Retour sur `/devis`, ou l'en-tete porte toujours la raison sociale.
+    await expect(page.getByText(/GARANCE PLOMBERIE/i)).toBeVisible()
   })
 
   await test.step('rediger un devis a deux taux de TVA', async () => {
