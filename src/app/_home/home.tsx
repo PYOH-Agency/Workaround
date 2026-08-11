@@ -68,6 +68,8 @@ export async function Home({
         <Onboarding
           legalMentionsDone={legal?.registrationNumber != null}
           certificateDone={certificate !== undefined}
+          canWriteQuote={can(session, 'quote.write')}
+          canManageLegal={can(session, 'legal.write')}
         />
       </AppShell>
     )

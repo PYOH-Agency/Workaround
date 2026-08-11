@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { clearMailbox, magicLinkFor } from './helpers'
-import { signedQuoteFor } from './fixtures'
+import { compagnonOfNewCompany, signedQuoteFor } from './fixtures'
 
 /**
  * Le parcours de l'accueil : la racine sert deux publics.
@@ -51,5 +51,36 @@ test('un artisan connecté voit son accueil, et le logo de l’en-tête y ramèn
 
     await expect(page).toHaveURL(/\/$/)
     await expect(page.getByTestId('money-in-flight')).toHaveText('1 007,00')
+  })
+})
+
+const COMPAGNON = 'compagnon-accueil@test.local'
+
+test('un compagnon d’entreprise neuve voit un accueil sobre, pas trois refus differes', async ({
+  page,
+}) => {
+  await clearMailbox()
+
+  await test.step('connexion par lien magique', async () => {
+    await page.goto('/connexion')
+    await page.getByLabel('E-mail').fill(COMPAGNON)
+    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
+    await page.goto(await magicLinkFor(COMPAGNON))
+  })
+
+  // Entreprise sans mentions, sans attestation, sans devis : le compagnon n'a
+  // aucune des trois capacites — `quote.write`, `legal.write` deux fois —
+  // qu'exige la mise en route en trois etapes.
+  await compagnonOfNewCompany(COMPAGNON)
+
+  await test.step('aucun des trois gestes reserves au patron ne lui est propose', async () => {
+    await page.goto('/')
+
+    await expect(page.getByRole('link', { name: 'Établir un devis' })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'Compléter mes mentions' })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'Déposer mon attestation' })).toHaveCount(0)
+
+    // Mais l'ecran n'est pas nu pour autant : il lui reste un geste reel.
+    await expect(page.getByRole('link', { name: 'Voir l’agenda' })).toBeVisible()
   })
 })
