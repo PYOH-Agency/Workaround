@@ -26,7 +26,7 @@ export function AppHeader({ companyName, access }: { companyName?: string; acces
   return (
     <header className="border-b border-rule bg-card">
       <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3">
-        <Link href="/devis" className="rounded-badge" aria-label="Accueil">
+        <Link href="/" className="rounded-badge" aria-label="Accueil">
           <Lockup size="sm" />
         </Link>
 
