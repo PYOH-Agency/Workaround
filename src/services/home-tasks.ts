@@ -11,8 +11,10 @@ import {
 } from '@/domain/home-queue'
 import { remainingToInvoice } from '@/domain/invoice-balance'
 import { amountDueNow, paymentStatus, type Settlement } from '@/domain/payment-status'
+import { referenceVersion } from '@/domain/quote-versions'
 import { retentionState } from '@/domain/retention'
 import { settlements } from '@/services/invoice-ledger'
+import { quoteChains } from '@/services/quote-chains'
 
 const DAY = 86_400_000
 
@@ -171,8 +173,13 @@ export async function pendingTasks(companyId: string, access: Access, now: Date)
   }
 
   if (can(access, REQUIRED.unbilled_completion)) {
+    /**
+     * La racine, pour savoir QUELS chantiers sont termines — c'est elle qui
+     * porte `completedAt`, quel que soit le nombre d'avenants signes depuis.
+     * `totalInclTax` n'est en revanche pas exploite ici : voir plus bas.
+     */
     const completed = await db
-      .select({ id: quote.id, number: quote.number, totalInclTax: quote.totalInclTax, completedAt: quote.completedAt })
+      .select({ id: quote.id, number: quote.number, completedAt: quote.completedAt })
       .from(quote)
       .where(
         and(
@@ -183,11 +190,24 @@ export async function pendingTasks(companyId: string, access: Access, now: Date)
         ),
       )
 
+    const chains = await quoteChains(companyId)
+
     for (const root of completed) {
+      /**
+       * Le dernier avenant SIGNE fait foi, exactement comme `moneyInFlight` —
+       * meme bug deja corrige la-bas au commit 5213be7. Un avenant remplace le
+       * total precedent, il ne s'y ajoute pas : prendre `root.totalInclTax`
+       * sous-estimerait le reste a facturer de tout ce qu'un avenant a ajoute.
+       */
+      const versions = chains.get(root.id) ?? []
+      const engaged = referenceVersion(versions)?.totalInclTax
+      if (engaged === undefined) continue
+
+      const chain = new Set(versions.map((version) => version.id))
       const issued = rows
-        .filter((row) => row.quoteId === root.id)
+        .filter((row) => row.quoteId !== null && chain.has(row.quoteId))
         .map((row) => ({ type: row.type, totalInclTax: row.totalInclTax }))
-      const remaining = remainingToInvoice(root.totalInclTax, issued)
+      const remaining = remainingToInvoice(engaged, issued)
       const completedAt = root.completedAt!
 
       if (!completionIsUnbilled({ completedAt, remaining }, now)) continue
