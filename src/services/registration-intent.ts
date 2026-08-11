@@ -11,6 +11,20 @@ import { normalizeEmail } from '@/domain/requester'
  */
 const RETENTION_MS = 24 * 60 * 60 * 1000
 
+/**
+ * La tolerance accordee a l'ecart entre deux horloges.
+ *
+ * `registration_intent.created_at` est datee par l'application, `user.created_at`
+ * par Supabase. En local c'est la meme machine ; en production ce sont deux
+ * hotes, et si celui de Supabase retarde un peu, une inscription parfaitement
+ * legitime verrait son intention rejetee — l'artisan atterrirait sur la porte
+ * sans son SIRET, sans rien pour l'expliquer.
+ *
+ * Une minute ne coute rien a la garde : l'attaque qu'elle ferme se joue sur des
+ * comptes nes des jours plus tot, jamais a la seconde pres.
+ */
+const CLOCK_SKEW_MS = 60 * 1000
+
 export interface Intent {
   kind: 'company' | 'requester'
   siret: string | null
@@ -100,7 +114,7 @@ export async function consumeIntent(
       and(
         eq(registrationIntent.email, email),
         gte(registrationIntent.createdAt, new Date(now.getTime() - RETENTION_MS)),
-        lte(registrationIntent.createdAt, accountCreatedAt),
+        lte(registrationIntent.createdAt, new Date(accountCreatedAt.getTime() + CLOCK_SKEW_MS)),
       ),
     )
     .returning()

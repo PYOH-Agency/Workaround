@@ -83,6 +83,21 @@ describe('l intention d inscription', () => {
     expect((await consumeIntent(email, born, NOW))?.name).toBe('Paul')
   })
 
+  it('tolere que les deux horloges ne soient pas d accord a la seconde', async () => {
+    // L'intention est datee par l'application, le compte par Supabase : deux
+    // hotes en production. Si celui de Supabase retarde de quelques secondes,
+    // l'intention parait ecrite APRES le compte alors que le parcours etait
+    // parfaitement legitime — et l'artisan atterrirait sans son SIRET.
+    //
+    // La tolerance ne rouvre pas l'attaque, qui se joue sur des comptes nes des
+    // jours plus tot. Ce test existe pour qu'on ne la « simplifie » pas.
+    const email = someEmail()
+    await recordIntent({ email, kind: 'company', siret: '44444444444444', now: NOW })
+
+    const bornSlightlyEarlier = new Date(NOW.getTime() - 10 * 1000)
+    expect((await consumeIntent(email, bornSlightlyEarlier, NOW))?.siret).toBe('44444444444444')
+  })
+
   it('la reinscription ecrase la precedente', async () => {
     // Il s est trompe de SIRET et recommence : c est le dernier geste qui vaut.
     const email = someEmail()
