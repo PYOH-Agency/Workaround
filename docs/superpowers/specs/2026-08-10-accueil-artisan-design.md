@@ -95,7 +95,9 @@ La retenue de garantie est exclue du retard, comme `payment-status` l'impose dé
 
 **Le tri se fait par nature, puis par ancienneté** — pas par date seule. Une facture échue depuis quatre jours passerait sinon devant une attestation qui expire dans trois semaines, alors que les deux ne coûtent pas la même chose : la seconde coupe la visibilité publique du passeport. L'ordre des natures est celui du tableau ci-dessus.
 
-**Aucune troncature muette.** Au-delà de huit lignes, la file annonce le reste (« et 5 autres ») et le lien mène à l'écran concerné.
+**Aucune troncature muette.** Au-delà de huit lignes, la file annonce le reste — « et 5 autres ». Sans lien : le débord mêle plusieurs natures, et aucun écran ne les réunit. Un lien qui mènerait à l'un des quatre serait un choix arbitraire déguisé en évidence.
+
+**La bande garde son en-tête même vide.** Une file vide n'est pas une bande sans contenu : elle dit une bonne nouvelle — rien ne presse — et elle porte l'action permanente. La masquer entièrement ferait disparaître « Établir un devis » précisément pour l'artisan à jour, c'est-à-dire au moment où il a le plus de temps pour établir un devis.
 
 **Cette file ne relance personne.** Elle propose un geste ; l'envoi reste un acte de l'artisan. La règle du domaine — *« un seul rappel, aucune relance »* ([`reminder.ts`](../../../src/domain/reminder.ts)) — porte sur ce que **nous** envoyons au particulier, et elle n'est pas entamée.
 
