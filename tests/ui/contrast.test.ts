@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { roles, THEME_INDEPENDENT, type RoleName, type Theme } from '@/ui/tokens'
+import { hatch, roles, THEME_INDEPENDENT, type RoleName, type Theme } from '@/ui/tokens'
 
 /** Luminance relative WCAG 2.1. */
 function luminance(hex: string): number {
@@ -136,6 +136,59 @@ describe('les roles auto-suffisants ne dependent pas du theme', () => {
   for (const name of THEME_INDEPENDENT) {
     it(`${name} est identique en clair et en sombre`, () => {
       expect(roles.light[name]).toBe(roles.dark[name])
+    })
+  }
+})
+
+/** Composante r/g/b d'une couleur `#RRGGBB`. */
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '')
+  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)) as [number, number, number]
+}
+
+/** Decompose une chaine `rgba(r,g,b,a)` telle qu'ecrite dans `tokens.css`. */
+function parseRgba(value: string): { rgb: [number, number, number]; alpha: number } {
+  const match = /^rgba\((\d+),(\d+),(\d+),([\d.]+)\)$/.exec(value.replace(/\s+/g, ''))
+  if (!match) throw new Error(`rgba invalide : ${value}`)
+  const [, r, g, b, a] = match
+  return { rgb: [Number(r), Number(g), Number(b)], alpha: Number(a) }
+}
+
+/**
+ * Compose une couleur semi-transparente sur un fond opaque (alpha blending
+ * standard). C'est ce que l'oeil voit : la rayure hachuree n'est jamais
+ * peinte seule, elle est toujours superposee a `--dq-danger`.
+ */
+function compositeOver(fg: string, bgHex: string): string {
+  const { rgb, alpha } = parseRgba(fg)
+  const bg = hexToRgb(bgHex)
+  const blended = rgb.map((c, i) => Math.round(c * alpha + bg[i] * (1 - alpha)))
+  return `#${blended.map((c) => c.toString(16).padStart(2, '0')).join('')}`
+}
+
+/**
+ * Le hachurage du segment "en retard" (spec accueil artisan §4) est un objet
+ * graphique porteur d'information au sens WCAG 1.4.11 : sans lui, le retard
+ * ne serait plus dit que par la couleur. Le seuil est donc 3:1, pas 4.5:1, et
+ * se mesure entre la rayure composee sur `danger` et `danger` lui-meme —
+ * jamais entre `hatch` et une surface, puisque la rayure ne se peint que sur
+ * ce rouge.
+ *
+ * Absent de `CHECKS` ci-dessus a dessein : `hatch` n'est pas dans `roles`
+ * (voir tokens.ts), et ce calcul compose deux valeurs plutot que d'en lire
+ * deux directement.
+ */
+describe('la rayure hachuree du retard reste lisible sur son propre fond', () => {
+  const MIN = 3
+  for (const theme of THEMES) {
+    it(`${theme} : hachure composee sur danger >= ${MIN}:1`, () => {
+      const danger = roles[theme].danger
+      const composed = compositeOver(hatch[theme], danger)
+      const value = contrast(composed, danger)
+      expect(
+        value,
+        `${composed} (hachure composee) sur ${danger} = ${value.toFixed(2)}:1`,
+      ).toBeGreaterThanOrEqual(MIN)
     })
   }
 })
