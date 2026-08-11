@@ -21,7 +21,7 @@ export async function signUp(_state: SignUpState, form: FormData): Promise<SignU
   if (!user) return { error: 'Session expirée. Reconnectez-vous.' }
 
   const alreadyMember = await db.query.member.findFirst({ where: eq(member.userId, user.id) })
-  if (alreadyMember) redirect('/devis')
+  if (alreadyMember) redirect('/')
 
   let establishment
   try {
@@ -77,5 +77,5 @@ export async function signUp(_state: SignUpState, form: FormData): Promise<SignU
     payload: { siret: created.siret, rge: establishment.rge },
   })
 
-  redirect('/devis')
+  redirect('/')
 }

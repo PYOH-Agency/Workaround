@@ -40,7 +40,10 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
   })
 
   await test.step('les mentions obligatoires sont exigees avant tout devis', async () => {
-    await page.getByRole('link', { name: 'Créer un devis' }).click()
+    // L'inscription atterrit desormais sur l'accueil (`/`) et non plus sur
+    // `/devis` : sans aucun devis encore, c'est la mise en route en trois
+    // etapes qui s'affiche, avec son propre bouton « Établir un devis ».
+    await page.getByRole('link', { name: 'Établir un devis' }).click()
 
     // Redirection : sans elles, un devis exposerait l'artisan a une amende.
     await expect(page.getByRole('heading', { name: /Mentions de vos devis/i })).toBeVisible()
