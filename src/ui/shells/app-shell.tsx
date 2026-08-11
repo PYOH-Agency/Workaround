@@ -14,11 +14,16 @@ export function AppShell({
 }: {
   companyName?: string
   /**
-   * Ce que cette personne peut. Facultatif : les ecrans du backoffice n'ont
-   * aucune appartenance artisanale, et la navigation ne leur propose alors que
-   * ce qui n'exige rien.
+   * Ce que cette personne peut. Exige, et c'est le sens de ce gabarit : il ne
+   * sert plus que des ecrans d'artisan, ou l'appartenance est toujours connue.
+   *
+   * Facultatif tant que le backoffice le partageait — la navigation se repliait
+   * alors sur ce qui n'exige rien. `AdminShell` a repris ces ecrans, et le repli
+   * n'avait plus d'appelant : le rendre obligatoire ferme la porte a un ecran
+   * d'artisan qui oublierait de le transmettre et perdrait la moitie de sa
+   * navigation sans que rien ne le signale.
    */
-  access?: Access
+  access: Access
   children: React.ReactNode
 }) {
   return (

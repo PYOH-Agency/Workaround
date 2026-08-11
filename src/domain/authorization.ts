@@ -93,13 +93,15 @@ export function denial(access: Access, capability: Capability): Denial | null {
 }
 
 /**
- * La forme qui sert a l'affichage.
+ * La forme qui sert a l'affichage : la meme question qu'`assertCan`, en booleen,
+ * pour ce qui masque une entree au lieu de la refuser une fois cliquee.
  *
- * `undefined` refuse tout : les ecrans du backoffice n'ont aucune appartenance
- * artisanale, et leur proposer la navigation d'un patron serait un defaut.
+ * A tolere `undefined` tant que le backoffice partageait l'en-tete de
+ * l'artisan ; il a desormais `AdminShell`, et plus aucun appelant n'ignore a
+ * qui il demande.
  */
-export function can(access: Access | undefined, capability: Capability): boolean {
-  return access !== undefined && denial(access, capability) === null
+export function can(access: Access, capability: Capability): boolean {
+  return denial(access, capability) === null
 }
 
 /** La forme qui garde. Leve une `AccessError` porteuse de sa raison. */

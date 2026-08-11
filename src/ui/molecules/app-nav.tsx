@@ -30,7 +30,7 @@ import { isCurrent, showsNav, visibleGroups } from './app-nav-routes'
  * Passage a la ligne plutot qu'un menu : l'artisan est sur un chantier, une
  * main prise. Un menu cache exactement ce que ce composant existe pour montrer.
  */
-export function AppNav({ access }: { access?: Access }) {
+export function AppNav({ access }: { access: Access }) {
   const pathname = usePathname()
   if (!showsNav(pathname)) return null
 

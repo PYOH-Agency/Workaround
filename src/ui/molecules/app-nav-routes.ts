@@ -69,11 +69,10 @@ export const navGroups: NavGroup[] = [
  * Un groupe dont toutes les entrees tombent disparait : une etiquette de
  * groupe annoncee sur une liste vide est un bruit pour le lecteur d'ecran.
  *
- * Sans `access` — le backoffice, ou toute page qui ne le transmet pas —, seules
- * les entrees sans exigence subsistent. C'est volontairement le repli le plus
- * pauvre : mieux vaut un lien manquant qu'un lien qui refuse.
+ * `access` est toujours connu : cette navigation ne sert que des ecrans
+ * d'artisan, et le backoffice a sa propre coquille depuis `AdminShell`.
  */
-export function visibleGroups(access: Access | undefined): NavGroup[] {
+export function visibleGroups(access: Access): NavGroup[] {
   return navGroups
     .map((group) => ({
       ...group,

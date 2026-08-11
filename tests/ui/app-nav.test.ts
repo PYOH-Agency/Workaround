@@ -5,7 +5,7 @@ import { isCurrent, navGroups, showsNav, visibleGroups } from '@/ui/molecules/ap
 /** Tous les liens de la barre, dans l'ordre d'affichage. */
 const hrefs = navGroups.flatMap((group) => group.entries.map((entry) => entry.href))
 
-const linksFor = (access: Access | undefined) =>
+const linksFor = (access: Access) =>
   visibleGroups(access).flatMap((group) => group.entries.map((entry) => entry.href))
 
 const PATRON: Access = { plan: 'free', role: 'owner' }
@@ -82,11 +82,6 @@ describe('ce que la navigation propose', () => {
     // Une etiquette de groupe annoncee sur une liste vide est un bruit pour le
     // lecteur d'ecran.
     expect(visibleGroups(COMPAGNON).map((group) => group.label)).toEqual(['Suivi quotidien'])
-  })
-
-  it('se replie au plus pauvre sans accès connu', () => {
-    // Le backoffice partage cet en-tete et n'a aucune appartenance artisanale.
-    expect(linksFor(undefined)).toEqual(['/devis', '/agenda'])
   })
 })
 
