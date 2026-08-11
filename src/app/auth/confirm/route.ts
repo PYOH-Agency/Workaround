@@ -6,7 +6,7 @@ import { member, signature, staff } from '@/db/schema'
 import { resolveDestination } from '@/domain/requester'
 import { claimInvitation } from '@/services/membership'
 import { consumeIntent } from '@/services/registration-intent'
-import { createCompanyFor, RegistrationError } from '@/services/registration'
+import { createCompanyFor } from '@/services/registration'
 import { claimRequester, requesterFromSignUp } from '@/services/requesters'
 import { createServerSupabase } from '@/lib/supabase-server'
 
@@ -45,17 +45,27 @@ export async function GET(request: Request) {
   if (intent?.kind === 'company' && intent.siret) {
     try {
       await createCompanyFor(user.id, user.email, intent.siret)
-    } catch (e) {
-      // Etablissement cesse entre la saisie et l'ouverture du courriel, ou
-      // entreprise inscrite entre-temps par quelqu'un d'autre. Le compte
-      // existe : on le renvoie sur la porte, qui redira pourquoi.
-      if (!(e instanceof RegistrationError)) throw e
+    } catch {
+      // Etablissement cesse entre la saisie et l'ouverture du courriel,
+      // entreprise inscrite entre-temps par quelqu'un d'autre — **ou annuaire
+      // data.gouv injoignable** : `createCompanyFor` rappelle l'API, et une
+      // panne reseau n'est pas une `RegistrationError`. La relancer rendait un
+      // 500 alors que l'intention venait d'etre consommee et que le lien
+      // magique est a usage unique : le SIRET etait perdu pour de bon.
+      //
+      // Le compte, lui, existe et la session est ouverte. On le renvoie sur la
+      // porte, qui redira pourquoi, et dont la branche `signedIn` recree
+      // l'entreprise sans second aller-retour par la boite mail.
       redirect('/creer-mon-entreprise?erreur=indisponible')
     }
   }
 
   if (intent?.kind === 'requester' && intent.name) {
-    await requesterFromSignUp({ email: user.email, name: intent.name })
+    // Hors du chemin critique, pour la meme raison que `claimRequester` plus
+    // bas : la session est deja etablie, et rien ne se rejoue en refusant de
+    // s'en servir. Le repli de `resolveDestination` mene a une porte qui
+    // explique ce qu'elle est, la ou une exception rendait un 500 nu.
+    await requesterFromSignUp({ email: user.email, name: intent.name }).catch(() => null)
   }
 
   // La connexion est aussi le moment ou une invitation rencontre enfin un
