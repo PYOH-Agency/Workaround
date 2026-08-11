@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import type { MentionGroup } from '@/domain/legal-mentions'
 import type { Establishment } from '@/services/company-lookup'
+import { Notice } from '@/ui/molecules/notice'
 import { PublicShell } from '@/ui/shells/public-shell'
 import { ConfirmStep } from './ConfirmStep'
 import { EmailStep } from './EmailStep'
@@ -21,6 +23,28 @@ import { createCompanyNow, recordCompanyIntent } from './actions'
  * l'adresse ne doit pas couter le tunnel entier.
  */
 type Stage = 'siret' | 'confirm' | 'email' | 'sent'
+
+/**
+ * Le refus tombe a l'atterrissage, ou plus aucun ecran n'existe pour le porter.
+ *
+ * `/auth/confirm` ne sait que rediriger. Muette, cette redirection ramene
+ * l'artisan a l'etape 1 sans un mot : il retape les memes quatorze chiffres et
+ * se fait refuser une seconde fois, sans jamais apprendre pourquoi.
+ *
+ * Un composant a part, et non une ligne dans la page : `useSearchParams`
+ * interdit le prerendu du sous-arbre qui le lit. Isole, il ne coute que ces
+ * quelques lignes ; lu dans la page, il livrerait un tunnel vide jusqu'a
+ * l'hydratation.
+ */
+function Unavailable() {
+  if (useSearchParams().get('erreur') !== 'indisponible') return null
+
+  return (
+    <Notice tone="danger" alert>
+      Cet établissement n’est plus disponible. Vérifiez le SIRET.
+    </Notice>
+  )
+}
 
 export default function SignUpCompanyPage() {
   const [stage, setStage] = useState<Stage>('siret')
@@ -69,6 +93,12 @@ export default function SignUpCompanyPage() {
 
   return (
     <PublicShell variant="plain">
+      {stage === 'siret' && (
+        <Suspense>
+          <Unavailable />
+        </Suspense>
+      )}
+
       {stage === 'siret' && (
         <SiretStep
           initialSiret={found?.siret ?? ''}

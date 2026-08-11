@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { Button } from '@/ui/atoms/button'
 import { Heading } from '@/ui/atoms/heading'
@@ -9,8 +10,31 @@ import { Input } from '@/ui/atoms/input'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
+import { Notice } from '@/ui/molecules/notice'
 import { PublicShell } from '@/ui/shells/public-shell'
 import { invitationPending } from './actions'
+
+/**
+ * Le seul endroit ou le refus de `/auth/confirm` peut se dire.
+ *
+ * La route redirige, elle n'a pas d'ecran a elle. Sans ce message, un lien
+ * expire ramene sur un formulaire muet, que l'on croit alors en panne — et on
+ * reclique le meme lien mort au lieu d'en demander un neuf.
+ *
+ * Un composant a part, et non une ligne dans la page : `useSearchParams`
+ * interdit le prerendu du sous-arbre qui le lit. Isole, il ne coute que ces
+ * quelques lignes ; lu dans la page, il livrerait un ecran de connexion vide
+ * jusqu'a l'hydratation.
+ */
+function Refusal() {
+  if (useSearchParams().get('erreur') !== 'lien_invalide') return null
+
+  return (
+    <Notice tone="danger" alert>
+      Ce lien n’est plus valable. Demandez-en un nouveau.
+    </Notice>
+  )
+}
 
 /**
  * Connexion par lien magique, sans mot de passe.
@@ -92,6 +116,10 @@ export default function SignInPage() {
         </div>
       ) : (
         <form onSubmit={submit} className="flex flex-col gap-5">
+          <Suspense>
+            <Refusal />
+          </Suspense>
+
           <Field label="E-mail" required>
             {(p) => (
               <Input
@@ -105,12 +133,9 @@ export default function SignInPage() {
           </Field>
 
           {error && (
-            <div
-              role="alert"
-              className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
-            >
+            <Notice tone="danger" alert>
               {error}
-            </div>
+            </Notice>
           )}
 
           <Button type="submit" size="lg">
