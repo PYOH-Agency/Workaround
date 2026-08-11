@@ -148,8 +148,15 @@ export async function companyWithActivities(email: string, codes: string[]) {
   const { db, schema } = await load()
   const userId = await userIdFor(email)
 
-  const siren = String(500000000 + Math.floor(Number(userId.replace(/\D/g, '').slice(0, 6)) % 99999))
-  const siret = `${siren}00019`
+  /*
+    Tire au sort, et non derive de l'`userId` sur 99 999 valeurs comme avant.
+    `agenda` et `verification` appellent tous deux cette fonction, Playwright
+    les execute en parallele, et les identifiants changent a chaque passe : la
+    collision etait une loterie rejouee a chaque lancement, qui se manifestait
+    en `duplicate key company_siret_unique` sur un parcours different a chaque
+    fois. Aucun appelant ne lit ce SIRET — seul `slug` leur sert.
+  */
+  const siret = randomUUID().replace(/\D/g, '').padEnd(14, '0').slice(0, 14)
 
   const [row] = await db
     .insert(schema.company)
@@ -179,7 +186,9 @@ export async function companyWithActivities(email: string, codes: string[]) {
     .insert(schema.companyActivity)
     .values(codes.map((activityCode) => ({ companyId: row.id, activityCode })))
 
-  const slug = `${row.legalName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${siren}`
+  // Le SIREN est les neuf premiers chiffres du SIRET : le slug reste construit
+  // comme la production le construit, sans qu'un second tirage le fasse diverger.
+  const slug = `${row.legalName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${siret.slice(0, 9)}`
   return { id: row.id, siret, slug }
 }
 

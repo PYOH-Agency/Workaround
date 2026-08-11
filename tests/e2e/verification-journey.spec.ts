@@ -167,12 +167,18 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
     await reviewer.goto('/supervision')
     await expect(reviewer.getByRole('heading', { name: 'Supervision' })).toBeVisible()
 
-    // Le backoffice partage `AppShell`, donc l'en-tete. Les liens « Devis » ou
-    // « Passeport » n'y ont rien a faire : ils menent a l'entreprise du
-    // relecteur, pas a celle qu'il examine.
-    await expect(
-      reviewer.getByRole('navigation', { name: 'Navigation principale' }),
-    ).toHaveCount(0)
+    // L'assertion a change de forme, pas d'intention. Elle exigeait AUCUNE
+    // navigation, du temps ou le backoffice partageait `AppShell` et n'avait
+    // que celle de l'artisan a se voir retirer. Il a la sienne depuis
+    // `AdminShell` : ce qu'il faut verifier n'est plus son absence, c'est que
+    // les liens « Devis » ou « Passeport » n'y figurent pas — ils menent a
+    // l'entreprise du relecteur, pas a celle qu'il examine.
+    const nav = reviewer.getByRole('navigation', { name: 'Navigation principale' })
+
+    await expect(nav.getByRole('link', { name: 'Supervision' })).toBeVisible()
+    await expect(nav.getByRole('link', { name: 'Attestations' })).toBeVisible()
+    await expect(nav.getByRole('link', { name: 'Devis' })).toHaveCount(0)
+    await expect(nav.getByRole('link', { name: 'Passeport' })).toHaveCount(0)
   })
 
   await test.step('un artisan n’accède pas à la supervision', async () => {
