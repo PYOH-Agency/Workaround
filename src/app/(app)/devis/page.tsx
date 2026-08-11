@@ -4,10 +4,9 @@ import { db } from '@/db/client'
 import { company, project, quote } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
 import { ButtonLink } from '@/ui/atoms/button-link'
-import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
-import { Text } from '@/ui/atoms/text'
 import { EmptyState } from '@/ui/molecules/empty-state'
+import { PageHeader } from '@/ui/molecules/page-header'
 import { QuoteTable } from '@/ui/organisms/quote-table'
 import { AppShell } from '@/ui/shells/app-shell'
 
@@ -22,7 +21,10 @@ export default async function QuotesPage() {
     throw e
   }
 
-  const [myCompany] = await db.select().from(company).where(eq(company.id, session.companyId))
+  const [myCompany] = await db
+    .select({ legalName: company.legalName })
+    .from(company)
+    .where(eq(company.id, session.companyId))
 
   const quotes = await db
     .select({
@@ -41,31 +43,24 @@ export default async function QuotesPage() {
 
   return (
     <AppShell access={session} companyName={myCompany.legalName}>
-      <div className="flex flex-col gap-1">
-        <Heading level={1}>{myCompany.legalName}</Heading>
-        <Text size="sm" tone="muted">
-          SIRET {myCompany.siret} · {myCompany.city}
-        </Text>
-      </div>
-
-      <section className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Heading level={3} as="h2">
-            Vos devis
-          </Heading>
-          {/*
-            Un seul appel a l'action par ecran. Quand la liste est vide, c'est
-            l'etat vide qui le porte — deux boutons identiques cote a cote
-            diluent l'action et violent le mode strict des selecteurs de test.
-          */}
-          {quotes.length > 0 && (
+      {/*
+        Un seul appel a l'action par ecran. Quand la liste est vide, c'est
+        l'etat vide qui le porte — deux boutons identiques cote a cote
+        diluent l'action et violent le mode strict des selecteurs de test.
+      */}
+      <PageHeader
+        title="Vos devis"
+        actions={
+          quotes.length > 0 ? (
             <ButtonLink href="/devis/nouveau">
               <Icon name="plus" size="sm" />
               Créer un devis
             </ButtonLink>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
 
+      <section className="flex flex-col gap-4">
         {quotes.length === 0 ? (
           <EmptyState
             title="Aucun devis pour l’instant"
