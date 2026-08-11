@@ -8,6 +8,7 @@ import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
 import { Input } from '@/ui/atoms/input'
 import { Link } from '@/ui/atoms/link'
+import { Separator } from '@/ui/atoms/separator'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
 import { Notice } from '@/ui/molecules/notice'
@@ -141,10 +142,15 @@ export default function SignInPage() {
         </form>
       )}
 
-      <div className="flex flex-col gap-2 border-t border-rule pt-5">
-        <Text size="sm" tone="muted">
-          Pas encore de compte ?
-        </Text>
+      <Separator />
+
+      {/*
+        Les sorties nomment le public, sans preambule — decision §3.6 de la spec
+        des ecrans. « Pas encore de compte ? » demande de se ranger dans une
+        categorie avant de l'avoir nommee, et c'est ici le seul ecran que les
+        trois publics partagent : il doit les trier sans les juger.
+      */}
+      <div className="flex flex-col gap-2">
         <Link href="/creer-mon-entreprise">Vous êtes artisan : créez votre entreprise</Link>
         <Link href="/creer-mon-compte">Vous êtes particulier : créez votre compte</Link>
       </div>
