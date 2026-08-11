@@ -33,6 +33,17 @@ async function signFor(companyId: string, projectId: string, requesterId: string
 }
 
 /**
+ * L'adresse du collecteur vient de l'environnement, jamais du code.
+ *
+ * Un worktree qui s'est donne sa propre pile a des ports decales, et
+ * `scripts/worktree-supabase.mjs` ecrit alors `MAILBOX_URL` dans `.env.test`.
+ * Ecrite en dur, l'adresse interrogeait la pile du voisin — ou personne — et le
+ * test echouait sur `ECONNREFUSED` en designant le code alors que le defaut
+ * etait dans le test. Ses deux voisins font deja ainsi.
+ */
+const MAILBOX = process.env.MAILBOX_URL ?? 'http://127.0.0.1:54324'
+
+/**
  * Un message du collecteur porte-t-il ce texte ?
  *
  * **Un temoin unique, jamais un compteur.** Compter la boite avant et apres ne
@@ -42,7 +53,7 @@ async function signFor(companyId: string, projectId: string, requesterId: string
  * ambigu.
  */
 async function mailboxMentions(needle: string): Promise<boolean> {
-  const response = await fetch('http://127.0.0.1:54324/api/v1/messages?limit=100')
+  const response = await fetch(`${MAILBOX}/api/v1/messages?limit=100`)
   const { messages = [] } = (await response.json()) as {
     messages?: { Subject: string; To: { Address: string }[] }[]
   }
