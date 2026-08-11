@@ -41,22 +41,44 @@ export function MoneyFlow({
   totalInclTax,
   caption,
   segments,
+  context,
 }: {
   totalInclTax: Cents
   caption: string
   segments: MoneySegment[]
+  /**
+   * Un repere, pas un resultat.
+   *
+   * L'encaisse sur 12 mois sort de la barre : a l'echelle reelle il occupe les
+   * trois quarts de la largeur et ecrase les deux segments qui appellent un
+   * geste. Il reste ici, a droite du total et nettement plus discret que lui.
+   */
+  context?: { amountInclTax: Cents; caption: string }
 }) {
   const total = segments.reduce((sum, segment) => sum + segment.amountInclTax, 0)
 
   return (
     <section className="flex flex-col gap-8">
-      <div>
-        <Heading level="display" as="p">
-          <Money cents={totalInclTax} emphasis="strong" testId="money-in-flight" />
-        </Heading>
-        <Text size="sm" tone="muted" as="p">
-          {caption}
-        </Text>
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div>
+          <Heading level="display" as="p">
+            <Money cents={totalInclTax} emphasis="strong" testId="money-in-flight" />
+          </Heading>
+          <Text size="sm" tone="muted" as="p">
+            {caption}
+          </Text>
+        </div>
+
+        {context ? (
+          <div className="text-right">
+            <Text size="sm" as="p">
+              <Money cents={context.amountInclTax} />
+            </Text>
+            <Text size="sm" tone="muted" as="p">
+              {context.caption}
+            </Text>
+          </div>
+        ) : null}
       </div>
 
       {total === 0 ? null : (

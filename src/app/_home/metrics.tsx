@@ -12,7 +12,7 @@ export interface Metric {
  * Deux bandes, jamais une.
  *
  * Deux de ces chiffres figurent sur la fiche que les clients consultent, deux
- * non. Les mélanger ferait passer une mesure interne pour une mesure publique.
+ * non. Les melanger ferait passer une mesure interne pour une mesure publique.
  */
 export function Metrics({
   title,

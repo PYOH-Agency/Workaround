@@ -13,13 +13,13 @@ export interface Slot {
 /**
  * Deux jours, pas la semaine.
  *
- * Au-delà ce n'est plus une urgence mais une consultation, et l'agenda existe
- * pour ça. Une journée vide le dit — un écran muet laisse croire à une panne.
+ * Au-dela ce n'est plus une urgence mais une consultation, et l'agenda existe
+ * pour ca. Une journee vide le dit — un ecran muet laisse croire a une panne.
  *
- * `Heading` ne connaît que les niveaux `hero`, `display`, `1`, `2`, `3` : il
+ * `Heading` ne connait que les niveaux `hero`, `display`, `1`, `2`, `3` : il
  * n'y a pas de palier plus petit que `3` pour distinguer visuellement
- * « Demain » d'« Aujourd'hui ». Les deux partagent donc le même niveau
- * d'apparence ; c'est la balise (`h2` puis `h3`) qui porte la hiérarchie.
+ * « Demain » d'« Aujourd'hui ». Les deux partagent donc le meme niveau
+ * d'apparence ; c'est la balise (`h2` puis `h3`) qui porte la hierarchie.
  */
 export function Today({ today, tomorrow }: { today: Slot[]; tomorrow: Slot[] }) {
   return (

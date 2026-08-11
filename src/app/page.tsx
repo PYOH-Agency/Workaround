@@ -25,20 +25,20 @@ export const metadata: Metadata = {
  * La racine sert les deux publics.
  *
  * L'artisan membre d'une entreprise y voit son accueil ; tout autre visiteur y
- * voit la landing, inchangée. Le coût est réel — la racine passe en rendu
+ * voit la landing, inchangee. Le cout est reel — la racine passe en rendu
  * dynamique — et il est faible : la landing est faite de huit composants sans
- * aucun accès aux données, et rien de ce qui compte pour le référencement ne
- * change. Un artisan connecté ne doit jamais retomber sur l'argumentaire qui
+ * aucun acces aux donnees, et rien de ce qui compte pour le referencement ne
+ * change. Un artisan connecte ne doit jamais retomber sur l'argumentaire qui
  * lui a vendu le produit.
  *
  * `Steps` passe devant `Mentions` : on montre d'abord ce que l'outil fait, on
- * dit ensuite ce qu'il évite.
+ * dit ensuite ce qu'il evite.
  */
 export default async function RootPage() {
-  // `currentCompany` lève `SessionError` pour les DEUX rejets — session
-  // absente ou compte sans entreprise. Ici les deux mènent au même endroit :
+  // `currentCompany` leve `SessionError` pour les DEUX rejets — session
+  // absente ou compte sans entreprise. Ici les deux menent au meme endroit :
   // la landing. Aucune redirection : un visiteur anonyme sur `/` est chez lui.
-  // Seule `SessionError` est avalée : une panne réelle (base injoignable,
+  // Seule `SessionError` est avalee : une panne reelle (base injoignable,
   // etc.) doit remonter comme partout ailleurs, pas se travestir en visite
   // anonyme.
   let session

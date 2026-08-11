@@ -6,11 +6,11 @@ import { StepCard } from '@/ui/molecules/step-card'
 /**
  * L'accueil tant qu'aucun devis n'existe.
  *
- * Un accueil complet servi à un nouvel inscrit est un mur de zéros et de
+ * Un accueil complet servi a un nouvel inscrit est un mur de zeros et de
  * bandes vides — le pire premier contact possible avec un outil. La bascule
- * se fait sur l'existence d'un devis et non sur l'achèvement des trois étapes
- * — un artisan qui a établi un devis a compris l'outil, même s'il n'a pas
- * déposé son attestation : elle reviendra d'elle-même dans la file.
+ * se fait sur l'existence d'un devis et non sur l'achevement des trois etapes
+ * — un artisan qui a etabli un devis a compris l'outil, meme s'il n'a pas
+ * depose son attestation : elle reviendra d'elle-meme dans la file.
  */
 export function Onboarding({
   legalMentionsDone,
@@ -18,10 +18,10 @@ export function Onboarding({
 }: {
   legalMentionsDone: boolean
   /**
-   * Le dépôt, pas la validation.
+   * Le depot, pas la validation.
    *
    * Une attestation relue par le backoffice devient publique ; en attendant,
-   * le geste — déposer — est déjà fait, et c'est lui que cette étape décrit.
+   * le geste — deposer — est deja fait, et c'est lui que cette etape decrit.
    */
   certificateDone: boolean
 }) {

@@ -23,7 +23,7 @@ function startOfDay(date: Date): Date {
 
 /**
  * `appointment` ne porte NI libelle NI adresse : il porte un `kind` et un
- * projet. L'agenda compose déjà son intitulé de la même façon — voir
+ * projet. L'agenda compose deja son intitule de la meme facon — voir
  * `services/agenda-feed.ts`, qui joint `project.label`.
  */
 function slotsOf(
@@ -96,7 +96,18 @@ export async function Home({
     )
     .orderBy(appointment.startsAt)
 
-  const tasks = await pendingTasks(session.companyId, session, now)
+  /**
+   * En parallele : les deux requetes sont independantes.
+   *
+   * `moneyInFlight` et `pendingTasks` rechargent chacun `settlements()` pour la
+   * meme entreprise — c'est une duplication assumee, pas un oubli. Deux
+   * requetes de plus sur un seul ecran ne justifient pas de coupler les deux
+   * services pour les eviter.
+   */
+  const [tasks, money] = await Promise.all([
+    pendingTasks(session.companyId, session, now),
+    can(session, 'invoice.issue') ? moneyInFlight(session.companyId, now) : Promise.resolve(null),
+  ])
 
   const aside = can(session, 'agenda.manage') ? (
     <Today
@@ -105,7 +116,6 @@ export async function Home({
     />
   ) : undefined
 
-  const money = can(session, 'invoice.issue') ? await moneyInFlight(session.companyId, now) : null
   const [signed] = await db
     .select({ total: count() })
     .from(quote)
@@ -137,7 +147,7 @@ export async function Home({
   /**
    * `Rate` rend `{ value, volume }`, et `value` vaut `null` sous les dix
    * observations de `MINIMUM_OBSERVATIONS`. On annonce alors ce qui manque,
-   * jamais un taux fabriqué sur trop peu de chantiers.
+   * jamais un taux fabrique sur trop peu de chantiers.
    */
   const rate = (measure: { value: number | null; volume: number }, unit: string) =>
     measure.value === null
@@ -153,7 +163,7 @@ export async function Home({
   return (
     <AppShell access={session} companyName={companyName} aside={aside}>
       {money ? <MoneyBand money={money} signedCount={signed.total} /> : null}
-      {tasks.length > 0 ? <Queue tasks={tasks} /> : null}
+      <Queue tasks={tasks} canWrite={can(session, 'quote.write')} />
 
       <Metrics
         title="Votre mois"
