@@ -59,7 +59,7 @@ export function TaskRow({
         </Text>
       </div>
 
-      <div className="col-start-2 flex items-center gap-4 sm:col-start-3">
+      <div className="col-start-2 flex min-w-0 items-center gap-4 sm:col-start-3">
         {amountInclTax === null ? null : <Money cents={amountInclTax} />}
         <ButtonLink href={href} tone={solid ? 'primary' : 'raised'}>
           {action}

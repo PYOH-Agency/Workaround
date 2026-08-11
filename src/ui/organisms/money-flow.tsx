@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Heading } from '@/ui/atoms/heading'
 import { Money } from '@/ui/atoms/money'
 import { Text } from '@/ui/atoms/text'
-import type { Cents } from '@/domain/money'
+import { format, type Cents } from '@/domain/money'
 
 /**
  * L'argent en cours, d'une seule barre.
@@ -36,6 +36,24 @@ const SWATCH = {
   muted: 'bg-ink-soft/45',
   late: 'bg-danger',
 } as const
+
+/**
+ * Plancher de largeur d'un segment, en px.
+ *
+ * `flexGrow` seul distribue la largeur au prorata du montant : avec des
+ * proportions realistes (99 % en carnet signe, 0,1 % en retard), le segment
+ * en retard se rend a 0,3px — invisible et injoignable, alors que c'est
+ * precisement l'argent qui bloque que le composant existe pour montrer.
+ *
+ * La valeur vaut la hauteur de la barre (`h-[18px]` ci-dessous) : assez pour
+ * rester un carre reconnaissable et cliquable a la souris, pas plus — un
+ * segment de barre n'est pas un bouton, il n'a pas a viser les 44px de cible
+ * tactile du reste du depot. Applique via `min-width`, pas `flex-basis` : le
+ * plancher ne joue que pour les montants qui en ont besoin, les autres
+ * segments se partagent le reste au prorata sans que leurs proportions
+ * relatives ne soient faussees.
+ */
+const MIN_SEGMENT_WIDTH = 18
 
 export function MoneyFlow({
   totalInclTax,
@@ -91,8 +109,13 @@ export function MoneyFlow({
               <Link
                 key={segment.label}
                 href={segment.href}
-                aria-label={segment.label}
-                style={{ flexGrow: segment.amountInclTax }}
+                // Le lien EST le segment : sa largeur porte le montant, mais
+                // elle est inaccessible au lecteur d'ecran. Le nom accessible
+                // doit donc porter les deux — la categorie et la somme —,
+                // sinon "Signe, pas encore facture" s'enonce sans jamais dire
+                // combien.
+                aria-label={`${segment.label} : ${format(segment.amountInclTax)} €`}
+                style={{ flexGrow: segment.amountInclTax, minWidth: MIN_SEGMENT_WIDTH }}
                 className={`rounded-badge ${BAR[segment.fill]}`}
               />
             ),

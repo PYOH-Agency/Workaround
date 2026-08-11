@@ -203,6 +203,20 @@ for (const { file, source } of screens) {
   }
 }
 
+/**
+ * 1 ter. Une couleur en dur ne se glisse pas dans une valeur arbitraire.
+ *
+ * `OFF_TOKEN` ne lit que les ecrans ; les motifs vivent dans le DS, ou
+ * `money-flow.tsx` encode ses hachures. Sans ce controle, y remplacer
+ * `var(--dq-hatch)` par une couleur litterale passerait inapercu.
+ */
+const RAW_COLOR = /-\[[^\]]*(?:#[0-9A-Fa-f]{3,8}\b|\brgba?\([^)]*\))[^\]]*\]/g
+for (const { file, source } of sources.filter((s) => s.file.startsWith('src/'))) {
+  for (const m of source.matchAll(RAW_COLOR)) {
+    violations.push(`${file}:${lineAt(source, m.index)} — couleur en dur dans « ${m[0]} »`)
+  }
+}
+
 // 2. Un composant pose a la racine de src/ui echapperait a tout : la racine ne
 //    porte que tokens, cn et fonts, qui ne contiennent aucun JSX (spec §6.1).
 for (const { file } of sources) {

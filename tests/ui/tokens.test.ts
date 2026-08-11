@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { roles, type Theme } from '@/ui/tokens'
+import { hatch, roles, type Theme } from '@/ui/tokens'
 
 /**
  * Parite entre la source de verite TypeScript et sa projection CSS.
@@ -23,7 +23,8 @@ const css = readFileSync(
  * dans les commentaires de `tokens.css` et dans la variante `dark:`, et un
  * `indexOf` brut lirait le mauvais bloc en silence.
  */
-function readBlock(selector: string): Record<string, string> {
+/** Isole le corps `{ ... }` du bloc designe par `selector`, accolades comprises. */
+function blockBody(selector: string): string {
   const start = css.search(
     new RegExp(`^[ \\t]*${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'm'),
   )
@@ -41,7 +42,11 @@ function readBlock(selector: string): Record<string, string> {
       }
     }
   }
-  const body = css.slice(open, end)
+  return css.slice(open, end)
+}
+
+function readBlock(selector: string): Record<string, string> {
+  const body = blockBody(selector)
   const out: Record<string, string> = {}
   for (const [, name, value] of body.matchAll(
     /--dq-([a-z-]+):\s*(#[0-9A-Fa-f]{6})/g,
@@ -49,6 +54,19 @@ function readBlock(selector: string): Record<string, string> {
     out[name] = value.toUpperCase()
   }
   return out
+}
+
+/**
+ * `--dq-hatch` est un `rgba(...)`, pas un `#RRGGBB` : `readBlock` ne le voit
+ * jamais, puisque son regex n'extrait que des couleurs opaques hexadecimales.
+ * C'etait le second trou signale par la relecture — le premier etant
+ * l'absence de `hatch` dans `roles` (voir tokens.ts).
+ */
+function readHatch(selector: string): string {
+  const body = blockBody(selector)
+  const match = /--dq-hatch:\s*(rgba\([^)]+\))/.exec(body)
+  expect(match, `--dq-hatch absent du bloc "${selector}"`).not.toBeNull()
+  return match![1].replace(/\s+/g, '')
 }
 
 /**
@@ -86,6 +104,24 @@ describe('parite tokens.ts <-> tokens.css', () => {
   it('le bloc clair couvre aussi la racine sans attribut', () => {
     expect(css).toMatch(/^:root,\n\[data-theme='light'\] \{/m)
   })
+})
+
+/**
+ * `hatch` (voir tokens.ts) n'est pas dans `roles` : sans ce bloc, `--dq-hatch`
+ * pourrait diverger entre `tokens.ts` et `tokens.css`, ou entre les deux
+ * blocs sombres eux-memes, sans qu'aucun test ne le remarque — exactement le
+ * second trou signale par la relecture.
+ */
+describe('parite du jeton hatch', () => {
+  it(`clair — ":root," declare la meme valeur que hatch.light`, () => {
+    expect(readHatch(":root,")).toBe(hatch.light)
+  })
+
+  for (const selector of BLOCKS.dark) {
+    it(`sombre — ${selector} declare la meme valeur que hatch.dark`, () => {
+      expect(readHatch(selector)).toBe(hatch.dark)
+    })
+  }
 })
 
 /**
