@@ -63,6 +63,11 @@ export default function SignUpRequesterPage() {
         return
       }
 
+      // Rien a envoyer si elle etait deja connectee : son dossier est cree et
+      // l'action a demande la navigation. On teste le drapeau plutot que de
+      // compter sur le `catch` ci-dessous, qui avalerait ce signal-la.
+      if (!state.sendLink) return
+
       const { error: sendError } = await supabase.auth.signInWithOtp({
         email,
         options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm` },
