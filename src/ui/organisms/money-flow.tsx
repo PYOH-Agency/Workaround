@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Heading } from '@/ui/atoms/heading'
 import { Money } from '@/ui/atoms/money'
 import { Text } from '@/ui/atoms/text'
-import type { Cents } from '@/domain/money'
+import { format, type Cents } from '@/domain/money'
 
 /**
  * L'argent en cours, d'une seule barre.
@@ -109,7 +109,12 @@ export function MoneyFlow({
               <Link
                 key={segment.label}
                 href={segment.href}
-                aria-label={segment.label}
+                // Le lien EST le segment : sa largeur porte le montant, mais
+                // elle est inaccessible au lecteur d'ecran. Le nom accessible
+                // doit donc porter les deux — la categorie et la somme —,
+                // sinon "Signe, pas encore facture" s'enonce sans jamais dire
+                // combien.
+                aria-label={`${segment.label} : ${format(segment.amountInclTax)} €`}
                 style={{ flexGrow: segment.amountInclTax, minWidth: MIN_SEGMENT_WIDTH }}
                 className={`rounded-badge ${BAR[segment.fill]}`}
               />
