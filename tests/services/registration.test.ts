@@ -1,6 +1,9 @@
 import { describe, it, expect, afterAll, vi } from 'vitest'
 import { randomUUID } from 'node:crypto'
-import { connection } from '@/db/client'
+import { eq } from 'drizzle-orm'
+import { db, connection } from '@/db/client'
+import { member } from '@/db/schema'
+import { createCompany } from './invoice-fixtures'
 
 const establishment = {
   siret: '',
@@ -68,6 +71,29 @@ describe('la creation d entreprise', () => {
     const second = await createCompanyFor(userId, 'paul@test.local', someSiret())
 
     expect(second.id).toBe(first.id)
+  })
+
+  it('laisse un compagnon RETIRE creer la sienne', async () => {
+    // `currentCompany` renvoie un membre retire vers l'inscription : le chemin
+    // est reel. Sans resurrection de sa ligne, `member_user_id_unique` sautait
+    // APRES l'insertion de l'entreprise — 500 sans message, entreprise
+    // orpheline, et SIRET plus inscriptible par personne.
+    const userId = randomUUID()
+    const ancienne = await createCompany()
+    await db
+      .insert(member)
+      .values({ companyId: ancienne, userId, email: 'compagnon@test.local', role: 'member' })
+    await db.update(member).set({ removedAt: new Date() }).where(eq(member.userId, userId))
+
+    const siret = someSiret()
+    const created = await createCompanyFor(userId, 'compagnon@test.local', siret)
+
+    expect(created.siret).toBe(siret)
+
+    const [row] = await db.select().from(member).where(eq(member.userId, userId))
+    expect(row.companyId).toBe(created.id)
+    expect(row.role).toBe('owner')
+    expect(row.removedAt).toBeNull()
   })
 
   it('rappelle l API plutot que de croire ce qu on lui passe', async () => {

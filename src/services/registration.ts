@@ -66,12 +66,21 @@ export async function createCompanyFor(userId: string, email: string, siret: str
     })
     .returning()
 
-  await db.insert(member).values({
-    companyId: created.id,
-    userId,
-    email,
-    role: 'owner',
-  })
+  // **Le membre est ressuscite, pas duplique** — meme motif que
+  // `claimInvitation`. Le garde du dessus ne voit que les appartenances
+  // ACTIVES : un compagnon RETIRE le franchit, et `member.user_id` etant
+  // unique, l'insertion sautait APRES la creation de l'entreprise — laissant
+  // une entreprise sans proprietaire et un SIRET que plus personne ne pouvait
+  // inscrire. Retire de son ancienne entreprise, il devient proprietaire de la
+  // sienne : c'est exactement ce que dit `onConflictDoUpdate`. Accessoirement,
+  // deux clics simultanes sur le meme courriel ne s'excluent plus.
+  await db
+    .insert(member)
+    .values({ companyId: created.id, userId, email, role: 'owner' })
+    .onConflictDoUpdate({
+      target: member.userId,
+      set: { companyId: created.id, email, role: 'owner', removedAt: null },
+    })
 
   await recordEvent({
     type: 'company.created',
