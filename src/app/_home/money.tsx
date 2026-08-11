@@ -8,7 +8,7 @@ export function MoneyBand({ money, signedCount }: { money: MoneyInFlight; signed
   return (
     <MoneyFlow
       totalInclTax={total}
-      caption={`signés et pas encore encaissés, sur ${signedCount} chantiers`}
+      caption={`signés et pas encore encaissés, sur ${signedCount} chantier${signedCount > 1 ? 's' : ''}`}
       context={{ amountInclTax: money.cashedLast12Months, caption: 'encaissés sur 12 mois' }}
       segments={[
         {

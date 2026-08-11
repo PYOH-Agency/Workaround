@@ -70,7 +70,10 @@ export function MoneyFlow({
         </div>
 
         {context ? (
-          <div className="text-right">
+          // A gauche tant que le bloc est empile sous le total, a droite des
+          // qu'il se pose a cote : aligne a droite en toutes largeurs, le
+          // montant flottait loin de sa legende sur un telephone.
+          <div className="sm:text-right">
             <Text size="sm" as="p">
               <Money cents={context.amountInclTax} />
             </Text>

@@ -171,7 +171,9 @@ export async function Home({
           {
             label: `Devis établis en ${now.toLocaleDateString('fr-FR', { month: 'long' })}`,
             value: String(issued.total),
-            note: `dont ${signedThisMonth.total} signés`,
+            // Un accord de trop se lit comme une negligence sur un ecran qui
+            // parle d'argent.
+            note: `dont ${signedThisMonth.total} signé${signedThisMonth.total > 1 ? 's' : ''}`,
           },
           {
             label: 'Délai de remise après visite',

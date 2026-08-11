@@ -45,6 +45,19 @@ function daysSince(date: Date, now: Date): number {
 }
 
 /**
+ * Un jour de mois, en francais.
+ *
+ * `toLocaleDateString` rend « 1 septembre ». Le francais ecrit « 1er », et
+ * c'est le seul jour du mois qui prend un ordinal — une date fausse dans un
+ * avertissement d'assurance abime la confiance qu'il demande.
+ */
+function frenchDate(date: Date): string {
+  const day = date.getDate()
+  const month = date.toLocaleDateString('fr-FR', { month: 'long' })
+  return `${day === 1 ? '1er' : day} ${month}`
+}
+
+/**
  * Ce qui appelle un geste, et rien d'autre.
  *
  * Chaque ligne est conditionnee par la capacite du geste qu'elle propose : la
@@ -84,7 +97,7 @@ export async function pendingTasks(companyId: string, access: Access, now: Date)
         id: `certificate-${validUntil.toISOString()}`,
         title:
           left >= 0
-            ? `Votre attestation décennale expire le ${validUntil.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`
+            ? `Votre attestation décennale expire le ${frenchDate(validUntil)}`
             : 'Votre attestation décennale a expiré',
         detail: 'Sans elle, votre page publique cesse d’être visible',
         amountInclTax: null,
