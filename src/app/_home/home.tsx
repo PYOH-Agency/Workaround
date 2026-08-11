@@ -2,7 +2,7 @@ import { and, count, eq, gte, isNull, lt } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { appointment, company, insuranceCertificate, project, quote } from '@/db/schema'
 import { can, type Access } from '@/domain/authorization'
-import { moneyInFlight } from '@/services/home'
+import { monthlyQuoteStats, moneyInFlight } from '@/services/home'
 import { pendingTasks } from '@/services/home-tasks'
 import { companyMetrics } from '@/services/passport-metrics'
 import { companyQuoteLeadTime } from '@/services/quote-lead-time'
@@ -128,15 +128,7 @@ export async function Home({
     )
 
   // Le mois en cours, pour la bande interne.
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const [issued] = await db
-    .select({ total: count() })
-    .from(quote)
-    .where(and(eq(quote.companyId, session.companyId), gte(quote.createdAt, monthStart)))
-  const [signedThisMonth] = await db
-    .select({ total: count() })
-    .from(quote)
-    .where(and(eq(quote.companyId, session.companyId), gte(quote.signedAt, monthStart)))
+  const monthly = await monthlyQuoteStats(session.companyId, now)
 
   const leadTime = await companyQuoteLeadTime(session.companyId, now)
 
@@ -170,10 +162,10 @@ export async function Home({
         metrics={[
           {
             label: `Devis établis en ${now.toLocaleDateString('fr-FR', { month: 'long' })}`,
-            value: String(issued.total),
+            value: String(monthly.issued),
             // Un accord de trop se lit comme une negligence sur un ecran qui
             // parle d'argent.
-            note: `dont ${signedThisMonth.total} signé${signedThisMonth.total > 1 ? 's' : ''}`,
+            note: `dont ${monthly.signed} signé${monthly.signed > 1 ? 's' : ''}`,
           },
           {
             label: 'Délai de remise après visite',

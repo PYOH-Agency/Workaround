@@ -1,6 +1,6 @@
-import { and, eq, gte } from 'drizzle-orm'
+import { and, count, eq, gte, isNull } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { invoice, payment } from '@/db/schema'
+import { invoice, payment, quote } from '@/db/schema'
 import type { Cents } from '@/domain/money'
 import { remainingToInvoice } from '@/domain/invoice-balance'
 import { amountDueNow, paymentStatus, type Settlement } from '@/domain/payment-status'
@@ -100,4 +100,40 @@ export async function moneyInFlight(companyId: string, now: Date): Promise<Money
     overdue,
     cashedLast12Months: cashed.reduce((sum, row) => sum + row.amount, 0),
   }
+}
+
+export interface MonthlyQuoteStats {
+  /** Devis etablis ce mois-ci — racines seulement. */
+  issued: number
+  /** Parmi ceux-la, combien sont signes A CE JOUR. */
+  signed: number
+}
+
+/**
+ * Ce que la bande « Votre mois » annonce avec « dont ».
+ *
+ * **Les deux chiffres portent sur le meme ensemble**, sans quoi le « dont »
+ * affirme un sous-ensemble qui n'existe pas : un devis cree en juillet et
+ * signe en aout n'est établi ni signe « ce mois-ci » au sens de cette bande,
+ * quelle que soit la date de sa signature.
+ *
+ * **Racines seulement** : un avenant est une nouvelle ligne, pas un nouveau
+ * devis etabli — le compter grossirait artificiellement les deux chiffres.
+ */
+export async function monthlyQuoteStats(companyId: string, now: Date): Promise<MonthlyQuoteStats> {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const establishedThisMonth = and(
+    eq(quote.companyId, companyId),
+    gte(quote.createdAt, monthStart),
+    isNull(quote.supersedesQuoteId),
+  )
+
+  const [issued] = await db.select({ total: count() }).from(quote).where(establishedThisMonth)
+
+  const [signed] = await db
+    .select({ total: count() })
+    .from(quote)
+    .where(and(establishedThisMonth, eq(quote.status, 'signed')))
+
+  return { issued: issued.total, signed: signed.total }
 }
