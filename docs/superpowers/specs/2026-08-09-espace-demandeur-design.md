@@ -65,6 +65,16 @@ Sans cette règle, deux effets rédhibitoires : les artisans liraient les prix d
 
 Elle se vérifie par un test qui plante le chantier d'une entreprise tierce sur le même logement et exige qu'il n'apparaisse nulle part côté entreprise.
 
+### 4.0 La navigation — amendement du 10 août 2026
+
+L'espace a été livré **sans navigation**. On n'atteignait le répertoire que par un lien en fin de page des logements, et on n'en revenait que par le retour de l'en-tête d'écran. Deux destinations de premier rang qui ne se voyaient pas l'une l'autre — le défaut qu'`AppNav` avait justement corrigé côté artisan, et qui a été reproduit ici en ne s'y appliquant pas.
+
+> **Décision.** C'est **`AppNav`**, la même que l'atelier, et non une seconde navigation. Elle reçoit désormais ses entrées au lieu de les déduire : ce qu'elle sait faire — marquer la page courante, tenir les 44 px, passer à la ligne — ne dépend pas de qui la regarde ; ce que chacun peut atteindre, si. `AppHeader` calcule les groupes depuis la table des capacités, `SpaceShell` passe les siens.
+
+Deux entrées, un seul groupe : le dossier se consulte quand un chantier bouge, le répertoire quand un problème arrive — aucune fréquence d'usage ne les sépare. Aucune capacité non plus, et c'est structurel : le demandeur n'appartient à aucune entreprise, et la table des capacités régit ce qu'on peut faire **dans** une entreprise.
+
+`/verifier` n'y figure pas bien qu'elle lui serve : c'est une page publique, et la mêler aux deux écrans de son dossier laisserait croire que ce qu'il y cherche est archivé chez nous. Le lien vit dans le répertoire, à l'endroit où la question se pose.
+
 ### 4.1 Le contenu
 
 | Bloc | Contenu | Origine |

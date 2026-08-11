@@ -3,6 +3,7 @@ import type { Access } from '@/domain/authorization'
 import { Text } from '@/ui/atoms/text'
 import { Lockup } from '@/ui/brand/lockup'
 import { AppNav } from '@/ui/molecules/app-nav'
+import { visibleGroups } from '@/ui/molecules/app-nav-routes'
 import { SignOut } from '@/ui/molecules/sign-out'
 import { ThemeToggle } from '@/ui/molecules/theme-toggle'
 
@@ -26,11 +27,17 @@ export function AppHeader({ companyName, access }: { companyName?: string; acces
   return (
     <header className="border-b border-rule bg-card">
       <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3">
-        <Link href="/devis" className="rounded-badge" aria-label="Accueil">
+        <Link href="/" className="rounded-badge" aria-label="Accueil">
           <Lockup size="sm" />
         </Link>
 
-        <AppNav access={access} />
+        {/*
+          Les entrees se calculent ici, sur le serveur : `AppNav` ne sait que
+          marquer la page courante, et c'est ce qui lui permet de servir aussi
+          l'espace du demandeur. La table des capacites, elle, ne traverse pas
+          la frontiere client.
+        */}
+        <AppNav groups={visibleGroups(access)} />
 
         {companyName ? (
           <Text size="sm" tone="muted" as="span">

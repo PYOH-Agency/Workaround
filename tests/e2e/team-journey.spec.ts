@@ -36,6 +36,17 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
     // passe derriere la porte.
     await expect(patron.getByText(/reste gratuit, et le restera/)).toBeVisible()
     await expect(patron.getByLabel('E-mail')).toHaveCount(0)
+
+    /*
+      La seule surface payante du produit doit avoir une porte.
+
+      Elle a ete livree avec `action={null}` : « Ecrivez-nous », et rien a
+      cliquer. Un cul-de-sac sur cet ecran-la ne coute pas une friction, il
+      coute la vente — d'ou une assertion plutot qu'une relecture.
+    */
+    const enquiry = patron.getByRole('link', { name: 'Demander l’offre Pro' })
+    await expect(enquiry).toBeVisible()
+    expect(await enquiry.getAttribute('href')).toMatch(/^mailto:.+@.+\?subject=/)
   })
 
   await test.step('passée en Pro, l’entreprise peut inviter', async () => {
@@ -58,8 +69,14 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
   await test.step('le compagnon se connecte et rejoint l’entreprise', async () => {
     await signIn(compagnon, COMPAGNON)
 
-    // Il atterrit dans l'atelier, pas sur le formulaire SIRET de l'inscription.
-    await expect(compagnon).toHaveURL(/\/devis$/)
+    // Il atterrit dans l'espace connecte de l'entreprise, pas sur le
+    // formulaire SIRET de l'inscription. La destination d'un compte avec
+    // entreprise est desormais l'accueil — `resolveDestination` renvoie `/`
+    // pour quiconque a une entreprise, compagnon compris — donc c'est la
+    // navigation de l'atelier, et non plus `/devis`, qui atteste qu'il est
+    // bien arrive chez lui.
+    await expect(compagnon).toHaveURL(/\/$/)
+    await expect(compagnon.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible()
   })
 
   await test.step('l’argent ne lui est ni proposé, ni accessible', async () => {
@@ -109,10 +126,12 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
     await nouveau.getByRole('button', { name: 'Recevoir le lien' }).click()
     await nouveau.goto(await magicLinkFor(NOUVEAU))
 
-    // L'atelier de l'entreprise qui l'a invite, et son en-tete : la seule URL
-    // laisserait croire qu'il suffit d'y arriver.
-    await expect(nouveau).toHaveURL(/\/devis$/)
-    await expect(nouveau.getByRole('heading', { name: 'PLOMBERIE DU PARCOURS' })).toBeVisible()
+    // L'espace connecte de l'entreprise qui l'a invite, et sa navigation : la
+    // seule URL laisserait croire qu'il suffit d'y arriver.
+    await expect(nouveau).toHaveURL(/\/$/)
+    await expect(
+      nouveau.getByRole('navigation', { name: 'Navigation principale' }),
+    ).toBeVisible()
 
     await ailleurs.close()
   })

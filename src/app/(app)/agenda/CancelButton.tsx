@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/ui/atoms/button'
 import { Text } from '@/ui/atoms/text'
+import { Notice } from '@/ui/molecules/notice'
 import { cancel, type CancelState } from './actions'
 
 /**
@@ -26,12 +27,9 @@ export function CancelButton({ appointmentId }: { appointmentId: string }) {
           </Button>
         </div>
         {state.error && (
-          <div
-            role="alert"
-            className="rounded-card border border-danger bg-danger-bg px-4 py-3 text-sm font-medium text-danger"
-          >
+          <Notice tone="danger" alert>
             {state.error}
-          </div>
+          </Notice>
         )}
       </div>
     )

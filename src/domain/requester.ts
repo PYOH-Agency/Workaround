@@ -21,7 +21,7 @@ export function normalizeEmail(raw: string): string {
 }
 
 export type Destination =
-  | '/devis'
+  | '/'
   | '/mes-logements'
   | '/mon-repertoire'
   | '/supervision'
@@ -32,8 +32,13 @@ export type Destination =
  *
  * **L'entreprise l'emporte** : un meme compte peut porter plusieurs roles — un
  * plombier fait aussi refaire sa toiture, et l'exploitant du produit est a la
- * fois artisan d'essai et relecteur. L'atelier est celui ou l'on travaille tous
+ * fois artisan d'essai et relecteur. L'accueil est celui ou l'on travaille tous
  * les jours ; l'en-tete propose le passage a l'autre cote.
+ *
+ * L'artisan atterrit sur la RACINE, qui lui sert son accueil la ou elle sert la
+ * landing au visiteur. Envoyer sur `/devis` le posait devant une liste vide le
+ * jour de son inscription, alors que la mise en route a des gestes a lui
+ * proposer.
  *
  * `hasSignature` distingue le demandeur ne d'une signature de celui venu de
  * lui-meme. Sans lui, l'inscription autonome atterrirait sur `/mes-logements`,
@@ -49,7 +54,7 @@ export function resolveDestination(input: {
   hasSignature: boolean
   hasStaff: boolean
 }): Destination {
-  if (input.hasCompany) return '/devis'
+  if (input.hasCompany) return '/'
   if (input.hasRequester) return input.hasSignature ? '/mes-logements' : '/mon-repertoire'
   if (input.hasStaff) return '/supervision'
   return '/creer-mon-entreprise'

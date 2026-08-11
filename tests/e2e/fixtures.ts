@@ -195,6 +195,29 @@ export async function makeStaff(email: string) {
 }
 
 /**
+ * Une entreprise toute neuve, rejointe directement par un compagnon.
+ *
+ * Ni mentions, ni attestation, ni devis : le decor du Defaut 5, ou la mise en
+ * route ne doit proposer que les gestes que ce role a vraiment — aucun.
+ * L'invitation reelle est deja couverte par `team-journey.spec.ts` ; ce
+ * raccourci evite de la rejouer pour prouver autre chose.
+ */
+export async function compagnonOfNewCompany(email: string): Promise<void> {
+  const { db, schema } = await load()
+  const userId = await userIdFor(email)
+
+  const [row] = await db
+    .insert(schema.company)
+    .values({
+      siret: randomUUID().replace(/\D/g, '').padEnd(14, '0').slice(0, 14),
+      legalName: 'COUVERTURE DU COMPAGNON',
+    })
+    .returning()
+
+  await db.insert(schema.member).values({ companyId: row.id, userId, email, role: 'member' })
+}
+
+/**
  * Bascule en Pro l'entreprise d'un artisan connecte.
  *
  * Passe par la base plutot que par le backoffice : la bascule elle-meme est

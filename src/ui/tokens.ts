@@ -182,6 +182,24 @@ export const THEME_INDEPENDENT = [
 export type RoleName = keyof typeof roles.light
 export type Theme = keyof typeof roles
 
+/**
+ * Recouvrement hachure du segment "en retard" de `MoneyFlow` (spec accueil
+ * artisan §4 : le retard est hachure ET rouge, la couleur ne porte jamais
+ * seule l'information).
+ *
+ * Hors de `roles` volontairement : il ne s'agit pas d'une couleur opaque mais
+ * d'un blanc/noir semi-transparent compose sur `danger`, donc il ne peut ni
+ * satisfaire `readBlock` (qui n'extrait que des `#RRGGBB`) ni s'exposer comme
+ * couleur Tailwind autonome dans `@theme inline`. `tests/ui/tokens.test.ts`
+ * verifie que ces deux chaines restent identiques a `tokens.css`, dans le
+ * bloc clair et dans les deux blocs sombres ; `tests/ui/contrast.test.ts`
+ * verifie que la rayure composee sur `danger` atteint 3:1 dans chaque theme.
+ */
+export const hatch = {
+  light: 'rgba(255,255,255,.5)',
+  dark: 'rgba(20,17,14,.6)',
+} as const
+
 /** Rayons. Aucune pilule : c'est le marqueur le plus date du secteur. */
 export const radius = {
   badge: '3px',

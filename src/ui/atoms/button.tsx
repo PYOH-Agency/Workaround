@@ -24,6 +24,15 @@ const TONES = {
    */
   conversion: 'bg-conversion text-on-conversion font-semibold hover:opacity-90',
   secondary: 'border border-field text-ink hover:bg-rule/40',
+  /**
+   * Un bouton POSE : surface elevee, bord soutenu.
+   *
+   * Le `secondary` a un fond transparent, et sur un ecran dense — la file de
+   * l'accueil en aligne quatre — les boutons transparents cessent de se lire
+   * comme des commandes. Celui-ci le reste sans assombrir l'ecran, ce qu'un
+   * primaire plein repete quatre fois ferait.
+   */
+  raised: 'bg-raised border border-field text-ink shadow-e1 dark:shadow-none hover:bg-rule/40',
   ghost: 'text-ink hover:bg-rule/40',
   danger: 'text-danger hover:bg-danger-bg',
   'danger-solid': 'bg-danger-solid text-on-danger hover:opacity-90',

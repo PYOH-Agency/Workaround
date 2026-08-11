@@ -56,6 +56,8 @@ Les principes n° 1 et n° 2 sont **le meilleur argument commercial de la page**
 
 Sept sections. Une seule action, présentée deux fois, jamais concurrencée.
 
+> **Amendement du 10 août 2026 — l'ordre d'accueil.** « Comment ça marche » (§4.3) passe **devant** « le coût de l'erreur » (§4.2). La page enchaînait l'accroche et une amende de 15 000 € : l'argument est juste, c'est la douleur réelle du métier, mais le placer en deuxième section fait ouvrir la conversation sur une menace, à un artisan qui ne nous connaît pas. On montre d'abord ce que l'outil fait, on dit ensuite ce qu'il évite. Aucun contenu n'est retiré, aucune section n'est ajoutée : seul l'ordre change.
+
 ### 4.1 Accroche
 « Vos devis et vos factures, gratuits à vie. » Sous-titre sur les mentions obligatoires et la signature. **Bouton en encre** vers le parcours d'inscription — pas de champ, voir la décision du §1. Mention de réassurance : trente secondes, aucune carte bancaire.
 
@@ -79,6 +81,16 @@ La dernière section porte deux choses à la fois, et c'est voulu : l'énoncé d
 
 ## 5. La page demandeur — `/verifier`
 
+> **Amendement du 10 août 2026 — la contrepartie.** Livrée avec quatre sections, la page n'énonçait que des raisons de se méfier : une question inquiète, « le piège », un formulaire de dépannage, une promesse à venir. Aucune ne disait ce que le demandeur **gagne**. Une page qui met en garde sans rassurer obtient de la vigilance, pas de la confiance — et c'est le seul public qui arrive sans rien connaître de nous.
+>
+> Trois corrections, toutes fondées sur des écrans **déjà livrés** :
+>
+> 1. **L'accroche reçoit sa scène** (§5.5). Sa moitié droite était vide là où la page pro porte `Squaring`. Ce vide se lisait : la page de l'artisan paraissait soignée, celle du client bâclée.
+> 2. **L'annuaire apparaît** (§5.6). `/annuaire` est public et indexé depuis M4, et cette page ne le mentionnait nulle part : un demandeur sans SIRET en main n'avait rien à y faire.
+> 3. **Le carnet cesse d'être « bientôt »** (§5.4). L'espace demandeur est livré depuis M6. Annoncer comme à venir ce qui existe est le défaut le plus coûteux qu'une page de confiance puisse porter.
+>
+> L'ordre alterne désormais l'avertissement et la contrepartie — le piège, puis l'annuaire ; ce qu'on garde, puis le carnet. `Retrieve` descend en fin de page : c'est un service rendu à qui a perdu son lien, pas un argument.
+
 ### 5.1 Accroche
 « Votre artisan est-il assuré pour ce qu'il va faire ? » Champ SIRET + bouton **en terre cuite** — seule page du produit où la terre cuite est autorisée en fond, faute d'action destructive alentour (charte §5.4). Mention : gratuit, sans compte, le SIRET figure sur le devis.
 
@@ -89,7 +101,24 @@ Assuré ne veut pas dire assuré pour tout. Premier motif de refus d'indemnisati
 Action **secondaire**, en bouton contour. Champ e-mail, renvoi du lien.
 
 ### 5.4 Le carnet
-Annonce de l'espace demandeur, ouvert **à la signature du prochain devis** — cohérent avec la décision structurante du §10 du socle. Mention explicite : *aucune inscription, nous ne collectons pas votre adresse.* C'est la contrepartie de l'absence de liste d'attente, et c'est un argument.
+L'espace demandeur, ouvert **à la signature du prochain devis** — cohérent avec la décision structurante du §10 du socle. Mention explicite : *aucune inscription, nous ne collectons pas votre adresse.* C'est la contrepartie de l'absence de liste d'attente, et c'est un argument.
+
+> **L'étiquette « Bientôt » est retirée.** Elle était juste à la livraison de la landing ; M6 l'a périmée. Ce qui reste vrai, et qui est dit à sa place, c'est que l'espace **s'ouvre à la signature** — une conséquence de la décision du §10 du socle, pas une file d'attente.
+
+### 5.5 La scène de l'accroche
+Le pendant de `Squaring`, et son exact contraire de point de vue : la scène pro montre l'artisan qui met son devis d'équerre, celle-ci montre le demandeur qui **lit** une attestation. Elle se présente, ses activités se lisent une à une, chaque verdict tombe, et le sceau se pose.
+
+> **Décision.** Une des trois activités n'est **pas** couverte, et la scène ne s'en cache pas. C'est la thèse de la page : la réassurance n'est pas que l'entreprise soit parfaite, c'est que vous le sachiez avant de signer. Une scène qui cocherait trois lignes sur trois mentirait sur le produit et sur le secteur.
+
+Tracée plutôt que capturée, comme côté pro, et dans le même cadre de 400 × 340 pour que les deux accroches aient la même assise. Chronologie interne en module CSS, sans script — même régime que `squaring.module.css`, et la même règle tenue : **le sceau ne pivote pas**, il grandit et se pose (charte §4.6).
+
+### 5.6 Trouver une entreprise déjà vérifiée
+Renvoi vers `/annuaire`, en **bouton contour** : la page garde une seule action de conversion, la vérification par SIRET, et deux boutons pleins l'auraient mise en concurrence avec elle-même.
+
+> **Ce n'est pas la mise en relation exclue du §2.** Aucun dépôt de projet, aucun appel d'offres, aucune commission — une liste d'entreprises dont la couverture a été vérifiée, où l'artisan figure sans l'avoir achetée. La section le dit en toutes lettres, avec les deux mêmes engagements que la page pro.
+
+### 5.7 Avant, pendant, après
+Ce que le demandeur obtient aux trois temps d'un chantier : il vérifie, il suit, il garde. Le rang est numéroté parce que l'ordre porte l'information — on vérifie avant de signer, jamais après —, même motif que la frise du §4.3 bis. Les trois étapes correspondent à trois écrans livrés : la vérification, le dossier de chantier, le répertoire.
 
 ## 6. Les deux actions serveur
 
@@ -164,6 +193,10 @@ La charte §5.6 impose 150–300 ms et interdit l'animation décorative. Elle r�
 **La mise d'équerre** (`Reveal`) — le bloc arrive à −1,6° et 16 px plus bas, puis se redresse ; le carré terre cuite se pose à l'instant où l'alignement est atteint. C'est le nom de la marque, joué. **Un seul par écran**, réservé aux blocs qui portent une promesse.
 
 **Le calepinage** (`Stagger`) — les éléments d'une grille se posent un à un, décalés de 70 ms, comme on pose du carrelage. Ce n'est pas un geste mais une **cadence** : elle ne concurrence rien et peut cohabiter avec le premier.
+
+> **Amendement du 10 août 2026 — le calepinage porte enfin le chantier.** Les deux gestes de la marque disaient déjà les deux moments du métier : la mise d'équerre est celui du **contrat**, le calepinage celui du **chantier**. Mais la cadence ne servait que des grilles d'arguments, et la frise qui raconte vraiment un chantier — de la signature à la facture — s'en passait, faute d'un `Stagger` à cinq colonnes.
+>
+> `Stagger` accepte donc `cols={5}` et `as="ol"`. Les deux vont ensemble : une frise dont l'ordre porte l'information est une liste ordonnée, et poser des `div` dans une `<ol>` aurait rendu le balisage invalide — c'est précisément ce qui l'en empêchait. Aucun troisième geste n'est créé, aucun régime n'est ajouté : la cadence existante s'applique enfin au contenu qui la justifie.
 
 Deux gestes ont été écartés après essai : le **tracé au trait** (joli une fois, puis il retarde la lecture) et le **fil à plomb** (3,4 s de cycle — une accroche, pas un motif).
 

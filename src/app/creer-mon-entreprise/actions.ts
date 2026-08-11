@@ -102,7 +102,11 @@ export async function createCompanyNow(siret: string): Promise<{ error?: string 
   }
 
   // Hors du bloc `try` : `redirect` signale la navigation en levant.
-  redirect('/devis')
+  //
+  // La racine, et non `/devis` : elle sert son accueil a l'artisan la ou elle
+  // sert la landing au visiteur. Le poser devant une liste vide le jour de son
+  // inscription serait le pire premier ecran possible.
+  redirect('/')
 }
 
 /**

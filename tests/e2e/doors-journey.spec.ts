@@ -73,15 +73,18 @@ test('les portes', async ({ page, browser }) => {
 
     await page.goto(await magicLinkFor(ARTISAN))
 
-    // L'atelier, et son titre : l'intention gardee de cote a bien produit une
-    // entreprise. La seule URL laisserait croire qu'il suffit d'y arriver.
-    await expect(page).toHaveURL(/\/devis$/)
-    await expect(page.getByRole('heading', { name: RAISON_SOCIALE })).toBeVisible()
+    // L'accueil, et sa navigation : l'intention gardee de cote a bien produit
+    // une entreprise. La seule URL ne prouverait rien — la racine sert aussi la
+    // landing au visiteur, et l'on y arrive donc meme sans compte.
+    await expect(page).toHaveURL(/\/$/)
+    await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible()
   })
 
   await test.step('il peut sortir', async () => {
     await page.getByRole('button', { name: 'Se déconnecter' }).click()
     await expect(page).toHaveURL('/')
+    // La racine sert de nouveau la landing : plus de navigation d'espace connecte.
+    await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toHaveCount(0)
 
     // La session est bien morte : l'atelier renvoie a la porte de retour.
     await page.goto('/devis')

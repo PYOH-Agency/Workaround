@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { Text } from '@/ui/atoms/text'
 import { Lockup } from '@/ui/brand/lockup'
+import { AppNav } from '@/ui/molecules/app-nav'
+import { staffNavGroups } from '@/ui/molecules/app-nav-routes'
 import { SignOut } from '@/ui/molecules/sign-out'
 import { ThemeToggle } from '@/ui/molecules/theme-toggle'
 
@@ -11,6 +12,14 @@ import { ThemeToggle } from '@/ui/molecules/theme-toggle'
  * l'artisan, avec un `access` facultatif dont le seul role etait de la masquer.
  * Une coquille dediee supprime ce detour — et rend impossible qu'une entree
  * artisanale reapparaisse un jour dans un ecran interne.
+ *
+ * **Elle passe `staffNavGroups` explicitement**, et c'est ce qui remplace le
+ * reniflage d'URL. Tant que les deux publics partageaient `AppShell`, `AppNav`
+ * devait deviner a qui elle s'adressait depuis le chemin, sur une liste de
+ * prefixes qu'il fallait tenir a jour — et son auteur reconnaissait qu'une
+ * route interne ajoutee plus tard heriterait de la navigation de l'artisan.
+ * Ici la question ne se pose plus : l'ecran qui recoit ces entrees est celui
+ * qui les demande.
  */
 export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
@@ -20,21 +29,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Link href="/supervision" className="rounded-badge" aria-label="Supervision">
             <Lockup size="sm" />
           </Link>
-          <Link href="/supervision" className="rounded-badge">
-            <Text size="sm" tone="muted" as="span">
-              Supervision
-            </Text>
-          </Link>
-          <Link href="/attestations" className="rounded-badge">
-            <Text size="sm" tone="muted" as="span">
-              Attestations
-            </Text>
-          </Link>
-          <Link href="/entreprises" className="rounded-badge">
-            <Text size="sm" tone="muted" as="span">
-              Entreprises
-            </Text>
-          </Link>
+
+          <AppNav groups={staffNavGroups} />
+
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
             <SignOut />

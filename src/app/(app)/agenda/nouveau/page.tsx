@@ -1,9 +1,6 @@
 import { redirect } from 'next/navigation'
 import { currentCompany, SessionError } from '@/lib/session'
-import { Heading } from '@/ui/atoms/heading'
-import { Icon } from '@/ui/atoms/icon'
-import { Link } from '@/ui/atoms/link'
-import { Text } from '@/ui/atoms/text'
+import { PageHeader } from '@/ui/molecules/page-header'
 import { AppShell } from '@/ui/shells/app-shell'
 import { VisitForm } from './VisitForm'
 
@@ -26,23 +23,13 @@ export default async function NewVisitPage() {
 
   return (
     <AppShell access={session}>
-      <div className="flex flex-col gap-1">
-        <Heading level={1}>Prendre un rendez-vous</Heading>
-        <Text size="sm" tone="soft">
-          Une visite chez un client, avant le devis.
-        </Text>
-      </div>
+      <PageHeader
+        back={{ href: '/agenda', label: 'Retour à l’agenda' }}
+        title="Prendre un rendez-vous"
+        subtitle="Une visite chez un client, avant le devis."
+      />
 
       <VisitForm />
-
-      <div className="mt-2">
-        <Link href="/agenda" tone="bare">
-          <span className="inline-flex items-center gap-1.5 text-sm">
-            <Icon name="back" />
-            Retour à l’agenda
-          </span>
-        </Link>
-      </div>
     </AppShell>
   )
 }

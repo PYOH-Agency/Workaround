@@ -35,14 +35,18 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
     // Et le travail restant, annonce avant l'engagement.
     await expect(page.getByText('Assurance décennale')).toBeVisible()
 
-    // Deja connecte : pas de second aller-retour par la boite mail, l'atelier
-    // s'ouvre sur ce bouton.
+    // Deja connecte : pas de second aller-retour par la boite mail. L'accueil
+    // s'ouvre sur ce bouton — et non plus `/devis`, qui a cesse de jouer
+    // l'accueil faute d'accueil.
     await page.getByRole('button', { name: 'C’est bien mon entreprise' }).click()
-    await expect(page).toHaveURL(/\/devis$/)
+    await expect(page).toHaveURL(/\/$/)
   })
 
   await test.step('les mentions obligatoires sont exigees avant tout devis', async () => {
-    await page.getByRole('link', { name: 'Créer un devis' }).click()
+    // L'inscription atterrit desormais sur l'accueil (`/`) et non plus sur
+    // `/devis` : sans aucun devis encore, c'est la mise en route en trois
+    // etapes qui s'affiche, avec son propre bouton « Établir un devis ».
+    await page.getByRole('link', { name: 'Établir un devis' }).click()
 
     // Redirection : sans elles, un devis exposerait l'artisan a une amende.
     await expect(page.getByRole('heading', { name: /Mentions de vos devis/i })).toBeVisible()
@@ -61,11 +65,12 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
     await page.getByLabel('Zone géographique couverte').fill('France métropolitaine')
     await page.getByRole('button', { name: 'Enregistrer' }).click()
 
-    await expect(page.getByRole('heading', { name: /GARANCE PLOMBERIE/i })).toBeVisible()
+    // Retour sur `/devis`, ou l'en-tete porte toujours la raison sociale.
+    await expect(page.getByText(/GARANCE PLOMBERIE/i)).toBeVisible()
   })
 
   await test.step('rediger un devis a deux taux de TVA', async () => {
-    await page.getByRole('link', { name: 'Créer un devis' }).click()
+    await page.getByRole('link', { name: 'Établir un devis' }).click()
 
     await page.getByLabel('Client', { exact: true }).fill('Paul Martin')
     await page.getByLabel('E-mail du client').fill(CUSTOMER)

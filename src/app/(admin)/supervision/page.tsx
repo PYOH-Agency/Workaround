@@ -2,10 +2,9 @@ import { notFound } from 'next/navigation'
 import { currentStaff } from '@/lib/staff-session'
 import { SessionError } from '@/lib/session'
 import { currentAnomalies } from '@/services/anomalies'
-import { Heading } from '@/ui/atoms/heading'
 import { Link } from '@/ui/atoms/link'
-import { Text } from '@/ui/atoms/text'
 import { EmptyState } from '@/ui/molecules/empty-state'
+import { PageHeader } from '@/ui/molecules/page-header'
 import { AdminShell } from '@/ui/shells/admin-shell'
 import { AnomalyList } from './AnomalyList'
 
@@ -31,24 +30,20 @@ export default async function SupervisionPage() {
 
   return (
     <AdminShell>
-      <div className="flex flex-wrap items-baseline justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <Heading level={1}>Supervision</Heading>
-          <Text size="sm" tone="soft">
-            {blocking > 0
-              ? `${blocking} anomalie${blocking > 1 ? 's' : ''} bloquante${blocking > 1 ? 's' : ''}.`
-              : 'Rien ne bloque.'}
-          </Text>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/attestations" tone="bare">
-            <span className="text-sm">File des attestations</span>
-          </Link>
-          <Link href="/entreprises" tone="bare">
-            <span className="text-sm">Entreprises</span>
-          </Link>
-        </div>
-      </div>
+      {/*
+        Les deux liens vers la file et les entreprises vivaient ici, poses a la
+        main : ils sont desormais dans la navigation d'`AdminShell`, qui les
+        marque en plus quand on y est. Les garder les aurait fait apparaitre
+        deux fois sur le meme ecran.
+      */}
+      <PageHeader
+        title="Supervision"
+        subtitle={
+          blocking > 0
+            ? `${blocking} anomalie${blocking > 1 ? 's' : ''} bloquante${blocking > 1 ? 's' : ''}.`
+            : 'Rien ne bloque.'
+        }
+      />
 
       {anomalies.length === 0 ? (
         <EmptyState

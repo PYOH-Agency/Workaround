@@ -48,6 +48,7 @@ export const navGroups: NavGroup[] = [
   {
     label: 'Suivi quotidien',
     entries: [
+      { href: '/', label: 'Accueil' },
       { href: '/devis', label: 'Devis' },
       { href: '/factures', label: 'Factures', capability: 'invoice.issue' },
       { href: '/agenda', label: 'Agenda' },
@@ -59,6 +60,31 @@ export const navGroups: NavGroup[] = [
       { href: '/mon-passeport', label: 'Passeport', capability: 'passport.manage' },
       { href: '/verification', label: 'Vérification', capability: 'legal.write' },
       { href: '/equipe', label: 'Équipe', capability: 'team.manage' },
+    ],
+  },
+]
+
+/**
+ * Les entrees de l'espace du demandeur.
+ *
+ * Deux, et un seul groupe : il n'y a pas de frequence d'usage a distinguer
+ * entre elles. Le dossier se consulte quand un chantier bouge, le repertoire
+ * quand un probleme arrive — les deux sont des destinations de premier rang.
+ *
+ * Aucune capacite : le demandeur n'en a pas. La table des capacites regit ce
+ * qu'une personne peut faire DANS une entreprise, et il n'appartient a aucune.
+ *
+ * `/verifier` n'y figure pas, bien qu'elle lui serve : c'est une page publique,
+ * et la meler aux deux ecrans de son dossier laisserait croire que ce qu'il y
+ * cherche est archive chez nous. Le lien vit dans le repertoire, a l'endroit ou
+ * la question se pose.
+ */
+export const spaceNavGroups: NavGroup[] = [
+  {
+    label: 'Mon dossier',
+    entries: [
+      { href: '/mes-logements', label: 'Mes logements' },
+      { href: '/mon-repertoire', label: 'Mon répertoire' },
     ],
   },
 ]
@@ -82,14 +108,34 @@ export function visibleGroups(access: Access): NavGroup[] {
 }
 
 /**
- * Le backoffice partage `AppShell` avec l'artisan, donc son en-tete.
+ * Les entrees du backoffice.
  *
- * La liste est **negative**, et c'est un choix assume : une route de backoffice
- * ajoutee plus tard heriterait de la navigation de l'artisan tant qu'on ne l'y
- * inscrit pas. Une route d'artisan nouvelle est un evenement bien plus
- * frequent, et c'est elle qu'on protege de l'oubli.
+ * Elles n'existaient pas : les trois ecrans internes ne se rejoignaient que par
+ * deux liens poses a la main dans l'en-tete de la supervision, et depuis la
+ * file des attestations on ne revenait nulle part. Le relecteur passe pourtant
+ * sa journee a faire l'aller-retour entre la file et la fiche d'une entreprise.
+ *
+ * Aucune capacite : `currentStaff` est une garde binaire — on est relecteur ou
+ * on ne l'est pas —, et elle ne connait pas les roles de l'artisan.
+ *
+ * **C'est `AdminShell` qui les passe**, explicitement. Une version anterieure
+ * les substituait d'apres l'URL, faute de pouvoir distinguer le backoffice cote
+ * serveur : les deux publics partageaient alors `AppShell`. Elle s'appuyait sur
+ * une liste de prefixes qu'il fallait tenir a jour, et son propre commentaire
+ * reconnaissait qu'une route interne ajoutee plus tard heriterait de la
+ * navigation de l'artisan. Deux coquilles separees suppriment la question :
+ * l'ecran qui recoit ces entrees est celui qui les demande.
  */
-const BACKOFFICE = ['/supervision', '/attestations', '/entreprises']
+export const staffNavGroups: NavGroup[] = [
+  {
+    label: 'Backoffice',
+    entries: [
+      { href: '/supervision', label: 'Supervision' },
+      { href: '/attestations', label: 'Attestations' },
+      { href: '/entreprises', label: 'Entreprises' },
+    ],
+  },
+]
 
 /**
  * Une entree est courante si elle est la page, ou l'un de ses sous-chemins.
@@ -99,9 +145,4 @@ const BACKOFFICE = ['/supervision', '/attestations', '/entreprises']
  */
 export function isCurrent(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
-}
-
-/** L'en-tete de l'artisan ne porte pas sa navigation dans le backoffice. */
-export function showsNav(pathname: string): boolean {
-  return !BACKOFFICE.some((prefix) => isCurrent(pathname, prefix))
 }

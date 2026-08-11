@@ -14,6 +14,7 @@ import { Seal } from '@/ui/brand/seal'
 import { roles } from '@/ui/tokens'
 import { FieldsAndCards } from './FieldsAndCards'
 import { Section } from './Section'
+import { StructureBlocks } from './StructureBlocks'
 
 /**
  * La vitrine du design system.
@@ -221,6 +222,7 @@ export default function DesignSystemPage() {
       </Section>
 
       <FieldsAndCards />
+      <StructureBlocks />
     </main>
   )
 }

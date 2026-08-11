@@ -6,11 +6,10 @@ import { StepCard } from '@/ui/molecules/step-card'
  * etapes pour cette section, sans etiquette ni titre — les cartes numerotees
  * portent la structure a elles seules.
  *
- * D'ou le `as="h2"` : sans titre de section, un `h3` se rattacherait au `h2`
- * qui precede — « Un devis sans mention d'assurance coute 15 000 € ». Le plan
- * du document annoncerait alors les trois etapes comme un detail de cet
- * avertissement. Au niveau 2, chacune est ce qu'elle est : une etape de meme
- * rang que les autres sections de la page.
+ * D'ou le `as="h2"` : sans titre de section, un `h3` se rattacherait au titre
+ * qui precede, et le plan du document annoncerait les trois etapes comme un
+ * detail de celui-ci. Au niveau 2, chacune est ce qu'elle est : une etape de
+ * meme rang que les autres sections de la page.
  */
 export function Steps() {
   return (

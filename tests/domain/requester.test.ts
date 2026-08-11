@@ -21,8 +21,10 @@ describe('resolveDestination', () => {
     hasStaff: false,
   }
 
-  it('envoie a l atelier quand une entreprise est rattachee', () => {
-    expect(resolveDestination({ ...NOBODY, hasCompany: true })).toBe('/devis')
+  it('envoie l artisan sur son accueil, et non sur sa liste de devis', () => {
+    // La liste des devis faisait office d'accueil faute d'accueil. Elle redevient
+    // ce qu'elle est.
+    expect(resolveDestination({ ...NOBODY, hasCompany: true })).toBe('/')
   })
 
   it('envoie aux logements un demandeur qui a signe', () => {
@@ -47,7 +49,7 @@ describe('resolveDestination', () => {
     // L'exploitant du produit est justement le compte qui porte les deux.
     // L'atelier est celui ou l'on travaille tous les jours ; l'en-tete propose
     // le passage a l'autre cote.
-    expect(resolveDestination({ ...NOBODY, hasCompany: true, hasStaff: true })).toBe('/devis')
+    expect(resolveDestination({ ...NOBODY, hasCompany: true, hasStaff: true })).toBe('/')
   })
 
   it('fait passer l entreprise AVANT le dossier de demandeur', () => {
@@ -55,7 +57,7 @@ describe('resolveDestination', () => {
     // faux ; ne pas choisir de defaut le laisserait sans destination.
     expect(
       resolveDestination({ ...NOBODY, hasCompany: true, hasRequester: true, hasSignature: true }),
-    ).toBe('/devis')
+    ).toBe('/')
   })
 
   it('envoie a l inscription artisan un compte sans aucun rattachement', () => {

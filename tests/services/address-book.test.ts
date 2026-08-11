@@ -33,13 +33,13 @@ async function signFor(companyId: string, projectId: string, requesterId: string
 }
 
 /**
- * L'adresse du collecteur vient de l'environnement, jamais du code.
+ * Le collecteur de CE worktree, jamais un port en dur.
  *
- * Un worktree qui s'est donne sa propre pile a des ports decales, et
- * `scripts/worktree-supabase.mjs` ecrit alors `MAILBOX_URL` dans `.env.test`.
- * Ecrite en dur, l'adresse interrogeait la pile du voisin — ou personne — et le
- * test echouait sur `ECONNREFUSED` en designant le code alors que le defaut
- * etait dans le test. Ses deux voisins font deja ainsi.
+ * `pnpm db:worktree` derive une bande de ports par worktree et l'ecrit dans
+ * `MAILBOX_URL`. Coder 54324 revient a interroger la boite de la pile
+ * principale : le test passe la ou il a ete ecrit, et echoue partout ailleurs
+ * sur une erreur de connexion qui ne designe pas sa cause. `tests/e2e/helpers`
+ * s'etait deja fait prendre, et porte la meme lecon en commentaire.
  */
 const MAILBOX = process.env.MAILBOX_URL ?? 'http://127.0.0.1:54324'
 
