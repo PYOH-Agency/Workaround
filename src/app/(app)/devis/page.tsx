@@ -54,7 +54,7 @@ export default async function QuotesPage() {
           quotes.length > 0 ? (
             <ButtonLink href="/devis/nouveau">
               <Icon name="plus" size="sm" />
-              Créer un devis
+              Établir un devis
             </ButtonLink>
           ) : undefined
         }
@@ -68,7 +68,7 @@ export default async function QuotesPage() {
             action={
               <ButtonLink href="/devis/nouveau" size="lg">
                 <Icon name="plus" size="sm" />
-                Créer un devis
+                Établir un devis
               </ButtonLink>
             }
           />

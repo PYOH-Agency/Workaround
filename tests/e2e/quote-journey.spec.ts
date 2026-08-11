@@ -67,7 +67,7 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
   })
 
   await test.step('rediger un devis a deux taux de TVA', async () => {
-    await page.getByRole('link', { name: 'Créer un devis' }).click()
+    await page.getByRole('link', { name: 'Établir un devis' }).click()
 
     await page.getByLabel('Client', { exact: true }).fill('Paul Martin')
     await page.getByLabel('E-mail du client').fill(CUSTOMER)
