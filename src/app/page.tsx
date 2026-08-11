@@ -1,5 +1,10 @@
 import type { Metadata } from 'next'
+import { eq } from 'drizzle-orm'
+import { db } from '@/db/client'
+import { company } from '@/db/schema'
 import { LandingShell } from '@/ui/shells/landing-shell'
+import { currentCompany, SessionError } from '@/lib/session'
+import { Home } from './_home/home'
 import { Hero } from './_landing/pro/hero'
 import { Mentions } from './_landing/pro/mentions'
 import { Next } from './_landing/pro/next'
@@ -17,15 +22,42 @@ export const metadata: Metadata = {
 }
 
 /**
- * `Steps` passe devant `Mentions`, et c'est un changement d'accueil.
+ * La racine sert les deux publics.
  *
- * La page enchainait l'accroche et une amende de 15 000 €. L'argument est juste
- * — c'est la douleur reelle du metier —, mais le placer en deuxieme section
- * faisait ouvrir la conversation sur une menace, a un artisan qui ne nous
- * connait pas encore. On montre d'abord ce que l'outil fait, on dit ensuite ce
- * qu'il evite. Aucun contenu n'est retire : seul l'ordre change.
+ * L'artisan membre d'une entreprise y voit son accueil ; tout autre visiteur y
+ * voit la landing, inchangee. Le cout est reel — la racine passe en rendu
+ * dynamique — et il est faible : la landing est faite de huit composants sans
+ * aucun acces aux donnees, et rien de ce qui compte pour le referencement ne
+ * change. Un artisan connecte ne doit jamais retomber sur l'argumentaire qui
+ * lui a vendu le produit.
+ *
+ * `Steps` passe devant `Mentions` : on montre d'abord ce que l'outil fait, on
+ * dit ensuite ce qu'il evite.
  */
-export default function Home() {
+export default async function RootPage() {
+  // `currentCompany` leve `SessionError` pour les DEUX rejets — session
+  // absente ou compte sans entreprise. Ici les deux menent au meme endroit :
+  // la landing. Aucune redirection : un visiteur anonyme sur `/` est chez lui.
+  // Seule `SessionError` est avalee : une panne reelle (base injoignable,
+  // etc.) doit remonter comme partout ailleurs, pas se travestir en visite
+  // anonyme.
+  let session
+  try {
+    session = await currentCompany()
+  } catch (e) {
+    if (!(e instanceof SessionError)) throw e
+    session = null
+  }
+
+  if (session) {
+    const [myCompany] = await db
+      .select({ legalName: company.legalName })
+      .from(company)
+      .where(eq(company.id, session.companyId))
+
+    return <Home session={session} companyName={myCompany.legalName} now={new Date()} />
+  }
+
   return (
     <LandingShell audience="pro">
       <Hero />

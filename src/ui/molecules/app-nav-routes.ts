@@ -48,6 +48,7 @@ export const navGroups: NavGroup[] = [
   {
     label: 'Suivi quotidien',
     entries: [
+      { href: '/', label: 'Accueil' },
       { href: '/devis', label: 'Devis' },
       { href: '/factures', label: 'Factures', capability: 'invoice.issue' },
       { href: '/agenda', label: 'Agenda' },

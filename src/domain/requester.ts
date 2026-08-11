@@ -20,7 +20,7 @@ export function normalizeEmail(raw: string): string {
   return trimmed
 }
 
-export type Destination = '/devis' | '/mes-logements' | '/inscription'
+export type Destination = '/' | '/mes-logements' | '/inscription'
 
 /**
  * Ou envoyer un compte qui vient de se connecter.
@@ -33,7 +33,7 @@ export function resolveDestination(input: {
   hasCompany: boolean
   hasRequester: boolean
 }): Destination {
-  if (input.hasCompany) return '/devis'
+  if (input.hasCompany) return '/'
   if (input.hasRequester) return '/mes-logements'
   return '/inscription'
 }

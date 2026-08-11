@@ -14,8 +14,10 @@ describe('normalisation de l adresse', () => {
 })
 
 describe('destination apres connexion', () => {
-  it('envoie l artisan dans son atelier', () => {
-    expect(resolveDestination({ hasCompany: true, hasRequester: false })).toBe('/devis')
+  it('envoie l artisan sur son accueil, et non sur sa liste de devis', () => {
+    // La liste des devis faisait office d'accueil faute d'accueil. Elle redevient
+    // ce qu'elle est.
+    expect(resolveDestination({ hasCompany: true, hasRequester: false })).toBe('/')
   })
 
   it('envoie le demandeur chez lui', () => {
@@ -27,7 +29,7 @@ describe('destination apres connexion', () => {
   it('fait primer l entreprise quand le compte porte les deux roles', () => {
     // Un plombier fait aussi refaire sa toiture. Interdire le cumul serait
     // faux ; ne pas choisir de defaut le laisserait sans destination.
-    expect(resolveDestination({ hasCompany: true, hasRequester: true })).toBe('/devis')
+    expect(resolveDestination({ hasCompany: true, hasRequester: true })).toBe('/')
   })
 
   it('envoie a l inscription un compte qui n est ni l un ni l autre', () => {

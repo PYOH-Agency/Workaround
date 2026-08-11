@@ -20,8 +20,9 @@ const PATRON_PRO: Access = { plan: 'pro', role: 'owner' }
 const COMPAGNON: Access = { plan: 'free', role: 'member' }
 
 describe('les entrées de la navigation', () => {
-  it('couvre les six écrans de l’artisan', () => {
+  it('couvre les sept écrans de l’artisan', () => {
     expect(hrefs).toEqual([
+      '/',
       '/devis',
       '/factures',
       '/agenda',
@@ -68,6 +69,7 @@ describe('la page courante', () => {
 describe('ce que la navigation propose', () => {
   it('donne au patron tout sauf ce qu’il n’a pas payé', () => {
     expect(linksFor(PATRON)).toEqual([
+      '/',
       '/devis',
       '/factures',
       '/agenda',
@@ -82,7 +84,13 @@ describe('ce que la navigation propose', () => {
 
   it('ne propose au compagnon RIEN qui le refuserait', () => {
     // La regle du jalon : un lien qui mene a un refus est pire que pas de lien.
-    expect(linksFor(COMPAGNON)).toEqual(['/devis', '/agenda'])
+    expect(linksFor(COMPAGNON)).toEqual(['/', '/devis', '/agenda'])
+  })
+
+  it('ouvre le suivi quotidien par l accueil, sans capacite requise', () => {
+    const [daily] = visibleGroups({ plan: 'free', role: 'member' })
+
+    expect(daily.entries[0]).toEqual({ href: '/', label: 'Accueil' })
   })
 
   it('efface le groupe dont toutes les entrées tombent', () => {
@@ -93,7 +101,7 @@ describe('ce que la navigation propose', () => {
 
   it('se replie au plus pauvre sans accès connu', () => {
     // Le backoffice partage cet en-tete et n'a aucune appartenance artisanale.
-    expect(linksFor(undefined)).toEqual(['/devis', '/agenda'])
+    expect(linksFor(undefined)).toEqual(['/', '/devis', '/agenda'])
   })
 })
 

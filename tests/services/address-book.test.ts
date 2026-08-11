@@ -41,8 +41,19 @@ async function signFor(companyId: string, projectId: string, requesterId: string
  * C'est la meme lecon qu'en M4, ou un temoin partage avait rendu un test
  * ambigu.
  */
+/**
+ * Le collecteur de CE worktree, jamais un port en dur.
+ *
+ * `pnpm db:worktree` derive une bande de ports par worktree et l'ecrit dans
+ * `MAILBOX_URL`. Coder 54324 revient a interroger la boite de la pile
+ * principale : le test passe la ou il a ete ecrit, et echoue partout ailleurs
+ * sur une erreur de connexion qui ne designe pas sa cause. `tests/e2e/helpers`
+ * s'etait deja fait prendre, et porte la meme lecon en commentaire.
+ */
+const MAILBOX = process.env.MAILBOX_URL ?? 'http://127.0.0.1:54324'
+
 async function mailboxMentions(needle: string): Promise<boolean> {
-  const response = await fetch('http://127.0.0.1:54324/api/v1/messages?limit=100')
+  const response = await fetch(`${MAILBOX}/api/v1/messages?limit=100`)
   const { messages = [] } = (await response.json()) as {
     messages?: { Subject: string; To: { Address: string }[] }[]
   }

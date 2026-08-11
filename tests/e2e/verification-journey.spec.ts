@@ -73,7 +73,9 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
 
     const nav = page.getByRole('navigation', { name: 'Navigation principale' })
     const links = nav.getByRole('link')
-    await expect(links).toHaveCount(5)
+    // Six, et non cinq : l'accueil a ajoute sa propre entree de navigation,
+    // au meme titre que les cinq deja comptees ici.
+    await expect(links).toHaveCount(6)
 
     // 44 px : le seuil que le socle s'impose deja pour `Input`. La cible faisait
     // la hauteur du texte, soit 20 px, avant ce lot.
