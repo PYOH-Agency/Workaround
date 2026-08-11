@@ -1,4 +1,4 @@
-import { and, eq, gte, lt } from 'drizzle-orm'
+import { and, eq, gte, lt, lte } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { registrationIntent } from '@/db/schema'
 import { normalizeEmail } from '@/domain/requester'
@@ -63,8 +63,35 @@ export async function recordIntent(input: {
  * Une intention perimee n'est pas rendue, et n'est pas supprimee non plus — la
  * purge de `recordIntent` s'en charge. Deux mecanismes de suppression pour la
  * meme table divergeraient.
+ *
+ * **`accountCreatedAt` n'est pas un raffinement : c'est la seule preuve qu'on
+ * ait de qui a ECRIT l'intention.** L'ecriture, elle, se fait sans aucune
+ * authentification — avant tout aller-retour par la boite mail. Relire par
+ * l'adresse authentifiee prouve qui LIT, jamais qui a ecrit.
+ *
+ * Sans cette condition, l'attaque tient en deux champs : un anonyme saisit un
+ * SIRET actif et l'adresse de sa victime. L'intention vit 24 heures. La
+ * victime se connecte normalement dans l'intervalle, `/auth/confirm` consomme
+ * l'intention AVANT `claimInvitation` — et la voila proprietaire d'une
+ * entreprise arbitraire. Le degat n'est pas passager : `claimInvitation`
+ * renonce des qu'une appartenance active existe, donc l'invitation legitime de
+ * son employeur ne sera PLUS JAMAIS reclamee. Un deni d'acces durable, monte
+ * par quelqu'un qui connait seulement une adresse.
+ *
+ * D'ou la regle : **on n'honore une intention que si le compte est ne apres
+ * elle**. C'est exactement l'ordre du parcours legitime — l'intention, puis le
+ * lien, puis le compte cree par `verifyOtp`. Dans l'attaque, le compte de la
+ * victime preexiste, et l'intention tombe.
+ *
+ * La condition est un PREDICAT SQL, pas un test JavaScript, meme discipline que
+ * `claimRequester` : elle doit tenir dans le meme `DELETE ... RETURNING` que la
+ * consommation, sans quoi deux appels concurrents la contourneraient.
  */
-export async function consumeIntent(rawEmail: string, now = new Date()): Promise<Intent | null> {
+export async function consumeIntent(
+  rawEmail: string,
+  accountCreatedAt: Date,
+  now = new Date(),
+): Promise<Intent | null> {
   const email = normalizeEmail(rawEmail)
 
   const [row] = await db
@@ -73,6 +100,7 @@ export async function consumeIntent(rawEmail: string, now = new Date()): Promise
       and(
         eq(registrationIntent.email, email),
         gte(registrationIntent.createdAt, new Date(now.getTime() - RETENTION_MS)),
+        lte(registrationIntent.createdAt, accountCreatedAt),
       ),
     )
     .returning()

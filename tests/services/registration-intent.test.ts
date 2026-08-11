@@ -10,12 +10,18 @@ afterAll(async () => {
 const someEmail = () => `paul-${randomUUID().slice(0, 8)}@test.local`
 const NOW = new Date('2026-08-10T10:00:00Z')
 
+/**
+ * Le compte nait a l'ouverture du lien, donc APRES l'intention. C'est l'ordre
+ * du parcours legitime, et la valeur par defaut de ces tests.
+ */
+const BORN = new Date(NOW.getTime() + 30 * 1000)
+
 describe('l intention d inscription', () => {
   it('se relit par l adresse', async () => {
     const email = someEmail()
     await recordIntent({ email, kind: 'company', siret: '12345678900012', now: NOW })
 
-    expect(await consumeIntent(email, NOW)).toEqual({
+    expect(await consumeIntent(email, BORN, NOW)).toEqual({
       kind: 'company',
       siret: '12345678900012',
       name: null,
@@ -28,7 +34,7 @@ describe('l intention d inscription', () => {
     const email = someEmail()
     await recordIntent({ email: `  ${email.toUpperCase()} `, kind: 'requester', name: 'Paul', now: NOW })
 
-    expect((await consumeIntent(email.toUpperCase(), NOW))?.name).toBe('Paul')
+    expect((await consumeIntent(email.toUpperCase(), BORN, NOW))?.name).toBe('Paul')
   })
 
   it('ne se consomme QU UNE FOIS', async () => {
@@ -36,12 +42,12 @@ describe('l intention d inscription', () => {
     const email = someEmail()
     await recordIntent({ email, kind: 'company', siret: '12345678900012', now: NOW })
 
-    await consumeIntent(email, NOW)
-    expect(await consumeIntent(email, NOW)).toBeNull()
+    await consumeIntent(email, BORN, NOW)
+    expect(await consumeIntent(email, BORN, NOW)).toBeNull()
   })
 
   it('rend null pour une adresse sans intention', async () => {
-    expect(await consumeIntent(someEmail(), NOW)).toBeNull()
+    expect(await consumeIntent(someEmail(), BORN, NOW)).toBeNull()
   })
 
   it('n honore pas une intention de plus de 24 heures', async () => {
@@ -49,7 +55,32 @@ describe('l intention d inscription', () => {
     await recordIntent({ email, kind: 'company', siret: '12345678900012', now: NOW })
 
     const later = new Date(NOW.getTime() + 25 * 60 * 60 * 1000)
-    expect(await consumeIntent(email, later)).toBeNull()
+    expect(await consumeIntent(email, later, later)).toBeNull()
+  })
+
+  it('n honore pas une intention ecrite APRES la naissance du compte', async () => {
+    // L'attaque, sans aucune authentification : un visiteur saisit un SIRET
+    // actif puis l'adresse d'autrui. La victime, qui a deja un compte, se
+    // connecte dans les 24 heures — et se retrouve proprietaire d'une
+    // entreprise qu'elle n'a pas demandee. Pire : `claimInvitation` renonce
+    // des qu'une appartenance active existe, donc l'invitation legitime de son
+    // employeur ne serait plus JAMAIS reclamee.
+    const email = someEmail()
+    const born = new Date(NOW.getTime() - 60 * 60 * 1000)
+    await recordIntent({ email, kind: 'company', siret: '12345678900012', now: NOW })
+
+    expect(await consumeIntent(email, born, NOW)).toBeNull()
+  })
+
+  it('honore l intention ecrite AVANT, puisque le compte en est ne', async () => {
+    // Le parcours legitime : l'intention, puis le lien, puis le compte cree
+    // par `verifyOtp`. C'est ce qui distingue le proprietaire de l'adresse de
+    // l'anonyme qui l'a seulement saisie.
+    const email = someEmail()
+    await recordIntent({ email, kind: 'requester', name: 'Paul', now: NOW })
+
+    const born = new Date(NOW.getTime() + 5 * 60 * 1000)
+    expect((await consumeIntent(email, born, NOW))?.name).toBe('Paul')
   })
 
   it('la reinscription ecrase la precedente', async () => {
@@ -58,7 +89,7 @@ describe('l intention d inscription', () => {
     await recordIntent({ email, kind: 'company', siret: '11111111111111', now: NOW })
     await recordIntent({ email, kind: 'company', siret: '22222222222222', now: NOW })
 
-    expect((await consumeIntent(email, NOW))?.siret).toBe('22222222222222')
+    expect((await consumeIntent(email, BORN, NOW))?.siret).toBe('22222222222222')
   })
 
   it('purge les intentions perimees a l ecriture', async () => {

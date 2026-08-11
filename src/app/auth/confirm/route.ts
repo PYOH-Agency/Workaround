@@ -35,7 +35,12 @@ export async function GET(request: Request) {
 
   // L'intention d'abord : c'est elle qui peut CREER le rattachement que les
   // lectures qui suivent vont chercher.
-  const intent = await consumeIntent(user.email)
+  //
+  // La date de naissance du compte est passee parce que l'intention s'ecrit
+  // SANS authentification : seul « le compte est-il ne apres elle ? » distingue
+  // le proprietaire de l'adresse de l'anonyme qui l'a saisie. Voir
+  // `consumeIntent`.
+  const intent = await consumeIntent(user.email, new Date(user.created_at))
 
   if (intent?.kind === 'company' && intent.siret) {
     try {
