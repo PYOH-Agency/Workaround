@@ -53,6 +53,7 @@ export default function SignUpCompanyPage() {
   const [signedIn, setSignedIn] = useState(false)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [resendError, setResendError] = useState<string | null>(null)
   const [email, setEmail] = useState('')
 
   const supabase = createBrowserClient(
@@ -83,12 +84,30 @@ export default function SignUpCompanyPage() {
     }
   }
 
+  /**
+   * Le renvoi rend son verdict, et l'ecran d'attente en depend.
+   *
+   * « Un bouton "Renvoyer" qui echoue en silence est pire que pas de bouton » —
+   * c'est la phrase par laquelle la spec des ecrans §3.4 justifie le decompte.
+   * Sans ce booleen, l'ecran ne pouvait ni le dire ni s'en servir.
+   */
   async function resend() {
-    await recordCompanyIntent(email, found!.siret)
-    await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm` },
-    })
+    setResendError(null)
+
+    try {
+      await recordCompanyIntent(email, found!.siret)
+
+      const { error: sendError } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm` },
+      })
+      if (sendError) throw sendError
+
+      return true
+    } catch {
+      setResendError("L'envoi a échoué. Réessayez dans un instant.")
+      return false
+    }
   }
 
   return (
@@ -136,6 +155,7 @@ export default function SignUpCompanyPage() {
         <SentStep
           email={email}
           companyName={found.legalName}
+          error={resendError ?? undefined}
           onChangeEmail={() => setStage('email')}
           onResend={resend}
         />

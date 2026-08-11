@@ -5,6 +5,7 @@ import { Button } from '@/ui/atoms/button'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
 import { Text } from '@/ui/atoms/text'
+import { Notice } from '@/ui/molecules/notice'
 
 /**
  * Trente secondes avant de pouvoir renvoyer.
@@ -28,15 +29,19 @@ const RESEND_AFTER_S = 30
 export function SentStep({
   email,
   companyName,
+  error,
   onChangeEmail,
   onResend,
 }: {
   email: string
   companyName: string
+  error?: string
   onChangeEmail: () => void
-  onResend: () => void
+  /** Vrai si le lien est reparti — c'est ce verdict qui autorise le decompte. */
+  onResend: () => Promise<boolean>
 }) {
   const [remaining, setRemaining] = useState(RESEND_AFTER_S)
+  const [sending, setSending] = useState(false)
 
   useEffect(() => {
     if (remaining <= 0) return
@@ -61,13 +66,26 @@ export function SentStep({
         Il arrive en moins d’une minute. Rien ? Regardez dans les indésirables.
       </Text>
 
+      {error && (
+        <Notice tone="danger" alert>
+          {error}
+        </Notice>
+      )}
+
       <Button
         type="button"
         tone="secondary"
         disabled={remaining > 0}
-        onClick={() => {
-          setRemaining(RESEND_AFTER_S)
-          onResend()
+        pending={sending}
+        onClick={async () => {
+          setSending(true)
+          const gone = await onResend()
+          setSending(false)
+
+          // Le decompte ne repart que sur un envoi parti. Le relancer quoi qu'il
+          // arrive verrouillait trente secondes un bouton qui venait d'echouer,
+          // et le message d'echec n'avait alors aucune suite a proposer.
+          if (gone) setRemaining(RESEND_AFTER_S)
         }}
       >
         {remaining > 0 ? `Renvoyer dans 0:${String(remaining).padStart(2, '0')}` : 'Renvoyer le lien'}
