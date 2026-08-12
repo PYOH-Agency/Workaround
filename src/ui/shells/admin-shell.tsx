@@ -24,15 +24,30 @@ import { ThemeToggle } from '@/ui/molecules/theme-toggle'
 export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-surface">
+      {/*
+        Meme decoupe qu'`AppHeader`, et pour la meme raison mesuree : en 375 px
+        cet en-tete s'empilait sur trois rangs — le logo, la navigation, puis le
+        theme et la deconnexion — et pesait 161 px, un cinquieme de l'ecran. La
+        navigation prend un rang entier sous `lg`, donc la marque et les
+        commandes de compte se partagent le premier : 109 px. Au dela, tout
+        revient sur un seul rang et rien n'est perdu au bureau.
+      */}
       <header className="border-b border-rule bg-card">
-        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3">
-          <Link href="/supervision" className="rounded-badge" aria-label="Supervision">
+        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-4 gap-y-1 px-6 py-2">
+          {/*
+            `flex` et non l'`inline` par defaut du lien : en ligne, il portait
+            la hauteur de ligne de sa police et ouvrait 14 px de vide sous les
+            jambages du logotype.
+          */}
+          <Link href="/supervision" className="flex rounded-badge" aria-label="Supervision">
             <Lockup size="sm" />
           </Link>
 
-          <AppNav groups={staffNavGroups} />
+          <div className="order-last w-full lg:order-none lg:w-auto">
+            <AppNav groups={staffNavGroups} />
+          </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <ThemeToggle />
             <SignOut />
           </div>
