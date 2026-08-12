@@ -3,7 +3,6 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import type { MentionGroup } from '@/domain/legal-mentions'
 import type { Establishment } from '@/services/company-lookup'
 import { Notice } from '@/ui/molecules/notice'
 import { PublicShell } from '@/ui/shells/public-shell'
@@ -49,7 +48,6 @@ function Unavailable() {
 export default function SignUpCompanyPage() {
   const [stage, setStage] = useState<Stage>('siret')
   const [found, setFound] = useState<Establishment | null>(null)
-  const [missing, setMissing] = useState<MentionGroup[]>([])
   const [signedIn, setSignedIn] = useState(false)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -123,7 +121,6 @@ export default function SignUpCompanyPage() {
           initialSiret={found?.siret ?? ''}
           onFound={(state) => {
             setFound(state.found!)
-            setMissing(state.missing ?? [])
             setSignedIn(Boolean(state.signedIn))
             setStage('confirm')
           }}
@@ -133,7 +130,6 @@ export default function SignUpCompanyPage() {
       {stage === 'confirm' && found && (
         <ConfirmStep
           establishment={found}
-          missing={missing}
           error={error ?? undefined}
           pending={creating}
           onConfirm={confirm}

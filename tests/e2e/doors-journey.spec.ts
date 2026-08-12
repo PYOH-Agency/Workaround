@@ -30,6 +30,20 @@ const CURIEUX = `curieux-a1-${randomUUID().slice(0, 8)}@test.local`
 const SIRET = '55208131766522'
 const RAISON_SOCIALE = /ELECTRICITE DE FRANCE/i
 
+/**
+ * Les trois etapes de la mise en route, ecrites en dur ici EXPRES.
+ *
+ * Le parcours les lit des deux cotes du lien magique — annoncees a l'etape 2,
+ * retrouvees sur l'accueil — et c'est cette egalite qui est la promesse. Les
+ * importer de `@/domain/onboarding-steps` rendrait le test vrai par
+ * construction, y compris le jour ou les libelles derivent.
+ */
+const PREMIERS_PAS = [
+  'Vos mentions obligatoires',
+  'Votre attestation décennale',
+  'Votre premier devis',
+]
+
 test('les portes', async ({ page, browser }) => {
   await clearMailbox()
 
@@ -46,9 +60,12 @@ test('les portes', async ({ page, browser }) => {
     await expect(page.getByText('Étape 2 sur 3')).toBeVisible()
     // L'element signature : sa raison sociale, qu'il n'a pas saisie.
     await expect(page.getByText(RAISON_SOCIALE)).toBeVisible()
-    // Et le travail restant, annonce avant l'engagement.
-    await expect(page.getByText('Assurance décennale')).toBeVisible()
-    await expect(page.getByText('à compléter').first()).toBeVisible()
+    // Et le travail restant, annonce avant l'engagement : les trois etapes de
+    // la mise en route, dans leurs mots et leur ordre.
+    for (const etape of PREMIERS_PAS) {
+      await expect(page.getByText(etape)).toBeVisible()
+    }
+    await expect(page.getByText('à établir')).toBeVisible()
   })
 
   await test.step('revenir en arrière ne fait pas retaper les 14 chiffres', async () => {
@@ -78,6 +95,13 @@ test('les portes', async ({ page, browser }) => {
     // landing au visiteur, et l'on y arrive donc meme sans compte.
     await expect(page).toHaveURL(/\/$/)
     await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible()
+
+    // La continuite, verifiee de l'autre cote du lien magique : la mise en
+    // route reprend mot pour mot ce que l'etape 2 avait annonce. Personne
+    // n'est perdu parce que personne n'est surpris.
+    for (const etape of PREMIERS_PAS) {
+      await expect(page.getByRole('heading', { name: etape })).toBeVisible()
+    }
   })
 
   await test.step('il peut sortir', async () => {

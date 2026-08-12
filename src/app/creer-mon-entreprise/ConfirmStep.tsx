@@ -1,4 +1,4 @@
-import { MENTION_GROUP_LABELS, type MentionGroup } from '@/domain/legal-mentions'
+import { ONBOARDING_STEPS } from '@/domain/onboarding-steps'
 import { Badge } from '@/ui/atoms/badge'
 import { Button } from '@/ui/atoms/button'
 import { Icon } from '@/ui/atoms/icon'
@@ -26,14 +26,12 @@ import type { Establishment } from '@/services/company-lookup'
  */
 export function ConfirmStep({
   establishment,
-  missing,
   error,
   pending = false,
   onConfirm,
   onReject,
 }: {
   establishment: Establishment
-  missing: MentionGroup[]
   /** Le refus tardif : l'etablissement a cesse, ou l'entreprise vient d'etre prise. */
   error?: string
   pending?: boolean
@@ -55,9 +53,13 @@ export function ConfirmStep({
               repetons ce que dit le repertoire. Le sceau de verification se
               merite ailleurs, et le confondre avec un echo d'annuaire viderait
               de sens la seule promesse du produit.
+
+              Le marteau, pas le document : RGE est une qualification du
+              metier. Un picto de fichier en faisait une piece jointe, et
+              `check` aurait dit « verifie », ce que ce badge se refuse a dire.
             */}
             {establishment.rge ? (
-              <Badge tone="neutral" icon={<Icon name="document" size="sm" />}>
+              <Badge tone="neutral" icon={<Icon name="hammer" size="sm" />}>
                 RGE
               </Badge>
             ) : null}
@@ -77,20 +79,23 @@ export function ConfirmStep({
             {establishment.addressLine1}, {establishment.postalCode} {establishment.city}
           </Text>
 
-          {missing.length > 0 ? (
-            <div className="mt-3 flex flex-col gap-1 border-t border-rule pt-3">
-              {missing.map((group) => (
-                <div key={group} className="flex justify-between gap-4">
-                  <Text size="sm" tone="muted" as="span">
-                    {MENTION_GROUP_LABELS[group]}
-                  </Text>
-                  <Text size="sm" tone="muted" as="span">
-                    à compléter
-                  </Text>
-                </div>
-              ))}
-            </div>
-          ) : null}
+          {/*
+            La mise en route, mot pour mot et dans son ordre.
+            L'entreprise n'existe pas encore : les trois sont a faire, et c'est
+            exactement ce que l'artisan retrouvera en arrivant.
+          */}
+          <div className="mt-3 flex flex-col gap-1 border-t border-rule pt-3">
+            {ONBOARDING_STEPS.map((step) => (
+              <div key={step.key} className="flex justify-between gap-4">
+                <Text size="sm" tone="muted" as="span">
+                  {step.title}
+                </Text>
+                <Text size="sm" tone="muted" as="span">
+                  {step.pendingLabel}
+                </Text>
+              </div>
+            ))}
+          </div>
         </div>
       </Card>
 

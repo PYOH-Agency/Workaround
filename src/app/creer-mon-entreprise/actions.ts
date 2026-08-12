@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { company } from '@/db/schema'
-import { missingMentionGroups, type MentionGroup } from '@/domain/legal-mentions'
 import { findEstablishment, type Establishment } from '@/services/company-lookup'
 import { createCompanyFor, RegistrationError } from '@/services/registration'
 import { recordIntent } from '@/services/registration-intent'
@@ -13,8 +12,6 @@ import { createServerSupabase } from '@/lib/supabase-server'
 export interface LookupState {
   error?: string
   found?: Establishment
-  /** Ce qui restera a completer une fois entre. Annonce, jamais exige ici. */
-  missing?: MentionGroup[]
   /**
    * Vrai si la personne est DEJA connectee.
    *
@@ -62,16 +59,9 @@ export async function lookupForSignUp(_state: LookupState, form: FormData): Prom
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Ce que l'API a prerempli compte deja : la ligne « Coordonnees » n'est pas
-  // vide au depart, et l'annoncer honnetement vaut mieux que partir de zero.
-  return {
-    found,
-    signedIn: Boolean(user),
-    missing: missingMentionGroups({
-      legalFormLabel: found.legalFormLabel,
-      vatNumber: found.vatNumber,
-    }),
-  }
+  // Aucun calcul de ce qui manque : l'etape 2 annonce les trois etapes de la
+  // mise en route, qui sont toutes a faire tant que l'entreprise n'existe pas.
+  return { found, signedIn: Boolean(user) }
 }
 
 /**
