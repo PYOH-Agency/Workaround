@@ -99,9 +99,15 @@ export function ConfirmStep({
         </div>
       </Card>
 
+      {/*
+        « Les lignes grises sont obligatoires » a cesse d'etre vrai le jour ou
+        la liste a repris les etapes de la mise en route : etablir son premier
+        devis n'est obligatoire pour personne. La phrase promet desormais ce
+        qu'elle peut tenir — que ces lignes-la sont celles de l'arrivee — et
+        c'est cette promesse-la qui compte.
+      */}
       <Text size="sm" tone="soft">
-        Voilà l’en-tête de vos devis. Les lignes grises sont obligatoires — on s’en occupe une fois
-        entré.
+        Voilà l’en-tête de vos devis. Les lignes grises sont ce qui vous attend en arrivant.
       </Text>
 
       {error && (
