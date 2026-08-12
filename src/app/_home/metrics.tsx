@@ -54,7 +54,7 @@ export function Metrics({
         ))}
       </div>
 
-      {detailHref ? <Link href={detailHref}>Voir votre passeport</Link> : null}
+      {detailHref ? <Link href={detailHref} standalone>Voir votre passeport</Link> : null}
     </section>
   )
 }

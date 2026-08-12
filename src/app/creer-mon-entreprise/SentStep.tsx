@@ -55,7 +55,21 @@ export function SentStep({
         <span className="text-verified">
           <Icon name="check" />
         </span>
-        <Heading level={1}>Un lien part vers {email}</Heading>
+        {/*
+          L'adresse est SOUS le titre, pas dedans.
+
+          Elle y etait, et c'est de la donnee utilisateur dans du titrage : en
+          Archivo 800/32, une adresse ordinaire cassait sur trois lignes et
+          sortait du rythme typographique. Un titre annonce, il ne recite pas ce
+          qu'on vient de saisir.
+
+          `break-all` parce qu'une adresse n'a pas de point de cesure naturel :
+          sans lui, un domaine un peu long deborde de sa colonne en 375 px.
+        */}
+        <Heading level={1}>Vérifiez votre boîte mail</Heading>
+        <Text tone="soft">
+          Un lien part vers <strong className="break-all">{email}</strong>.
+        </Text>
       </div>
 
       <Text tone="soft">

@@ -79,9 +79,22 @@ export function SiretStep({
 
       <Separator />
 
-      <Text size="sm" tone="muted">
-        On vous a invité à rejoindre une entreprise ? <Link href="/connexion">Connectez-vous</Link>.
-      </Text>
+      {/*
+        La sortie sur sa propre ligne, comme sur `/connexion`.
+
+        Au fil de la phrase, l'ancre ne faisait que 38 px de haut — sous les
+        44 px que la charte impose. La detacher lui donne sa cible sans crever
+        l'interligne d'un paragraphe, et aligne cet ecran sur la porte de retour,
+        qui pose deja ses deux sorties ainsi.
+      */}
+      <div className="flex flex-col gap-2">
+        <Text size="sm" tone="muted">
+          On vous a invité à rejoindre une entreprise ?
+        </Text>
+        <Link href="/connexion" standalone>
+          Connectez-vous
+        </Link>
+      </div>
     </>
   )
 }
