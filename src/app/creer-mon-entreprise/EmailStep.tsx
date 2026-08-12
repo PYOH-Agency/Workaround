@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
 import { Button } from '@/ui/atoms/button'
 import { Input } from '@/ui/atoms/input'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
+import { browserSupabase } from '@/lib/supabase-browser'
 import { SectionHeader } from '@/ui/molecules/section-header'
 import { recordCompanyIntent } from './actions'
 
@@ -27,11 +27,6 @@ export function EmailStep({ siret, onSent }: { siret: string; onSent: (email: st
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -42,7 +37,7 @@ export function EmailStep({ siret, onSent }: { siret: string; onSent: (email: st
       // ferait atterrir la personne sans son SIRET.
       await recordCompanyIntent(email, siret)
 
-      const { error: sendError } = await supabase.auth.signInWithOtp({
+      const { error: sendError } = await browserSupabase().auth.signInWithOtp({
         email,
         options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm` },
       })

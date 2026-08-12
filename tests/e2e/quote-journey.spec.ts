@@ -32,8 +32,11 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
     // L'element signature : la raison sociale vient de l'API, pas de la saisie.
     // Elle n'est pas un titre — c'est l'en-tete des futurs devis, pas un ecran.
     await expect(page.getByText(/GARANCE PLOMBERIE/i)).toBeVisible()
-    // Et le travail restant, annonce avant l'engagement.
-    await expect(page.getByText('Assurance décennale')).toBeVisible()
+    // Et le travail restant, annonce avant l'engagement : le libelle est celui
+    // de la mise en route, pas un synonyme. `doors-journey` verifie les trois
+    // de part et d'autre du lien magique ; ici on se contente d'attester que
+    // l'annonce est bien la.
+    await expect(page.getByText('Votre attestation décennale')).toBeVisible()
 
     // Deja connecte : pas de second aller-retour par la boite mail. L'accueil
     // s'ouvre sur ce bouton — et non plus `/devis`, qui a cesse de jouer

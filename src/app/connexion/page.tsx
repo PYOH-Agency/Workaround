@@ -2,7 +2,6 @@
 
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
 import { Button } from '@/ui/atoms/button'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
@@ -12,6 +11,7 @@ import { Separator } from '@/ui/atoms/separator'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
 import { Notice } from '@/ui/molecules/notice'
+import { browserSupabase } from '@/lib/supabase-browser'
 import { PublicShell } from '@/ui/shells/public-shell'
 import { invitationPending } from './actions'
 
@@ -59,11 +59,6 @@ export default function SignInPage() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-
   async function submit(e: React.FormEvent) {
     e.preventDefault()
 
@@ -75,7 +70,7 @@ export default function SignInPage() {
     // laisser une lecture defaillante ouvrir la creation de compte a tous.
     const invited = await invitationPending(email).catch(() => false)
 
-    await supabase.auth.signInWithOtp({
+    await browserSupabase().auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: invited,

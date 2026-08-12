@@ -2,9 +2,9 @@
 
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
 import type { Establishment } from '@/services/company-lookup'
 import { Notice } from '@/ui/molecules/notice'
+import { browserSupabase } from '@/lib/supabase-browser'
 import { PublicShell } from '@/ui/shells/public-shell'
 import { ConfirmStep } from './ConfirmStep'
 import { EmailStep } from './EmailStep'
@@ -54,11 +54,6 @@ export default function SignUpCompanyPage() {
   const [resendError, setResendError] = useState<string | null>(null)
   const [email, setEmail] = useState('')
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-
   /**
    * Le point ou les deux publics divergent.
    *
@@ -95,7 +90,7 @@ export default function SignUpCompanyPage() {
     try {
       await recordCompanyIntent(email, found!.siret)
 
-      const { error: sendError } = await supabase.auth.signInWithOtp({
+      const { error: sendError } = await browserSupabase().auth.signInWithOtp({
         email,
         options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm` },
       })

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
 import { Button } from '@/ui/atoms/button'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
@@ -9,6 +8,7 @@ import { Input } from '@/ui/atoms/input'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Field } from '@/ui/molecules/field'
+import { browserSupabase } from '@/lib/supabase-browser'
 import { PublicShell } from '@/ui/shells/public-shell'
 import { recordRequesterIntent } from './actions'
 
@@ -42,11 +42,6 @@ export default function SignUpRequesterPage() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -68,7 +63,7 @@ export default function SignUpRequesterPage() {
       // compter sur le `catch` ci-dessous, qui avalerait ce signal-la.
       if (!state.sendLink) return
 
-      const { error: sendError } = await supabase.auth.signInWithOtp({
+      const { error: sendError } = await browserSupabase().auth.signInWithOtp({
         email,
         options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm` },
       })
