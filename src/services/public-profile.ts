@@ -2,6 +2,7 @@ import { like } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { company } from '@/db/schema'
 import { companySlug } from '@/domain/slug'
+import { logoPublicUrl } from '@/domain/logo'
 import { activeQualifications, type Qualification } from '@/domain/rge'
 import { companyCoverage } from '@/services/visibility'
 import { validatedCertificates } from '@/services/certificates'
@@ -30,6 +31,8 @@ export interface PublicProfile {
   email: string | null
   city: string | null
   foundedOn: Date | null
+  /** L'URL publique du logo de l'entreprise, ou `null`. */
+  logoUrl: string | null
   insurer: { name: string | null; policyNumber: string | null; validUntil: Date | null }
   activities: PublicActivity[]
   qualifications: Qualification[]
@@ -74,6 +77,7 @@ export async function publicProfile(siren: string, now: Date): Promise<PublicPro
     email: found.email,
     city: found.city,
     foundedOn: found.foundedOn,
+    logoUrl: logoPublicUrl(found.logoPath),
     insurer: {
       name: current?.insurerName ?? found.insurerName,
       policyNumber: current?.policyNumber ?? found.policyNumber,
