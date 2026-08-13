@@ -62,6 +62,10 @@ export async function removeCompanyLogo(companyId: string): Promise<void> {
 
   await db.update(company).set({ logoPath: null }).where(eq(company.id, companyId))
 
+  // La fiche ne pointe plus sur rien des la mise a jour ci-dessus : l'effacement
+  // du fichier est un menage, pas la garantie du retrait. S'il echoue, il reste
+  // un objet orphelin — deja public avant, donc sans divulgation nouvelle — que
+  // plus aucune ligne ne reference.
   const supabase = createServiceSupabase()
   await supabase.storage.from(LOGO_BUCKET).remove([current.logoPath])
 
