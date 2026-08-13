@@ -19,7 +19,7 @@ const PATRON_PRO: Access = { plan: 'pro', role: 'owner' }
 const COMPAGNON: Access = { plan: 'free', role: 'member' }
 
 describe('les entrées de la navigation', () => {
-  it('couvre les sept écrans de l’artisan', () => {
+  it('couvre les huit écrans de l’artisan', () => {
     expect(hrefs).toEqual([
       '/',
       '/devis',
@@ -28,6 +28,7 @@ describe('les entrées de la navigation', () => {
       '/mon-passeport',
       '/verification',
       '/equipe',
+      '/offre-pro',
     ])
   })
 
@@ -66,7 +67,9 @@ describe('la page courante', () => {
 })
 
 describe('ce que la navigation propose', () => {
-  it('donne au patron tout sauf ce qu’il n’a pas payé', () => {
+  it('propose au patron gratuit la porte de l’offre Pro, pas l’équipe', () => {
+    // « Équipe » est derriere le plan, donc masquee ; « Offre Pro » prend sa
+    // place — sans elle, l'offre n'aurait aucun point d'entree dans la barre.
     expect(linksFor(PATRON)).toEqual([
       '/',
       '/devis',
@@ -74,11 +77,15 @@ describe('ce que la navigation propose', () => {
       '/agenda',
       '/mon-passeport',
       '/verification',
+      '/offre-pro',
     ])
   })
 
-  it('ouvre l’équipe une fois l’entreprise en Pro', () => {
-    expect(linksFor(PATRON_PRO)).toContain('/equipe')
+  it('ouvre l’équipe une fois l’entreprise en Pro, et retire la porte de l’offre', () => {
+    const links = linksFor(PATRON_PRO)
+    expect(links).toContain('/equipe')
+    // Une entreprise qui a deja Pro n'a plus rien a decouvrir.
+    expect(links).not.toContain('/offre-pro')
   })
 
   it('ne propose au compagnon RIEN qui le refuserait', () => {

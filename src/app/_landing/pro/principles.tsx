@@ -4,7 +4,7 @@ import { SectionHeader } from '@/ui/molecules/section-header'
 export function Principles() {
   return (
     <section className="border-y border-rule bg-card">
-      <div className="mx-auto w-full max-w-5xl px-6 py-16">
+      <div className="mx-auto w-full max-w-5xl px-6 py-12">
         <div className="flex flex-col gap-6">
           <SectionHeader title="Ce que nous ne ferons jamais." />
           <PrinciplePanel

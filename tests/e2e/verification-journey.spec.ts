@@ -70,9 +70,11 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
 
     const nav = page.getByRole('navigation', { name: 'Navigation principale' })
     const links = nav.getByRole('link')
-    // Six, et non cinq : l'accueil a ajoute sa propre entree de navigation,
-    // au meme titre que les cinq deja comptees ici.
-    await expect(links).toHaveCount(6)
+    // Sept, et non six : « Offre Pro » s'ajoute aux six precedentes. Elle ne
+    // se montre qu'a un responsable en gratuit — ce que cet artisan est — et
+    // disparaitra le jour ou il prendra le plan. Le compte suit donc la table
+    // de navigation, entree par entree, plutot qu'un nombre pose une fois.
+    await expect(links).toHaveCount(7)
 
     // 44 px : le seuil que le socle s'impose deja pour `Input`. La cible faisait
     // la hauteur du texte, soit 20 px, avant ce lot.

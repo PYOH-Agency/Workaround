@@ -1,8 +1,9 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { Button } from '@/ui/atoms/button'
 import { Text } from '@/ui/atoms/text'
+import { Card } from '@/ui/molecules/card'
 import type { ProviderId } from '@/services/calendar-providers'
 import { regenerateFeed, startLink, unlink, type SyncState } from './actions'
 
@@ -12,22 +13,57 @@ const initialState: SyncState = {}
  * Régénérer l'adresse d'abonnement.
  *
  * Confirmation en deux temps : l'ancienne cesse de répondre aussitôt, et un
- * artisan qui l'a collée dans trois appareils devra les reprendre.
+ * artisan qui l'a collée dans trois appareils devra les reprendre. Le
+ * commentaire l'annonçait depuis toujours, mais le bouton régénérait au
+ * premier clic — une action destructive sans le garde-fou qu'il décrivait.
  */
 export function RegenerateButton() {
   const [state, action, pending] = useActionState(regenerateFeed, initialState)
+  const [confirming, setConfirming] = useState(false)
+
+  if (!confirming) {
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="self-start">
+          <Button tone="secondary" onClick={() => setConfirming(true)}>
+            Régénérer l’adresse
+          </Button>
+        </div>
+        {state.error && (
+          <Text size="sm" tone="soft">
+            {state.error}
+          </Text>
+        )}
+      </div>
+    )
+  }
 
   return (
-    <form action={action} className="flex flex-col gap-2">
-      <Button type="submit" tone="secondary" pending={pending}>
-        {pending ? 'Régénération…' : 'Régénérer l’adresse'}
-      </Button>
-      {state.error && (
-        <Text size="sm" tone="soft">
-          {state.error}
+    <Card elevation="e1">
+      <div className="flex flex-col gap-4">
+        <Text>
+          L’adresse actuelle <strong>cessera aussitôt de répondre</strong>. Si vous l’avez ajoutée à
+          plusieurs appareils, chacun devra reprendre la nouvelle.
         </Text>
-      )}
-    </form>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <form action={action}>
+            <Button type="submit" tone="danger" pending={pending}>
+              {pending ? 'Régénération…' : 'Régénérer l’adresse'}
+            </Button>
+          </form>
+          <Button tone="secondary" onClick={() => setConfirming(false)}>
+            Annuler
+          </Button>
+        </div>
+
+        {state.error && (
+          <Text size="sm" tone="soft">
+            {state.error}
+          </Text>
+        )}
+      </div>
+    </Card>
   )
 }
 

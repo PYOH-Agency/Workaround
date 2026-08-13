@@ -26,6 +26,15 @@ export interface NavEntry {
    * qui mene a un refus est pire que pas de lien.
    */
   capability?: Capability
+  /**
+   * Une condition qui ne se dit pas en capacite.
+   *
+   * `capability` couvre « ce que cette personne PEUT faire » ; il ne couvre pas
+   * son inverse. « Offre Pro » se montre justement a qui ne l'a PAS — un
+   * responsable en gratuit —, et aucune capacite n'exprime « il manque le
+   * plan ». Le predicat le fait, sans dupliquer la table des capacites.
+   */
+  when?: (access: Access | undefined) => boolean
 }
 
 export interface NavGroup {
@@ -60,6 +69,15 @@ export const navGroups: NavGroup[] = [
       { href: '/mon-passeport', label: 'Passeport', capability: 'passport.manage' },
       { href: '/verification', label: 'Vérification', capability: 'legal.write' },
       { href: '/equipe', label: 'Équipe', capability: 'team.manage' },
+      // `team.manage` masque « Équipe » a une entreprise gratuite : sans cette
+      // entree-la, l'offre Pro n'a plus AUCUN point d'entree dans la navigation.
+      // Elle se montre a qui pourrait la prendre — un responsable en gratuit —
+      // et disparait des qu'il l'a.
+      {
+        href: '/offre-pro',
+        label: 'Offre Pro',
+        when: (access) => access?.role === 'owner' && access?.plan === 'free',
+      },
     ],
   },
 ]
@@ -102,7 +120,16 @@ export function visibleGroups(access: Access): NavGroup[] {
   return navGroups
     .map((group) => ({
       ...group,
-      entries: group.entries.filter((entry) => !entry.capability || can(access, entry.capability)),
+      entries: group.entries
+        .filter(
+          (entry) =>
+            (!entry.capability || can(access, entry.capability)) &&
+            (!entry.when || entry.when(access)),
+        )
+        // `when` est une fonction, et ces entrees traversent la frontiere vers
+        // `AppNav`, un composant client : une fonction ne s'y serialise pas. Elle
+        // n'a servi qu'au filtre ci-dessus, on la retire de ce qui part au client.
+        .map(({ when: _when, ...entry }) => entry),
     }))
     .filter((group) => group.entries.length > 0)
 }

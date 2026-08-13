@@ -7,6 +7,20 @@ import { SectionHeader } from '@/ui/molecules/section-header'
 import { Stagger } from '@/ui/molecules/stagger'
 
 export function Trap() {
+  /*
+    La date d'echeance de la carte « Verifiee » etait figee en dur au 08 aout
+    2026 — deja passee des le 12. Une illustration de la fraicheur qui paraissait
+    perimee. On la calcule a un an de la date du rendu : toujours a venir, et
+    remise a jour a chaque build. C'est un exemple, pas une donnee reelle.
+  */
+  const checkedUntil = new Date()
+  checkedUntil.setFullYear(checkedUntil.getFullYear() + 1)
+  const checkedUntilLabel = checkedUntil.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+
   return (
     <section className="border-y border-rule bg-card">
       <div className="mx-auto w-full max-w-5xl px-6 py-16">
@@ -44,7 +58,7 @@ export function Trap() {
                 <Badge tone="verified" icon={<Icon name="check" size="sm" />}>
                   Vérifiée
                 </Badge>
-                <Heading level={3}>08 août 2026</Heading>
+                <Heading level={3}>{checkedUntilLabel}</Heading>
                 <Text size="sm" tone="soft">
                   Recontrôlée à chaque échéance, automatiquement.
                 </Text>

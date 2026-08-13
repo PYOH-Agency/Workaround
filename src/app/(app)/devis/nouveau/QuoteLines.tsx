@@ -1,5 +1,7 @@
 'use client'
 
+import { Button } from '@/ui/atoms/button'
+import { Icon } from '@/ui/atoms/icon'
 import { Input } from '@/ui/atoms/input'
 import { Select } from '@/ui/atoms/select'
 import { Text } from '@/ui/atoms/text'
@@ -8,6 +10,26 @@ const TAX_RATES = [
   { value: 550, label: '5,5 %' },
   { value: 1000, label: '10 %' },
   { value: 2000, label: '20 %' },
+]
+
+/**
+ * Les unites d'une ligne de devis dans le batiment.
+ *
+ * `value` est ce qui s'imprime sur le devis, apres la quantite : « 12 m² »,
+ * « 1 forfait ». Le champ etait fige a « u » par un input cache — un plombier
+ * qui chiffre un lineaire ou un forfait devait donc ecrire « 3 u » et corriger
+ * a la main sur le PDF. La donnee, elle, acceptait deja n'importe quelle
+ * chaine : seule la saisie manquait.
+ */
+const UNITS = [
+  { value: 'u', label: 'unité' },
+  { value: 'forfait', label: 'forfait' },
+  { value: 'm²', label: 'm²' },
+  { value: 'm³', label: 'm³' },
+  { value: 'ml', label: 'ml' },
+  { value: 'h', label: 'heure' },
+  { value: 'j', label: 'jour' },
+  { value: 'kg', label: 'kg' },
 ]
 
 export interface LineDraft {
@@ -52,16 +74,23 @@ export function QuoteLineRow({
   index,
   line,
   onChange,
+  onRemove,
 }: {
   index: number
   line: LineDraft
   onChange: (index: number, key: keyof LineDraft, value: string | number) => void
+  /**
+   * Absent tant qu'il ne reste qu'une ligne : un devis a besoin d'au moins une
+   * prestation, et un bouton qui viderait la table est un piege, pas un geste.
+   */
+  onRemove?: (index: number) => void
 }) {
   const first = index === 0
 
   return (
-    <div className="grid gap-3 sm:grid-cols-12">
-      <div className="flex flex-col gap-1 sm:col-span-5">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
+    <div className="grid flex-1 gap-3 sm:grid-cols-12">
+      <div className="flex flex-col gap-1 sm:col-span-4">
         <ColumnLabel show={first}>Désignation</ColumnLabel>
         <Input
           aria-label="Désignation"
@@ -82,7 +111,23 @@ export function QuoteLineRow({
         />
       </div>
 
-      <div className="flex flex-col gap-1 sm:col-span-3">
+      <div className="flex flex-col gap-1 sm:col-span-2">
+        <ColumnLabel show={first}>Unité</ColumnLabel>
+        <Select
+          aria-label="Unité"
+          name={`ligne[${index}][unite]`}
+          value={line.unit}
+          onChange={(e) => onChange(index, 'unit', e.target.value)}
+        >
+          {UNITS.map((unit) => (
+            <option key={unit.value} value={unit.value}>
+              {unit.label}
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      <div className="flex flex-col gap-1 sm:col-span-2">
         <ColumnLabel show={first}>Prix unitaire HT</ColumnLabel>
         <Input
           aria-label="Prix unitaire HT"
@@ -109,8 +154,20 @@ export function QuoteLineRow({
           ))}
         </Select>
       </div>
+      </div>
 
-      <input type="hidden" name={`ligne[${index}][unite]`} value={line.unit} />
+      {onRemove && (
+        <div className="flex flex-col gap-1">
+          {/* Reserve la hauteur de l'etiquette : sur la premiere ligne, les
+              champs sont pousses vers le bas par leur `ColumnLabel`, et le
+              bouton doit s'aligner sur eux, pas sur le haut de la colonne. */}
+          {first && <ColumnLabel show>{' '}</ColumnLabel>}
+          <Button tone="danger" onClick={() => onRemove(index)}>
+            <Icon name="trash" size="sm" />
+            Retirer
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

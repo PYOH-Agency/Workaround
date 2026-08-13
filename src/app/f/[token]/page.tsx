@@ -125,6 +125,8 @@ export default async function PublicInvoicePage({
             <>
               le <DateText value={found.retention.releasesOn} format="short" />
             </>
+          ) : found.retention.reservesPending ? (
+            'une fois levées les réserves que vous avez émises à la réception'
           ) : (
             'un an après la réception des travaux, que vous n’avez pas encore déclarée'
           )}

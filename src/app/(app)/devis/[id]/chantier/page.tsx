@@ -3,6 +3,7 @@ import { currentCompany, SessionError } from '@/lib/session'
 import { companyChantierFile } from '@/services/chantier-file'
 import { signedPhotoUrls } from '@/services/chantier-posts'
 import { Heading } from '@/ui/atoms/heading'
+import { Text } from '@/ui/atoms/text'
 import { Notice } from '@/ui/molecules/notice'
 import { PageHeader } from '@/ui/molecules/page-header'
 import { AppShell } from '@/ui/shells/app-shell'
@@ -54,12 +55,43 @@ export default async function ChantierFollowUpPage({
         le client considere comme receptionne.
       */}
       {file.receivedAt && (
-        <Notice tone="verified">
-          Votre client a déclaré la réception des travaux au{' '}
-          <strong>{file.receivedAt.toLocaleDateString('fr-FR')}</strong>. C’est sa déclaration, pas
-          un constat de notre part — mais elle vous est montrée parce qu’un fait partagé ne se
-          consigne pas en secret.
-        </Notice>
+        <div className="flex flex-col gap-2">
+          <Notice tone="verified">
+            Votre client a déclaré la réception des travaux au{' '}
+            <strong>{file.receivedAt.toLocaleDateString('fr-FR')}</strong>
+            {file.reserves === null ? (
+              <>, sans réserve</>
+            ) : file.reservesLiftedAt !== null ? (
+              <>
+                , avec des réserves, <strong>levées le{' '}
+                {file.reservesLiftedAt.toLocaleDateString('fr-FR')}</strong>
+              </>
+            ) : (
+              <>
+                , <strong>avec des réserves</strong>
+              </>
+            )}
+            . C’est sa déclaration, pas un constat de notre part — mais elle vous est montrée parce
+            qu’un fait partagé ne se consigne pas en secret.
+          </Notice>
+
+          {file.reserves !== null && (
+            <div className="flex flex-col gap-1 rounded-card border border-rule bg-card px-4 py-3">
+              <Text size="label" tone="muted" as="span">
+                Réserves déclarées par votre client
+              </Text>
+              <Text size="sm" as="span">
+                <span className="whitespace-pre-line">{file.reserves}</span>
+              </Text>
+              {file.reservesLiftedAt === null && (
+                <Text size="sm" tone="soft">
+                  Non levées : la retenue de garantie reste due à votre client jusqu’à ce qu’il en
+                  déclare la levée.
+                </Text>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       <section className="flex flex-col gap-3">

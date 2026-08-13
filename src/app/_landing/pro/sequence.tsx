@@ -38,9 +38,10 @@ const STEPS = [
 export function Sequence() {
   return (
     <section className="border-y border-rule bg-card">
-      <div className="mx-auto w-full max-w-5xl px-6 py-16">
+      <div className="mx-auto w-full max-w-5xl px-6 py-12">
         <Reveal>
           <SectionHeader
+            layout="split"
             label="Du devis à la réception"
             title="Le chantier laisse une trace, et le client la lit."
             lead="Un seul dossier, ouvert au signataire. Il n’a rien à installer, rien à créer : le lien qu’il a reçu pour signer reste celui qui lui montre où en est son chantier."

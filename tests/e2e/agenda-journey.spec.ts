@@ -151,7 +151,15 @@ test('de la prise de rendez-vous à la semaine', async ({ page }) => {
 
   await test.step('régénérer l’adresse fait taire l’ancienne', async () => {
     const href = (await page.getByTestId('abonnement').innerText()).trim()
+
+    // Deux clics, et non un : le geste est irreversible — l'adresse en cours
+    // cesse aussitot de repondre sur tous les appareils qui l'ont enregistree
+    // — et il demande donc une confirmation. Le second bouton porte le meme
+    // nom, dans la carte qui explique ce qu'on perd.
     await page.getByRole('button', { name: 'Régénérer l’adresse' }).click()
+    await expect(page.getByText(/cessera aussitôt de répondre/)).toBeVisible()
+    await page.getByRole('button', { name: 'Régénérer l’adresse' }).click()
+
     await expect(page.getByTestId('abonnement')).not.toContainText(href.split('/abonnement/')[1])
 
     expect((await page.request.get(href)).status()).toBe(404)

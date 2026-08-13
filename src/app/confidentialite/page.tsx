@@ -1,4 +1,5 @@
 import { Heading } from '@/ui/atoms/heading'
+import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { PublicShell } from '@/ui/shells/public-shell'
 
@@ -133,7 +134,10 @@ export default function PrivacyPage() {
           servent à établir un droit en cas de litige, et la loi nous impose de les conserver.
         </Text>
         <Text size="sm" tone="soft">
-          Écrivez-nous pour exercer ces droits. Vous pouvez également introduire une réclamation
+          Pour exercer ces droits, écrivez à{' '}
+          <Link href="mailto:bonjour@dequerre.fr">bonjour@dequerre.fr</Link>. Si vous êtes un client
+          et que la demande porte sur un devis, adressez-la d’abord à l’entreprise qui vous l’a
+          envoyé ; nous la relaierons au besoin. Vous pouvez également introduire une réclamation
           auprès de la CNIL.
         </Text>
         </section>

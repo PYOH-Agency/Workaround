@@ -3,8 +3,10 @@ import { loadQuoteByToken } from '@/services/quote-public'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
+import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
+import { Notice } from '@/ui/molecules/notice'
 import { LegalMentionsPanel, mention } from '@/ui/organisms/legal-mentions-panel'
 import { QuoteLinesTable } from '@/ui/organisms/quote-lines-table'
 import { TotalsPanel } from '@/ui/organisms/totals-panel'
@@ -138,6 +140,28 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
         </div>
       ) : found.status === 'sent' && found.customer.phone ? (
         <SignatureBlock token={token} phoneHint={maskPhone(found.customer.phone)} />
+      ) : found.status === 'sent' ? (
+        /*
+          `sent` sans telephone : la signature passe par un code SMS, et il n'y
+          a nulle part ou l'envoyer. Sans ce message, la page rendait `null` —
+          le client voyait un devis complet, aucun bouton, et aucune raison. Un
+          cul-de-sac muet sur l'ecran meme ou se gagne la signature. On nomme
+          l'obstacle et on donne la sortie : recontacter l'entreprise.
+        */
+        <Notice tone="warning">
+          <Text as="span" size="sm">
+            Ce devis ne peut pas être signé depuis ce lien : la signature se fait par un code envoyé
+            par SMS, et aucun numéro de mobile n’y est rattaché. Contactez{' '}
+            <strong>{found.company.legalName}</strong>
+            {legal.email ? (
+              <>
+                {' '}
+                (<Link href={`mailto:${legal.email}`}>{legal.email}</Link>)
+              </>
+            ) : null}{' '}
+            pour recevoir un lien signable.
+          </Text>
+        </Notice>
       ) : null}
     </PublicShell>
   )

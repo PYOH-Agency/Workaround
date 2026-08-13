@@ -180,7 +180,11 @@ test('les portes', async ({ page, browser }) => {
 
     // `notFound`, pas une redirection : il n'apprend meme pas que l'adresse
     // existe.
-    await expect(curieux.getByText('404')).toBeVisible()
+    //
+    // L'assertion portait sur « 404 », le texte de la page integree de Next.
+    // `src/app/not-found.tsx` l'a remplacee : on lit desormais ce que l'ecran
+    // dit vraiment, et non ce qu'il disait avant d'exister.
+    await expect(curieux.getByRole('heading', { name: /n’existe pas/ })).toBeVisible()
 
     await alentour.close()
   })

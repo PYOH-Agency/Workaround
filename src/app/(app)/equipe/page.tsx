@@ -13,21 +13,6 @@ import { AppShell } from '@/ui/shells/app-shell'
 import { TeamPanel } from './TeamPanel'
 
 /**
- * La demande d'offre Pro, adressee par courriel.
- *
- * Pas de formulaire : l'encaissement n'est pas automatise (le backoffice
- * bascule le plan a la main), donc un formulaire promettrait une souscription
- * qui n'existe pas. Un courriel dit la verite sur ce qui va se passer.
- */
-function proEnquiry(legalName: string, siret: string): string {
-  const subject = encodeURIComponent('Offre Pro — activation')
-  const body = encodeURIComponent(
-    `Bonjour,\n\nNous souhaitons activer l’offre Pro.\n\n${legalName}\nSIRET ${siret}\n`,
-  )
-  return `mailto:bonjour@dequerre.fr?subject=${subject}&body=${body}`
-}
-
-/**
  * L'equipe.
  *
  * **Le seul ecran du produit qui explique sa propre porte.** Ailleurs, un
@@ -68,21 +53,17 @@ export default async function TeamPage() {
         <PageHeader title="Votre équipe" />
 
         {/*
-          `action` n'est plus `null`, et c'est la correction la plus rentable de
-          l'ecran : c'est la SEULE surface payante du produit, et elle finissait
-          sur « Ecrivez-nous » sans rien a cliquer. Un vide sans porte de sortie
-          est un cul-de-sac — la regle qu'`EmptyState` enonce dans son propre
-          commentaire, et que cet ecran-la enfreignait.
-
-          `PRO_ENQUIRY` porte l'objet et le SIRET : la reponse arrive avec de
-          quoi identifier l'entreprise, sans un aller-retour de plus.
+          `action` mene desormais a la page de l'offre — la demande d'activation
+          y vit en clair, tracee et in-app, la ou cet ecran ouvrait le client
+          mail de l'artisan. Un vide sans porte de sortie reste ce qu'`EmptyState`
+          interdit : la porte a seulement change de destination.
         */}
         <EmptyState
           title="L’équipe fait partie de l’offre Pro"
           description="Invitez vos compagnons : ils tiennent l’agenda et publient au fil de chantier, sans jamais toucher à la facturation."
           action={
-            <ButtonLink href={proEnquiry(current.legalName, current.siret)} tone="conversion">
-              Demander l’offre Pro
+            <ButtonLink href="/offre-pro" tone="conversion">
+              Découvrir l’offre Pro
             </ButtonLink>
           }
         />

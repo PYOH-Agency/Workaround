@@ -43,10 +43,20 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
       Elle a ete livree avec `action={null}` : « Ecrivez-nous », et rien a
       cliquer. Un cul-de-sac sur cet ecran-la ne coute pas une friction, il
       coute la vente — d'ou une assertion plutot qu'une relecture.
+
+      La porte a change de nature, pas de raison d'etre : c'etait un `mailto`,
+      c'est desormais un ecran dedie qui porte la demande. L'assertion suit —
+      ce qu'elle garde, c'est qu'il y ait quelque chose a cliquer.
     */
-    const enquiry = patron.getByRole('link', { name: 'Demander l’offre Pro' })
+    const enquiry = patron.getByRole('link', { name: 'Découvrir l’offre Pro' })
     await expect(enquiry).toBeVisible()
-    expect(await enquiry.getAttribute('href')).toMatch(/^mailto:.+@.+\?subject=/)
+    expect(await enquiry.getAttribute('href')).toBe('/offre-pro')
+
+    // Et que cette porte-la ne soit pas elle-meme un cul-de-sac : l'ecran
+    // dedie porte le geste, pas seulement l'argumentaire.
+    await enquiry.click()
+    await expect(patron.getByRole('button', { name: 'Demander l’activation' })).toBeVisible()
+    await patron.goto('/equipe')
   })
 
   await test.step('passée en Pro, l’entreprise peut inviter', async () => {

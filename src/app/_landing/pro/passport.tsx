@@ -15,7 +15,7 @@ import { SectionHeader } from '@/ui/molecules/section-header'
  */
 export function Passport() {
   return (
-    <section className="mx-auto w-full max-w-5xl px-6 py-16">
+    <section className="mx-auto w-full max-w-5xl px-6 py-12">
       <div className="grid items-start gap-10 md:grid-cols-[1.2fr_1fr] md:gap-14">
         <div className="flex flex-col gap-6">
           <SectionHeader

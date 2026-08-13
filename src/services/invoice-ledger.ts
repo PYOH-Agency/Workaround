@@ -21,6 +21,8 @@ export async function settlements(companyId: string) {
       dueAt: invoice.dueAt,
       retentionRate: invoice.retentionRate,
       receivedAt: quote.receivedAt,
+      reserves: quote.receptionReserves,
+      reservesLiftedAt: quote.reservesLiftedAt,
     })
     .from(invoice)
     .leftJoin(quote, eq(invoice.quoteId, quote.id))

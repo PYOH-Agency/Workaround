@@ -75,6 +75,24 @@ export const quote = pgTable(
     receivedAt: timestamp('received_at', { withTimezone: true }),
     receivedBy: uuid('received_by').references(() => requester.id),
     /**
+     * Les reserves exprimees a la reception, telles que le maitre d'ouvrage les
+     * decrit. `null` = reception SANS reserve (ou pas encore declaree, ce que
+     * `received_at` distingue).
+     *
+     * Une reception AVEC reserves reste une reception : les garanties legales
+     * courent quand meme depuis `received_at`. Ce qui change, c'est la retenue
+     * de garantie — elle reste due au client tant que les reserves ne sont pas
+     * levees, au lieu d'etre liberee un an apres la reception.
+     */
+    receptionReserves: text('reception_reserves'),
+    /**
+     * La levee des reserves, DECLAREE par le maitre d'ouvrage — comme la
+     * reception elle-meme, c'est son acte, pas le notre. `null` tant que les
+     * reserves tiennent. C'est cette date qui debloque la retenue.
+     */
+    reservesLiftedAt: timestamp('reserves_lifted_at', { withTimezone: true }),
+    reservesLiftedBy: uuid('reserves_lifted_by').references(() => requester.id),
+    /**
      * La retenue de garantie stipulee, en points de pourcentage. `0` = aucune.
      *
      * **Elle se stipule ICI**, au devis : la loi n° 71-584 la veut facultative
