@@ -22,6 +22,10 @@ export interface ChantierFile {
   committedLeadTimeDays: number | null
   completedAt: Date | null
   receivedAt: Date | null
+  /** Les reserves emises a la reception. `null` = reception sans reserve. */
+  reserves: string | null
+  /** La levee des reserves, si declaree. */
+  reservesLiftedAt: Date | null
   timeline: TimelineEntry[]
   /** `null` sans reception declaree : aucune date n'est affirmee. */
   deadlines: Deadline[] | null
@@ -36,6 +40,8 @@ interface Head {
   signedAt: Date | null
   completedAt: Date | null
   receivedAt: Date | null
+  reserves: string | null
+  reservesLiftedAt: Date | null
   committedLeadTimeDays: number | null
 }
 
@@ -88,6 +94,8 @@ const HEAD = {
   signedAt: quote.signedAt,
   completedAt: quote.completedAt,
   receivedAt: quote.receivedAt,
+  reserves: quote.receptionReserves,
+  reservesLiftedAt: quote.reservesLiftedAt,
   committedLeadTimeDays: quote.committedLeadTimeDays,
 }
 
@@ -175,6 +183,8 @@ async function assemble(head: Head): Promise<ChantierFile | null> {
     committedLeadTimeDays: head.committedLeadTimeDays,
     completedAt: head.completedAt,
     receivedAt: head.receivedAt,
+    reserves: head.reserves,
+    reservesLiftedAt: head.reservesLiftedAt,
     timeline,
     deadlines: guaranteeDeadlines(head.receivedAt),
     // Les PDF existent depuis M1 et M2 : le dossier n'en fabrique aucun, il

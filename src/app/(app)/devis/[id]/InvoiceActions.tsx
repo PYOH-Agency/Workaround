@@ -86,9 +86,20 @@ export function InvoiceActions({
         </Button>
 
         {/* `ButtonLink`, pas `Button` : le HTML distingue agir et naviguer. */}
-        {canIssueSituation && (
+        {canIssueSituation ? (
           <ButtonLink href={`/devis/${quoteId}/situation`} tone="secondary">
             Nouvelle situation
+          </ButtonLink>
+        ) : (
+          /*
+            Sans Pro, la situation ligne par ligne ne s'affichait PAS — vendue
+            sur la landing, invisible dans l'outil, redirigee en silence si on
+            en devinait l'adresse. On la montre desormais comme une porte vers
+            l'offre, en emphase basse pour ne pas se confondre avec les actions
+            ouvertes a cote.
+          */
+          <ButtonLink href="/offre-pro" tone="ghost">
+            Situation ligne par ligne — Pro
           </ButtonLink>
         )}
       </div>

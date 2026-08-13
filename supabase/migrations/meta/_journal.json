@@ -141,6 +141,13 @@
       "when": 1786362612710,
       "tag": "0019_smiling_wind_dancer",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1786568537888,
+      "tag": "0020_peaceful_salo",
+      "breakpoints": true
     }
   ]
 }

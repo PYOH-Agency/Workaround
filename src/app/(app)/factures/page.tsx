@@ -46,12 +46,17 @@ export default async function InvoicesPage() {
   const quoteIds = [...new Set(rows.map((row) => row.quoteId).filter((id) => id !== null))]
   const receptions = quoteIds.length
     ? await db
-        .select({ id: quote.id, receivedAt: quote.receivedAt })
+        .select({
+          id: quote.id,
+          receivedAt: quote.receivedAt,
+          reserves: quote.receptionReserves,
+          reservesLiftedAt: quote.reservesLiftedAt,
+        })
         .from(quote)
         .where(inArray(quote.id, quoteIds))
     : []
 
-  const receivedAtOf = new Map(receptions.map((row) => [row.id, row.receivedAt]))
+  const receptionOf = new Map(receptions.map((row) => [row.id, row]))
 
   return (
     <AppShell access={session}>
@@ -76,11 +81,16 @@ export default async function InvoicesPage() {
         <ul className="flex flex-col gap-3">
           {rows.map((row) => {
             const received = row.payments.map((p) => p.amount)
+            const source = row.quoteId ? receptionOf.get(row.quoteId) : undefined
             const { withheld } = retentionState(
               {
                 totalInclTax: row.totalInclTax,
                 rate: row.retentionRate,
-                receivedAt: row.quoteId ? (receivedAtOf.get(row.quoteId) ?? null) : null,
+                reception: {
+                  receivedAt: source?.receivedAt ?? null,
+                  reserves: source?.reserves ?? null,
+                  reservesLiftedAt: source?.reservesLiftedAt ?? null,
+                },
               },
               now,
             )

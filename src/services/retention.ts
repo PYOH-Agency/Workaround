@@ -19,11 +19,22 @@ export async function retentionOf(
   now: Date,
 ): Promise<RetentionState> {
   if (row.retentionRate === 0 || !row.quoteId) {
-    return retentionState({ totalInclTax: 0, rate: 0, receivedAt: null }, now)
+    return retentionState(
+      {
+        totalInclTax: 0,
+        rate: 0,
+        reception: { receivedAt: null, reserves: null, reservesLiftedAt: null },
+      },
+      now,
+    )
   }
 
   const [source] = await db
-    .select({ receivedAt: quote.receivedAt })
+    .select({
+      receivedAt: quote.receivedAt,
+      reserves: quote.receptionReserves,
+      reservesLiftedAt: quote.reservesLiftedAt,
+    })
     .from(quote)
     .where(eq(quote.id, row.quoteId))
 
@@ -31,7 +42,11 @@ export async function retentionOf(
     {
       totalInclTax: row.totalInclTax,
       rate: row.retentionRate,
-      receivedAt: source?.receivedAt ?? null,
+      reception: {
+        receivedAt: source?.receivedAt ?? null,
+        reserves: source?.reserves ?? null,
+        reservesLiftedAt: source?.reservesLiftedAt ?? null,
+      },
     },
     now,
   )

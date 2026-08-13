@@ -4,7 +4,7 @@ import { Text } from '@/ui/atoms/text'
 import { Reveal } from '@/ui/molecules/reveal'
 import { RevealTick } from '@/ui/molecules/reveal-tick'
 import { ONBOARDING_HREF } from '../onboarding-href'
-import { Squaring } from './squaring'
+import { HeroScene } from './hero-scene'
 
 /**
  * L'accroche.
@@ -21,7 +21,7 @@ import { Squaring } from './squaring'
  */
 export function Hero() {
   return (
-    <section className="mx-auto w-full max-w-5xl px-6 py-20">
+    <section className="mx-auto w-full max-w-5xl px-6 py-16">
       {/* Le seul `Reveal` de la page : c'est le bloc qui porte la promesse. */}
       <Reveal>
         <div className="grid items-center gap-12 md:grid-cols-[1.05fr_1fr] md:gap-16">
@@ -52,7 +52,7 @@ export function Hero() {
           </div>
 
           <div className="flex justify-center md:justify-end">
-            <Squaring />
+            <HeroScene />
           </div>
         </div>
       </Reveal>

@@ -8,6 +8,7 @@ import { can } from '@/domain/authorization'
 import { retentionOf } from '@/services/retention'
 import { currentCompany, SessionError } from '@/lib/session'
 import { TYPE_LABELS } from '@/pdf/invoice-pdf'
+import { ButtonLink } from '@/ui/atoms/button-link'
 import { DateText } from '@/ui/atoms/date-text'
 import { Heading } from '@/ui/atoms/heading'
 import { Link } from '@/ui/atoms/link'
@@ -119,6 +120,16 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                       Libérable le <DateText value={retention.releasesOn} format="short" /> — un an
                       après la réception déclarée par votre client.
                     </>
+                  ) : retention.reservesPending ? (
+                    /*
+                      Blocage different d'une reception manquante : ici la
+                      reception a eu lieu, mais des reserves tiennent. L'artisan
+                      les fait lever pour debloquer la somme.
+                    */
+                    <>
+                      Votre client a déclaré la réception <strong>avec des réserves</strong> : la
+                      somme reste due tant qu’il n’en a pas déclaré la levée.
+                    </>
                   ) : (
                     /*
                       Le blocage se MONTRE. Il se regle par un coup de telephone,
@@ -175,6 +186,14 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
         {amountDueNow(settlement) > 0 && <PaymentForm invoiceId={found.id} />}
       </section>
+
+      <div className="self-start">
+        {/* Le PDF ne vivait que sur la page publique du client : l'artisan
+            devait ouvrir le lien client pour recuperer sa propre facture. */}
+        <ButtonLink href={`/f/${found.publicToken}/pdf`} tone="secondary">
+          Télécharger le PDF
+        </ButtonLink>
+      </div>
 
       <Text size="sm" tone="soft">
         Lien du client :{' '}

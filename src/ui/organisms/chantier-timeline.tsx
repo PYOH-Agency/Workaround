@@ -75,13 +75,22 @@ export function ChantierTimeline({
 
             {entry.photoPaths && entry.photoPaths.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {entry.photoPaths.map((path) =>
+                {entry.photoPaths.map((path, photoIndex, all) =>
                   photoUrls[path] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={path}
                       src={photoUrls[path]}
-                      alt=""
+                      // Ces photos montrent l'avancement : elles portent une
+                      // information, `alt=""` les cachait au lecteur d'ecran. Le
+                      // texte de l'entree en donne la date et la nature juste
+                      // au-dessus ; l'alt situe la photo et numerote les
+                      // multiples pour qu'elles ne se confondent pas.
+                      alt={
+                        all.length > 1
+                          ? `Photo du chantier, ${entry.at.toLocaleDateString('fr-FR')} (${photoIndex + 1} sur ${all.length})`
+                          : `Photo du chantier, ${entry.at.toLocaleDateString('fr-FR')}`
+                      }
                       className="h-28 w-28 rounded-card object-cover"
                     />
                   ) : null,

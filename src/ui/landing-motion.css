@@ -1,0 +1,217 @@
+/**
+ * Les interactions de la landing.
+ *
+ * Regime de marque, comme `motion.css` : c'est une page d'accroche, pas
+ * l'outil. Tout est scope a `.dq-landing` (pose par `LandingShell`) — l'app
+ * sobre n'en herite rien —, tout est `transform`/`opacity`/`box-shadow`/filet,
+ * et `prefers-reduced-motion` neutralise l'ensemble. La landing force le thème
+ * clair : les ombres portees y sont donc toujours justes.
+ *
+ * Le geste unique, decline partout : **se mettre d'equerre**. Au survol, une
+ * carte se souleve d'un rien, son ombre porte, son filet vire terre cuite, et
+ * le carre numerote — le meme signe que le sceau — se cale d'un cran. Le meme
+ * vocabulaire que le hero, en micro.
+ */
+
+/* --- Les cartes se mettent d'equerre au survol ---------------------------- */
+
+.dq-landing :where(.rounded-card) {
+  transition:
+    transform 240ms cubic-bezier(0.22, 1.15, 0.36, 1),
+    box-shadow 240ms ease,
+    border-color 240ms ease;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .dq-landing :where(.rounded-card):hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in oklab, var(--dq-brand) 40%, var(--dq-rule));
+    box-shadow: 0 16px 34px -18px color-mix(in oklab, var(--dq-ink) 32%, transparent);
+  }
+
+  /* Le carre numerote se cale — le signe de l'angle verifie, en reponse. */
+  .dq-landing :where(.rounded-card):hover :where(.bg-primary) {
+    transform: scale(1.08);
+  }
+}
+
+.dq-landing :where(.rounded-card) :where(.bg-primary) {
+  transition: transform 260ms cubic-bezier(0.2, 1.25, 0.4, 1);
+}
+
+/* --- La frise du chantier : chaque etape avance d'un cran au survol --------
+ *
+ * Cible l'`ol` du calepinage — la frise est la seule liste ordonnee de la page
+ * (`Stagger as="ol"`), quand les cartes de `Steps` sont des `div`. Le carre
+ * terre cuite, le meme signe que partout, grandit depuis le debut du filet :
+ * l'etape « se pose » sous le pointeur.
+ */
+.dq-landing ol[data-stagger] > li {
+  transition: transform 240ms cubic-bezier(0.22, 1.15, 0.36, 1);
+}
+
+.dq-landing ol[data-stagger] > li :where(.bg-brand) {
+  transform-origin: left center;
+  transition: transform 260ms cubic-bezier(0.2, 1.25, 0.4, 1);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .dq-landing ol[data-stagger] > li:hover {
+    transform: translateY(-3px);
+  }
+
+  .dq-landing ol[data-stagger] > li:hover :where(.bg-brand) {
+    transform: scale(1.6);
+  }
+}
+
+
+/* --- Les blocs a filet d'accent glissent sur leur filet ------------------
+ *
+ * Chiffres de la vitrine (« 15 000 € », « 0 € ») et engagements du manifeste :
+ * tous adosses au meme filet terre cuite. Au survol, le bloc glisse d'un rien
+ * le long de son filet — le meme geste de marque que les cartes, decline sur
+ * ce qui n'est pas une carte. Purement decoratif : ce ne sont pas des cibles,
+ * donc pas de levee, juste une reponse.
+ */
+.dq-landing :where(.border-l-4) {
+  transition: transform 260ms cubic-bezier(0.22, 1.15, 0.36, 1);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .dq-landing :where(.border-l-4):hover {
+    transform: translateX(6px);
+  }
+}
+
+
+/* ==========================================================================
+ * Signature ambiante : la page parle le vocabulaire du plan.
+ * ========================================================================== */
+
+/* La trame de plan, en fond. Fixe et derriere tout le contenu : une texture
+ * de calque, jamais un element avec lequel on interagit. Les sections opaques
+ * (`bg-card`, en-tete, pied) la couvrent ; elle ne transparait que la ou le
+ * fond reste la craie — l'accroche, surtout. Tres basse opacite : on la sent
+ * plus qu'on ne la voit. */
+.dq-landing {
+  position: relative;
+}
+
+.dq-landing::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--dq-rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--dq-rule) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.05;
+}
+
+/* Le contenu passe au-dessus de la trame ; le fil a plomb au-dessus du contenu. */
+.dq-landing > * {
+  position: relative;
+  z-index: 1;
+}
+
+.dq-landing > .dq-plumb {
+  z-index: 2;
+}
+
+/* Le fil a plomb : l'instrument, cale sur le bord gauche du contenu, dont le
+ * plomb terre cuite descend a mesure qu'on lit la page. Fixe, decoratif,
+ * masque sous 1024 px ou il n'y a pas de marge pour l'accueillir. */
+.dq-plumb {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: max(1.5rem, calc(50% - 32rem));
+  width: 1px;
+  background: var(--dq-rule);
+  pointer-events: none;
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .dq-plumb {
+    display: block;
+  }
+}
+
+.dq-plumb-bob {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  background: var(--dq-brand);
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .dq-plumb-bob {
+      animation: dq-plumb-drop linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+
+@keyframes dq-plumb-drop {
+  from {
+    top: 0;
+  }
+  to {
+    top: calc(100% - 7px);
+  }
+}
+
+
+/* ==========================================================================
+ * Orchestration au scroll : chaque section se met d'equerre en entrant.
+ *
+ * En pur CSS via `animation-timeline: view()` — aucun script, aucun
+ * observateur. Garde par `@supports` : la ou la fonction manque (Safari, vieux
+ * Firefox), les sections sont simplement visibles, jamais effacees. L'accroche
+ * est exclue : elle a deja sa propre choregraphie.
+ * ========================================================================== */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .dq-landing main > section:not(:first-child) {
+      animation: dq-rise-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+  }
+}
+
+@keyframes dq-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+
+/* ==========================================================================
+ * Rythme des sections : une sur deux prend un lavis d'encre.
+ *
+ * Pose en `background-image` et non en `background-color` : le lavis se
+ * COMPOSE sur le fond existant de la section — craie ou `bg-card` — au lieu de
+ * le remplacer. Rien a savoir de ce que chaque section declare, donc rien a
+ * casser. Tres leger : il cadence la lecture sans decouper la page.
+ * ========================================================================== */
+
+.dq-landing main > section:nth-of-type(even) {
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--dq-ink) 3%, transparent),
+    color-mix(in oklab, var(--dq-ink) 3%, transparent)
+  );
+}

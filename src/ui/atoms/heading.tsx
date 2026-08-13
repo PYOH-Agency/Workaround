@@ -10,6 +10,13 @@ const LEVELS = {
    * lui ajoute des variantes, pas qu'on le contourne.
    */
   hero: 'font-display font-extrabold text-[clamp(2.75rem,7vw,4.5rem)] leading-[0.95] tracking-[-0.035em]',
+  /**
+   * Le chiffre-argument d'une section de la vitrine : « 15 000 € », « 0 € ».
+   * Plus grand que `display` — c'est un fait qu'on veut voir de loin, pas un
+   * titre. A reserver a un nombre court, adosse a un filet d'accent, et pose
+   * en `as="p"` : il PARAIT un titre sans en etre un.
+   */
+  figure: 'font-display font-extrabold text-[clamp(3rem,9vw,7rem)] leading-[0.88] tracking-[-0.04em]',
   display: 'font-display font-extrabold text-[2.5rem] leading-[2.75rem] tracking-[-0.03em]',
   1: 'font-display font-extrabold text-[2rem] leading-[2.375rem] tracking-[-0.025em]',
   2: 'font-display font-bold text-2xl leading-[1.875rem] tracking-[-0.02em]',
@@ -40,6 +47,9 @@ export function Heading({
   children: React.ReactNode
 }) {
   const Tag =
-    as ?? (level === 'hero' || level === 'display' ? 'h1' : (`h${level}` as 'h1' | 'h2' | 'h3'))
+    as ??
+    (level === 'hero' || level === 'display' || level === 'figure'
+      ? 'h1'
+      : (`h${level}` as 'h1' | 'h2' | 'h3'))
   return <Tag className={cn('text-ink', LEVELS[level])}>{children}</Tag>
 }

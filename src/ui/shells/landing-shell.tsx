@@ -44,7 +44,21 @@ export function LandingShell({
       : { question: 'Vous êtes artisan ?', label: 'Créer mon compte', href: '/' }
 
   return (
-    <div data-theme="light" className="flex min-h-full flex-1 flex-col bg-surface text-ink">
+    <div
+      data-theme="light"
+      data-dq-landing=""
+      className="dq-landing flex min-h-full flex-1 flex-col bg-surface text-ink"
+    >
+      {/*
+        Le fil a plomb : instrument decoratif, cale au bord du contenu, dont le
+        plomb descend avec le scroll (`animation-timeline: scroll`). Aria-cache
+        et sans prise tactile — il ne dit rien que la page ne dise deja, il lui
+        donne une vie continue dans le vocabulaire du metier. Sa mise en scene
+        vit dans `landing-motion.css`.
+      */}
+      <div className="dq-plumb" aria-hidden="true">
+        <span className="dq-plumb-bob" />
+      </div>
       <header className="border-b border-rule bg-card">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-4 px-6 py-4">
           <Lockup size="sm" />

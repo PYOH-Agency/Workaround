@@ -48,8 +48,16 @@ export function Squaring() {
       aria-hidden="true"
       focusable="false"
     >
-      <g className={styles.sheetIn}>
-        <g className={styles.sheet}>
+      {/*
+        `sheetShift` porte la parallaxe du curseur (variables `--dq-px/--dq-py`
+        posees par `HeroScene`), en couche externe : la chronologie d'arrivee
+        vit dans `sheetIn`/`sheet`, le suivi du pointeur ici, et les deux
+        transforms se composent sans se marcher dessus. C'est la FEUILLE qui
+        suit le pointeur ; l'equerre plus bas ne bouge pas.
+      */}
+      <g className={styles.sheetShift}>
+        <g className={styles.sheetIn}>
+          <g className={styles.sheet}>
           <rect
             x="130"
             y="40"
@@ -75,8 +83,9 @@ export function Squaring() {
           <rect x="148" y="168" width="164" height="1" fill="var(--dq-rule)" />
 
           {/* Le total arrive apres coup : la feuille finit de s'ecrire une fois posee. */}
-          <g className={styles.late}>
-            <rect x="240" y="181" width="72" height="8" fill="var(--dq-ink)" />
+            <g className={styles.late}>
+              <rect x="240" y="181" width="72" height="8" fill="var(--dq-ink)" />
+            </g>
           </g>
         </g>
       </g>
@@ -103,7 +112,11 @@ export function Squaring() {
         pas la marque, il s'APPOSE sur un document : c'est le cas du sceau, ou
         l'angle est deja en terre cuite (`brand/seal.tsx`).
       */}
-      <rect className={styles.stamp} x="152" y="176" width="70" height="70" fill="var(--dq-brand)" />
+      {/* Le sceau suit le pointeur un peu plus que la feuille : pose dessus, il
+          se lit legerement au-dessus d'elle — un rien de profondeur. */}
+      <g className={styles.stampShift}>
+        <rect className={styles.stamp} x="152" y="176" width="70" height="70" fill="var(--dq-brand)" />
+      </g>
     </svg>
   )
 }

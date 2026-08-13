@@ -139,8 +139,8 @@ export function SituationForm({
           )}
 
           <Text size="sm" tone="muted">
-            L’avancement se déclare en <strong>cumulé</strong> : la part terre cuite est ce que
-            cette situation ajoute, et le montant ci-dessus en est la somme, acompte compris.
+            L’avancement se déclare en <strong>cumulé</strong> : ce que cette situation ajoute — la
+            part mise en avant sur la jauge — est repris dans le montant ci-dessus, acompte compris.
           </Text>
         </div>
 

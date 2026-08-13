@@ -13,6 +13,7 @@ import { Rail, RailItem } from '@/ui/molecules/rail'
 import { AppShell } from '@/ui/shells/app-shell'
 import { CancelButton } from './CancelButton'
 import { BusyNotice, SyncHint } from './BusyNotice'
+import { WeekJump } from './WeekJump'
 import { dayAnchor, WeekGrid } from './WeekGrid'
 
 const DAY_LABEL = new Intl.DateTimeFormat('fr-FR', {
@@ -81,6 +82,12 @@ export default async function AgendaPage({
   const total = days.reduce((sum, day) => sum + day.items.length, 0)
   const today = PARIS_DAY.format(new Date())
 
+  // Sur la semaine courante, un bouton « Cette semaine » ne ferait que pointer
+  // la page ou l'on est deja. Il n'apparait que quand on s'en est eloigne — la
+  // ou, sans lui, il fallait cliquer « precedente » autant de fois qu'on avait
+  // avance.
+  const onCurrentWeek = week.includes(today)
+
   return (
     <AppShell access={session}>
       <PageHeader
@@ -93,12 +100,18 @@ export default async function AgendaPage({
         }
         actions={
           <>
+            {!onCurrentWeek && (
+              <ButtonLink href="/agenda" tone="secondary">
+                Cette semaine
+              </ButtonLink>
+            )}
             <ButtonLink href={`/agenda?semaine=${shifted(week, -1)}`} tone="secondary">
               Semaine précédente
             </ButtonLink>
             <ButtonLink href={`/agenda?semaine=${shifted(week, 1)}`} tone="secondary">
               Semaine suivante
             </ButtonLink>
+            <WeekJump defaultDay={week[0]} />
             <ButtonLink href="/agenda/nouveau">Prendre un rendez-vous</ButtonLink>
           </>
         }

@@ -84,6 +84,8 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
         quoteId={file.quoteId}
         deadlines={file.deadlines}
         receivedAt={file.receivedAt}
+        reserves={file.reserves}
+        reservesLiftedAt={file.reservesLiftedAt}
         completed={file.completedAt !== null}
       />
     </SpaceShell>

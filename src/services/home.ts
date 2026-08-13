@@ -67,7 +67,15 @@ export async function moneyInFlight(companyId: string, now: Date): Promise<Money
 
     const payments = paid.filter((p) => p.invoiceId === row.id).map((p) => p.amount)
     const { withheld } = retentionState(
-      { totalInclTax: row.totalInclTax, rate: row.retentionRate, receivedAt: row.receivedAt },
+      {
+        totalInclTax: row.totalInclTax,
+        rate: row.retentionRate,
+        reception: {
+          receivedAt: row.receivedAt,
+          reserves: row.reserves,
+          reservesLiftedAt: row.reservesLiftedAt,
+        },
+      },
       now,
     )
 

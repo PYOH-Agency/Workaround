@@ -79,3 +79,25 @@ export function assertReceivable(input: ReceivableInput): void {
     throw new Error('Une réception à venir ne peut pas être déclarée')
   }
 }
+
+export interface LiftInput {
+  receivedAt: Date
+  liftedAt: Date
+  now: Date
+}
+
+/**
+ * La levee des reserves, declaree par le maitre d'ouvrage.
+ *
+ * Elle ne peut ni preceder la reception — on ne leve pas des reserves avant de
+ * les avoir emises — ni etre datee dans le futur, ce qui debloquerait la
+ * retenue de l'artisan par anticipation.
+ */
+export function assertReservesLiftable(input: LiftInput): void {
+  if (startOfDay(input.liftedAt) < startOfDay(input.receivedAt)) {
+    throw new Error('La levée des réserves ne peut pas être antérieure à la réception')
+  }
+  if (startOfDay(input.liftedAt) > startOfDay(input.now)) {
+    throw new Error('Une levée des réserves à venir ne peut pas être déclarée')
+  }
+}

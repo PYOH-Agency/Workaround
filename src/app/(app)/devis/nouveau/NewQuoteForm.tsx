@@ -24,6 +24,8 @@ export function NewQuoteForm({ validityDays }: { validityDays: number }) {
   const update = (index: number, key: keyof LineDraft, value: string | number) =>
     setLines((all) => all.map((line, i) => (i === index ? { ...line, [key]: value } : line)))
 
+  const remove = (index: number) => setLines((all) => all.filter((_, i) => i !== index))
+
   // Memes fonctions pures que le serveur : une seule implementation du calcul.
   const totals = useMemo(() => {
     try {
@@ -144,7 +146,13 @@ export function NewQuoteForm({ validityDays }: { validityDays: number }) {
 
           <div className="flex flex-col gap-3">
             {lines.map((line, i) => (
-              <QuoteLineRow key={i} index={i} line={line} onChange={update} />
+              <QuoteLineRow
+                key={i}
+                index={i}
+                line={line}
+                onChange={update}
+                onRemove={lines.length > 1 ? remove : undefined}
+              />
             ))}
           </div>
 

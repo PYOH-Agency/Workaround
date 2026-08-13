@@ -187,7 +187,10 @@ export async function Home({
           detailHref="/mon-passeport"
           metrics={[
             { label: 'Délai annoncé respecté', ...rate(passport.leadTimeRespect, '%') },
-            { label: 'Écart devis → facture', ...rate(passport.quoteToInvoiceGap, '%') },
+            // Meme mesure que la carte « Facturé au prix annoncé » du passeport
+            // (`quoteToInvoiceGap`, cadre positif) : un seul libelle, sinon
+            // l'artisan croit lire deux indicateurs pour un seul.
+            { label: 'Facturé au prix annoncé', ...rate(passport.quoteToInvoiceGap, '%') },
           ]}
         />
       ) : null}
