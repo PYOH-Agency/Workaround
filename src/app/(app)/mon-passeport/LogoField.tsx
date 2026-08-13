@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { Button } from '@/ui/atoms/button'
+import { Input } from '@/ui/atoms/input'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
 import { saveLogo, removeLogo, type LogoState } from './actions'
@@ -39,12 +40,7 @@ export function LogoField({ logoUrl }: { logoUrl: string | null }) {
         )}
 
         <form action={action} className="flex flex-col gap-2">
-          <input
-            type="file"
-            name="logo"
-            accept="image/png,image/jpeg,image/webp"
-            className="text-sm"
-          />
+          <Input type="file" name="logo" accept="image/png,image/jpeg,image/webp" />
           {state.error && (
             <div
               role="alert"
