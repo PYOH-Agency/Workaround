@@ -9,6 +9,7 @@ import { companyMetrics } from '@/services/passport-metrics'
 import { companyQuoteLeadTime } from '@/services/quote-lead-time'
 import { disputesInReview } from '@/services/disputes'
 import { companyCoverage } from '@/services/visibility'
+import { logoPublicUrl } from '@/domain/logo'
 import { Heading } from '@/ui/atoms/heading'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
@@ -17,6 +18,7 @@ import { AppShell } from '@/ui/shells/app-shell'
 import { MetricCard } from './MetricCard'
 import { MedianCard } from './MedianCard'
 import { DisputeList } from './DisputeList'
+import { LogoField } from './LogoField'
 
 /**
  * Le passeport, vu par l'artisan.
@@ -50,7 +52,7 @@ export default async function PassportPage() {
     companyQuoteLeadTime(session.companyId, now),
     companyCoverage(session.companyId, now),
     db
-      .select({ legalName: company.legalName, siret: company.siret })
+      .select({ legalName: company.legalName, siret: company.siret, logoPath: company.logoPath })
       .from(company)
       .where(eq(company.id, session.companyId))
       .limit(1),
@@ -103,6 +105,8 @@ export default async function PassportPage() {
             )}
           </div>
         </Card>
+
+        <LogoField logoUrl={logoPublicUrl(profile?.logoPath ?? null)} />
       </div>
 
       <DisputeList disputes={disputes} />

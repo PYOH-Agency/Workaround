@@ -55,6 +55,16 @@ export const company = pgTable('company', {
   agendaFeedToken: text('agenda_feed_token').unique(),
 
   /**
+   * La cle de l'objet dans le bucket PUBLIC `company-logos`, ou `null`.
+   *
+   * On stocke la CLE, pas l'URL : l'URL publique s'en derive (voir
+   * `logoPublicUrl`). La cle porte un suffixe d'horodatage — `{id}/{ts}.{ext}` —
+   * pour qu'un remplacement change d'adresse et contourne le cache du CDN, ce
+   * qu'un `upsert` sur une cle fixe ne ferait pas.
+   */
+  logoPath: text('logo_path'),
+
+  /**
    * L'offre a laquelle l'entreprise est abonnee.
    *
    * `free` par defaut, et c'est structurant : le capteur — devis, facture,

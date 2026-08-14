@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { eq } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import { db, connection } from '@/db/client'
 import {
@@ -119,4 +120,20 @@ describe('profil public', () => {
     // Aucun travail de fond n'est passe : la visibilite se calcule a la lecture.
     expect(await publicProfile(SIREN, new Date('2027-01-01'))).toBeNull()
   }, 30_000)
+})
+
+describe('logo', () => {
+  it('rend null sans logo, une URL une fois pose', async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://ref.supabase.co'
+
+    const before = await publicProfile(SIREN, NOW)
+    expect(before?.logoUrl).toBeNull()
+
+    await db.update(company).set({ logoPath: `${COMPANY}/171.png` }).where(eq(company.id, COMPANY))
+
+    const after = await publicProfile(SIREN, NOW)
+    expect(after?.logoUrl).toBe(
+      `https://ref.supabase.co/storage/v1/object/public/company-logos/${COMPANY}/171.png`,
+    )
+  })
 })

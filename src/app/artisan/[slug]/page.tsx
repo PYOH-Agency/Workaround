@@ -62,15 +62,27 @@ export default async function ArtisanPage({ params }: { params: Promise<{ slug: 
   return (
     <PublicShell>
       <header className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          <Heading level="display">{profile.legalName}</Heading>
-          <Text size="sm" tone="soft">
-            {profile.city}
-            {years !== null && ` · ${years} ans d’activité`}
-          </Text>
-          <Text size="sm" tone="muted">
-            SIRET {profile.siret}
-          </Text>
+        <div className="flex items-start gap-4">
+          {profile.logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element -- le socle n'utilise pas next/image
+            <img
+              src={profile.logoUrl}
+              alt={profile.legalName}
+              width={64}
+              height={64}
+              className="h-16 w-16 shrink-0 rounded-card object-contain"
+            />
+          )}
+          <div className="flex flex-col gap-1">
+            <Heading level="display">{profile.legalName}</Heading>
+            <Text size="sm" tone="soft">
+              {profile.city}
+              {years !== null && ` · ${years} ans d’activité`}
+            </Text>
+            <Text size="sm" tone="muted">
+              SIRET {profile.siret}
+            </Text>
+          </div>
         </div>
 
         {/*
