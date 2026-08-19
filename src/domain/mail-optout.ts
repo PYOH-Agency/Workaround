@@ -20,13 +20,34 @@ function normalize(email: string): string {
   return email.trim().toLowerCase()
 }
 
+/**
+ * Un secret vide n'est pas une variante degradee : HMAC accepte une cle vide,
+ * et l'algorithme est public, donc n'importe qui recalculerait le jeton. Les
+ * adresses d'artisans sont publiques par nature — un secret absent en
+ * production ouvrirait un desabonnement de masse, irreversible.
+ *
+ * On leve ici plutot que de renvoyer un jeton inutile : mieux vaut casser
+ * l'envoi du mail que laisser partir un lien qui a l'air valide.
+ */
 export function optoutToken(email: string, secret: string): string {
+  if (!secret) throw new Error('MAIL_OPTOUT_SECRET manquant : impossible de signer le lien')
   return createHmac('sha256', secret).update(normalize(email)).digest('hex')
 }
 
-export function verifyOptout(email: string, token: string, secret: string): boolean {
+export function verifyOptout(
+  email: string | undefined,
+  token: string | undefined,
+  secret: string,
+): boolean {
+  // Meme cause qu'au-dessus (secret absent), mais consequence differente :
+  // ici c'est une page « lien invalide » pour l'artisan, jamais une erreur —
+  // on ne peut pas deleguer a optoutToken, qui leve desormais.
+  if (!secret || !email || !token) return false
+
   const expected = Buffer.from(optoutToken(email, secret))
-  const given = Buffer.from(token)
+  // Un lien recopie a la main peut changer de casse sans changer de jeton :
+  // le hex reste le meme nombre, majuscules ou non.
+  const given = Buffer.from(token.toLowerCase())
 
   // Comparaison a temps constant : une comparaison naive laisse deviner le
   // jeton octet par octet.
