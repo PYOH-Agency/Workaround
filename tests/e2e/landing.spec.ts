@@ -109,9 +109,22 @@ test('la verification d’un SIRET inconnu ne dit pas pourquoi', async ({ page }
   await page.getByLabel('SIRET de l’entreprise').fill('99999999900009')
   await page.getByRole('button', { name: 'Vérifier' }).click()
 
-  await expect(
-    page.getByText('Cette entreprise n’a pas encore de page publique sur D’équerre.'),
-  ).toBeVisible()
+  /*
+    Le formulaire ne repond plus par un refus mais par une page — et c'est la
+    meme page pour une entreprise inconnue et pour une inscrite sans couverture.
+    L'indistinction a change de forme, pas de nature : elle etait portee par un
+    message unique, elle l'est desormais par une destination unique.
+
+    Ce test garde donc sa raison d'etre au niveau de l'accueil : verifier qu'on
+    arrive bien la, et que rien de ce qu'on y lit ne dit si l'entreprise nous
+    connait. Le parcours complet vit dans `verification.spec.ts`.
+  */
+  await expect(page).toHaveURL(/\/verification\/99999999900009$/)
+
+  const body = await page.locator('body').innerText()
+  for (const forbidden of [/inscrit/i, /adhér/i, /membre/i, /chez nous/i]) {
+    expect(body).not.toMatch(forbidden)
+  }
 })
 
 test('le renvoi de lien ne revele pas l’existence d’un devis', async ({ page }) => {
