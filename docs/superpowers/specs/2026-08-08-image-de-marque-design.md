@@ -215,7 +215,13 @@ Sur un écran de facturation, une action destructive est toujours à portée —
 >
 > Le tabulaire est vérifié : Bricolage porte `tnum`. La règle non négociable ci-dessous est donc tenue à l'identique.
 
-Deux familles en titrage et en corps, plus le logotype. **Bricolage Grotesque** en titrage, **Inter** en corps, **Archivo** pour le seul logotype — toutes libres et auto-hébergées via `next/font/google`, aucune requête sortante, ce qui sert aussi le cadrage RGPD.
+> **Correctif du 19 août 2026 — les fontes sont dans le dépôt.** `next/font/google` les servait déjà depuis notre domaine, donc le cadrage RGPD était respecté ; mais il les **téléchargeait à la construction**. Un build sans réseau, derrière un proxy ou dans un CI isolé échoue alors sur une police, et le message ne dit pas que c'est le réseau qui manque. La panne est arrivée dès l'ajout de Bricolage — la seule des trois qui n'était encore dans le cache de personne.
+>
+> Les trois familles passent en `next/font/local` : trois `woff2` en sous-ensemble latin, **194 Ko en tout**, moins que ce que le chargeur Google servait, qui livrait Inter en trois graisses statiques. Le fichier de Bricolage est le **variable** — c'est ce qui permet à `Heading` de descendre la chasse à 92 sur les grands corps ; une instance figée ne le pourrait pas.
+>
+> **Deux dépôts de fontes, et c'est voulu.** `src/ui/typefaces` porte les `woff2`, que seul un navigateur sait lire ; `src/pdf/fonts` porte les `ttf`, parce que ni `@react-pdf` ni Satori ne décompressent le woff2. Un format unique obligerait ces deux-là à embarquer un décompresseur pour économiser un dossier. Les licences OFL sont rappelées dans `src/ui/typefaces/LICENSE.md`.
+
+Deux familles en titrage et en corps, plus le logotype. **Bricolage Grotesque** en titrage, **Inter** en corps, **Archivo** pour le seul logotype — toutes libres, embarquées dans le dépôt et servies depuis notre domaine via `next/font/local` : aucune requête sortante, ni au build ni à l'exécution.
 
 Les rôles d'affichage sont fluides depuis l'amendement : ils se lisent en `clamp()`, et la chasse descend à `wdth 92` au-delà de `display` — une accroche à chasse ouverte tenait sur cinq lignes trouées au lieu de trois pleines.
 
