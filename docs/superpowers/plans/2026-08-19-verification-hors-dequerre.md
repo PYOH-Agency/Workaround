@@ -1799,10 +1799,29 @@ describe('createRequest, canal envoye', () => {
     expect(row.notify).toBe(true)
   })
 
-  it('refuse un doublon dans les vingt-quatre heures, sans second mail', async () => {
+  it('rend la treve artisan quand le meme geste est rejoue', async () => {
+    // La treve est testee AVANT le doublon de couple : rejouer la meme demande
+    // rend donc `artisan_cooldown`, jamais `already_requested`. L'ordre est
+    // delibere et verrouille en tache 3 — et sans consequence pour le
+    // demandeur, qui ne voit aucun verdict (tache 14). Le seul lecteur est
+    // l'admin, pour qui « treve de sept jours » est l'information exacte.
     await createRequest({ ...base, channel: 'sent' }, NOW)
     const again = await createRequest(
       { ...base, channel: 'sent' },
+      new Date(NOW.getTime() + 3_600_000),
+    )
+
+    expect(again).toBe('artisan_cooldown')
+    expect(sent).toHaveLength(1)
+  })
+
+  it('refuse un doublon de couple sur une autre adresse le meme jour', async () => {
+    // La seule scene ou la fenetre de 24 h fait un travail que la treve ne fait
+    // pas : le meme demandeur, la meme entreprise, une adresse differente —
+    // arroser une entreprise a deux adresses dans la journee.
+    await createRequest({ ...base, channel: 'sent' }, NOW)
+    const again = await createRequest(
+      { ...base, channel: 'sent', artisanEmail: 'autre@exemple.fr' },
       new Date(NOW.getTime() + 3_600_000),
     )
 
