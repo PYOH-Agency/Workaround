@@ -219,7 +219,8 @@ Sans ces deux points, l'intérêt légitime ne tient pas.
 
 ## 6. Le modèle de données
 
-Deux tables, dans un nouveau `src/db/schema/lead.ts`.
+Trois tables, dans un nouveau `src/db/schema/lead.ts` — l'événement, la demande,
+et la liste d'opposition qui doit leur survivre.
 
 ### 6.1 `verification_lookup` — l'événement, sans personne dedans
 
