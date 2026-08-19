@@ -2,10 +2,22 @@ import { Badge } from '@/ui/atoms/badge'
 import { Heading } from '@/ui/atoms/heading'
 import { Icon } from '@/ui/atoms/icon'
 import { Text } from '@/ui/atoms/text'
-import { Card } from '@/ui/molecules/card'
 import { SectionHeader } from '@/ui/molecules/section-header'
-import { Stagger } from '@/ui/molecules/stagger'
+import { InkBand } from '../ink-band'
 
+/**
+ * Le piege, sur l'encre.
+ *
+ * C'est la section qui pose le probleme : elle prend la premiere des deux
+ * bandes d'encre de la page, comme « ce que ça vous évite » cote pro. Le
+ * pendant clair — ce qu'on garde — prend la seconde, en fin de page.
+ *
+ * Les trois verdicts ne sont plus des cartes : `Card` porte un fond de craie,
+ * et trois rectangles clairs poses sur l'encre en auraient fait le sujet de la
+ * bande. Trois colonnes separees par un filet suffisent, et la pastille de
+ * statut — dont le fond teinte est deja un jeton verifie — porte a elle seule
+ * la couleur.
+ */
 export function Trap() {
   /*
     La date d'echeance de la carte « Verifiee » etait figee en dur au 08 aout
@@ -21,52 +33,58 @@ export function Trap() {
     year: 'numeric',
   })
 
+  const verdicts = [
+    {
+      badge: (
+        <Badge tone="verified" icon={<Icon name="check" size="sm" />}>
+          Couverte
+        </Badge>
+      ),
+      title: 'Plomberie',
+      body: 'Nommée sur l’attestation, en cours de validité.',
+    },
+    {
+      badge: (
+        <Badge tone="warning" icon={<Icon name="alert" size="sm" />}>
+          Non couverte
+        </Badge>
+      ),
+      title: 'Électricité',
+      body: 'Absente de l’attestation. En cas de sinistre, aucun recours.',
+    },
+    {
+      badge: (
+        <Badge tone="verified" icon={<Icon name="check" size="sm" />}>
+          Vérifiée
+        </Badge>
+      ),
+      title: checkedUntilLabel,
+      body: 'Recontrôlée à chaque échéance, automatiquement.',
+    },
+  ]
+
   return (
-    <section className="border-y border-rule bg-card">
-      <div className="mx-auto w-full max-w-5xl px-6 py-16">
-        <div className="flex flex-col gap-6">
-          <SectionHeader
-            label="Le piège"
-            title="Assuré ne veut pas dire assuré pour tout."
-            lead="C’est le premier motif de refus d’indemnisation du secteur. L’attestation liste des activités précises ; les travaux qui n’y figurent pas ne sont pas couverts, même si l’entreprise est parfaitement en règle par ailleurs."
-          />
-          <Stagger cols={3}>
-            <Card>
-              <div className="flex flex-col gap-3">
-                <Badge tone="verified" icon={<Icon name="check" size="sm" />}>
-                  Couverte
-                </Badge>
-                <Heading level={3}>Plomberie</Heading>
-                <Text size="sm" tone="soft">
-                  Nommée sur l’attestation, en cours de validité.
-                </Text>
-              </div>
-            </Card>
-            <Card>
-              <div className="flex flex-col gap-3">
-                <Badge tone="warning" icon={<Icon name="alert" size="sm" />}>
-                  Non couverte
-                </Badge>
-                <Heading level={3}>Électricité</Heading>
-                <Text size="sm" tone="soft">
-                  Absente de l’attestation. En cas de sinistre, aucun recours.
-                </Text>
-              </div>
-            </Card>
-            <Card>
-              <div className="flex flex-col gap-3">
-                <Badge tone="verified" icon={<Icon name="check" size="sm" />}>
-                  Vérifiée
-                </Badge>
-                <Heading level={3}>{checkedUntilLabel}</Heading>
-                <Text size="sm" tone="soft">
-                  Recontrôlée à chaque échéance, automatiquement.
-                </Text>
-              </div>
-            </Card>
-          </Stagger>
-        </div>
+    <InkBand>
+      <SectionHeader
+        tone="inverse"
+        label="Le piège"
+        title="Assuré ne veut pas dire assuré pour tout."
+        lead="C’est le premier motif de refus d’indemnisation du secteur. L’attestation liste des activités précises ; les travaux qui n’y figurent pas ne sont pas couverts, même si l’entreprise est parfaitement en règle par ailleurs."
+      />
+
+      <div className="grid w-full gap-8 border-t border-primary-rule pt-8 sm:grid-cols-3 sm:gap-10">
+        {verdicts.map(({ badge, title, body }) => (
+          <div key={title} className="flex flex-col items-start gap-3">
+            {badge}
+            <Heading level={3} tone="inverse">
+              {title}
+            </Heading>
+            <Text size="sm" tone="inverse-soft">
+              {body}
+            </Text>
+          </div>
+        ))}
       </div>
-    </section>
+    </InkBand>
   )
 }

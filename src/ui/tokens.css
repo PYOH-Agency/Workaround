@@ -37,6 +37,8 @@
   --dq-ring: #C4501C;
   --dq-primary: #1C1714;
   --dq-on-primary: #F5F1E8;
+  --dq-on-primary-soft: #C4BBA8;
+  --dq-primary-rule: #2E2822;
   --dq-conversion: #C4501C;
   --dq-on-conversion: #FFFFFF;
   --dq-verified: #3B5229;
@@ -64,6 +66,8 @@
   --dq-ring: #F0A87E;
   --dq-primary: #F5F1E8;
   --dq-on-primary: #14110E;
+  --dq-on-primary-soft: #4A4239;
+  --dq-primary-rule: #DCD4C4;
   --dq-conversion: #C4501C;
   --dq-on-conversion: #FFFFFF;
   --dq-verified: #9CBB7E;
@@ -92,6 +96,8 @@
     --dq-ring: #F0A87E;
     --dq-primary: #F5F1E8;
     --dq-on-primary: #14110E;
+    --dq-on-primary-soft: #4A4239;
+    --dq-primary-rule: #DCD4C4;
     --dq-conversion: #C4501C;
     --dq-on-conversion: #FFFFFF;
     --dq-verified: #9CBB7E;
@@ -134,6 +140,8 @@
   --color-ring: var(--dq-ring);
   --color-primary: var(--dq-primary);
   --color-on-primary: var(--dq-on-primary);
+  --color-on-primary-soft: var(--dq-on-primary-soft);
+  --color-primary-rule: var(--dq-primary-rule);
   --color-conversion: var(--dq-conversion);
   --color-on-conversion: var(--dq-on-conversion);
   --color-verified: var(--dq-verified);
@@ -145,7 +153,8 @@
   --color-danger-solid: var(--dq-danger-solid);
   --color-on-danger: var(--dq-on-danger);
 
-  --font-display: var(--font-archivo);
+  --font-display: var(--font-bricolage);
+  --font-logo: var(--font-archivo);
   --font-sans: var(--font-inter);
 
   --radius-badge: 3px;

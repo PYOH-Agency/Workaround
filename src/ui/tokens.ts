@@ -107,6 +107,8 @@ export const roles = {
 
     primary: ramp.chalk[900],
     'on-primary': ramp.chalk[100],
+    'on-primary-soft': ramp.chalk[400],
+    'primary-rule': ramp.chalk[800],
 
     conversion: ramp.terracotta[600],
     'on-conversion': white,
@@ -140,6 +142,8 @@ export const roles = {
 
     primary: ramp.chalk[100],
     'on-primary': night.base,
+    'on-primary-soft': ramp.chalk[700],
+    'primary-rule': ramp.chalk[300],
 
     conversion: ramp.terracotta[600],
     'on-conversion': white,

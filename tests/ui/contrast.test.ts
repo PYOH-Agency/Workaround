@@ -52,6 +52,8 @@ const CHECKS: Check[] = [
   { fg: 'brand', bg: 'surface', min: 3 },
   // Boutons : l'etiquette sur son fond
   { fg: 'on-primary', bg: 'primary', min: 4.5 },
+  // Les bandes d'encre de la vitrine : le texte secondaire y est du texte.
+  { fg: 'on-primary-soft', bg: 'primary', min: 4.5 },
   { fg: 'on-conversion', bg: 'conversion', min: 4.5 },
   { fg: 'on-danger', bg: 'danger-solid', min: 4.5 },
   // Statuts : le texte sur son fond teinte

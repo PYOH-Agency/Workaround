@@ -1,52 +1,85 @@
 import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
-import { Reveal } from '@/ui/molecules/reveal'
 import { RevealTick } from '@/ui/molecules/reveal-tick'
 import { SiretLookup } from '@/ui/organisms/siret-lookup'
+import entrance from '../hero-entrance.module.css'
 import { Checking } from './checking'
+
+/** Le rang d'un element dans l'ouverture. Voir `hero-entrance.module.css`. */
+const rank = (i: number) => ({ '--dq-i': i }) as React.CSSProperties
 
 /**
  * L'accroche du demandeur.
  *
- * Elle tenait sur une seule colonne, et la moitie droite de l'ecran restait
- * vide la ou la page pro porte sa scene. Ce vide se lisait : la page de
- * l'artisan paraissait soignee, celle du client bacle — sur le public qui,
- * justement, arrive sans rien connaitre de nous et decide s'il nous fait
- * confiance en trois secondes.
+ * **Elle ne pose plus une question inquiete.** « Votre artisan est-il assure
+ * pour ce qu'il va faire ? » etait juste, et c'etait tout ce que la page avait
+ * a offrir : une mise en garde, puis un piege, puis un depannage. Un visiteur
+ * qui n'a rien a verifier ce jour-la n'y trouvait rien — et un visiteur qui
+ * avait quelque chose a verifier repartait des la reponse obtenue.
  *
- * `Checking` comble ce vide et fait le meme travail que `Squaring` cote pro :
- * elle ne decore pas la promesse, elle la joue.
+ * Ce que le produit donne vraiment a ce public existe et est livre depuis M6 :
+ * le suivi de chantier, les documents, les dates de garantie et le repertoire
+ * des entreprises deja intervenues. C'est un carnet, il se tient tout seul, et
+ * c'est cela qui se promet en accroche.
+ *
+ * **La verification reste l'action.** Elle n'est pas retrogradee : elle devient
+ * le commencement de ce qu'on promet, ce qu'elle est reellement dans le
+ * parcours. Le chapeau fait le pont en une phrase, et il dit sans detour a
+ * quel moment le carnet s'ouvre — a la signature, pas ici. Promettre un espace
+ * a qui vient de lire qu'on ne collecte rien serait le seul mensonge qu'une
+ * page de confiance ne peut pas se permettre.
+ *
+ * `Checking` garde la seconde colonne : c'est le geste de l'action, et elle ne
+ * finit pas sur « tout va bien » — voir son propre commentaire.
  */
 export function Hero() {
   return (
-    <section className="mx-auto w-full max-w-5xl px-6 py-20">
-      {/* Le seul `Reveal` de la page : c'est le bloc qui porte la promesse. */}
-      <Reveal>
-        <div className="grid items-center gap-12 md:grid-cols-[1.05fr_1fr] md:gap-16">
-          <div className="flex flex-col gap-5">
-            <Heading level="display">
-              Votre artisan est-il assuré pour ce qu’il va faire ?
-              <RevealTick />
-            </Heading>
-            <div className="max-w-[52ch]">
-              <Text tone="soft">
-                Une assurance décennale ne couvre que les activités qu’elle nomme. Entrez le SIRET
-                de l’entreprise : nous affichons ce qui est couvert, et ce qui ne l’est pas.
+    <section className="dq-sheet">
+      <div className="mx-auto w-full max-w-5xl px-6 pt-16 pb-20 md:pt-24 md:pb-28">
+        <div className="grid items-center gap-12 md:grid-cols-[1.15fr_1fr] md:gap-16">
+          <div className="flex flex-col gap-6">
+            <div className={entrance.step} style={rank(0)}>
+              <Text size="label" tone="muted">
+                Pour qui fait faire des travaux
               </Text>
             </div>
-            <SiretLookup
-              tone="conversion"
-              label="SIRET de l’entreprise"
-              cta="Vérifier"
-              hint="Gratuit, sans compte. Le SIRET figure sur son devis."
-            />
+
+            <Heading level="hero">
+              <span className={entrance.line} style={rank(0)}>
+                Le carnet
+              </span>
+              <span className={entrance.line} style={rank(1)}>
+                de votre logement,
+              </span>
+              <span className={entrance.line} style={rank(2)}>
+                tenu tout seul.
+                <RevealTick />
+              </span>
+            </Heading>
+
+            <div className={`${entrance.step} max-w-[54ch]`} style={rank(3)}>
+              <Text tone="soft">
+                Suivi de chantier, factures, dates de garantie, entreprises déjà intervenues : tout
+                s’y range à partir du devis que vous signez. Ça commence avant la signature — en
+                vérifiant que l’entreprise est bien assurée pour ce qu’elle va faire.
+              </Text>
+            </div>
+
+            <div className={entrance.step} style={rank(4)}>
+              <SiretLookup
+                tone="conversion"
+                label="SIRET de l’entreprise"
+                cta="Vérifier"
+                hint="Gratuit, sans compte. Le SIRET figure sur son devis."
+              />
+            </div>
           </div>
 
           <div className="flex justify-center md:justify-end">
             <Checking />
           </div>
         </div>
-      </Reveal>
+      </div>
     </section>
   )
 }

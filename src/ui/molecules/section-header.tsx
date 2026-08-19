@@ -25,21 +25,30 @@ export function SectionHeader({
   lead,
   as = 'h2',
   layout = 'stack',
+  tone = 'default',
 }: {
   label?: string
   title: React.ReactNode
   lead?: React.ReactNode
   as?: 'h1' | 'h2' | 'h3' | 'h4'
   layout?: 'stack' | 'split'
+  /**
+   * `inverse` pour une section posee sur `bg-primary` — les bandes d'encre de
+   * la vitrine. Les trois tons descendent ensemble : un titre inverse au-dessus
+   * d'un chapeau reste encre serait illisible, et c'est exactement l'oubli
+   * qu'un ton porte par le composant empeche.
+   */
+  tone?: 'default' | 'inverse'
 }) {
+  const dark = tone === 'inverse'
   const heading = (
     <div className="flex flex-col gap-3">
       {label ? (
-        <Text size="label" tone="muted">
+        <Text size="label" tone={dark ? 'inverse-soft' : 'muted'}>
           {label}
         </Text>
       ) : null}
-      <Heading level={2} as={as}>
+      <Heading level={2} as={as} tone={dark ? 'inverse' : 'default'}>
         {title}
       </Heading>
     </div>
@@ -52,7 +61,7 @@ export function SectionHeader({
       <div className="grid gap-x-12 gap-y-5 md:grid-cols-2 md:items-end">
         {heading}
         <div className="md:pb-1">
-          <Text as="div" tone="soft">
+          <Text as="div" tone={dark ? 'inverse-soft' : 'soft'}>
             {lead}
           </Text>
         </div>
@@ -65,7 +74,7 @@ export function SectionHeader({
       {heading}
       {lead ? (
         <div className={LEAD_MEASURE}>
-          <Text as="div" tone="soft">
+          <Text as="div" tone={dark ? 'inverse-soft' : 'soft'}>
             {lead}
           </Text>
         </div>
