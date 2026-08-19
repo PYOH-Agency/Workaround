@@ -22,14 +22,30 @@ export default function SignInPage() {
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+
+    /*
+      Le client se construit ICI, et pas dans le corps du composant.
+
+      Ce n'est pas une optimisation. `createBrowserClient` leve des que l'URL
+      ou la cle manque, et un composant client est **execute au prerendu** :
+      cette page etant statique, le build entier tombait sur « Your project's
+      URL and API key are required », sans dire que c'etait la configuration
+      qui manquait. On cherche alors un defaut de code la ou il n'y en a pas —
+      exactement ce que `scripts/check-environment.mjs` decrit, et qui s'est
+      produit au premier deploiement.
+
+      Construit a la soumission, le client n'existe que dans un navigateur, au
+      moment ou l'on s'en sert. Le build ne depend plus d'un secret, et une
+      variable absente se manifeste la ou elle manque vraiment : a l'envoi.
+      Accessoirement, il cessait aussi d'etre reconstruit a chaque rendu.
+    */
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    )
 
     const { error: sendError } = await supabase.auth.signInWithOtp({
       email,
