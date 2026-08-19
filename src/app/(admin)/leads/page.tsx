@@ -87,6 +87,11 @@ export default async function LeadsPage({
 
       <Funnel counts={counts} />
 
+      {/* L'export suit la periode affichee : on emporte ce qu'on regarde. */}
+      <Link href={`/leads/export?jours=${period}`} tone="bare">
+        <span className="text-sm">Exporter en CSV</span>
+      </Link>
+
       {requests.length === 0 ? (
         <EmptyState
           title="Aucune demande en cours"
