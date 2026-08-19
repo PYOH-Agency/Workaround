@@ -21,6 +21,22 @@ const LEGAL_FORM_LABELS: Record<string, string> = {
   '6540': 'SCI',
 }
 
+/**
+ * L'entreprise n'existe pas au repertoire — a distinguer d'une panne.
+ *
+ * Les deux cas menaient au meme `Error`, et l'appelant ne pouvait les separer
+ * qu'en lisant un message. Or ils ne disent pas la meme chose au demandeur :
+ * « aucune entreprise a ce numero » est un constat, « nous n'avons pas pu
+ * verifier » est un aveu. Les confondre en fait un mensonge dans un sens ou
+ * dans l'autre.
+ */
+export class CompanyNotFound extends Error {
+  constructor() {
+    super('Entreprise introuvable')
+    this.name = 'CompanyNotFound'
+  }
+}
+
 export interface Establishment {
   siret: string
   legalName: string
@@ -90,7 +106,7 @@ export async function findEstablishment(input: string): Promise<Establishment> {
   // La recherche est plein texte, donc floue : on n'accepte que l'etablissement
   // dont le SIRET correspond exactement a la demande.
   const establishment = result?.matching_etablissements?.find((e) => e.siret === siret)
-  if (!result || !establishment) throw new Error('Entreprise introuvable')
+  if (!result || !establishment) throw new CompanyNotFound()
 
   const postalCode = establishment.code_postal ?? ''
   const city = establishment.libelle_commune ?? ''
