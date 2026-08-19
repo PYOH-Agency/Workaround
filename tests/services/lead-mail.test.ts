@@ -65,6 +65,37 @@ describe('mail a l artisan', () => {
       expect(sent[0].text).toContain(base.optoutUrl)
     },
   )
+
+  // La donnee RGE ne vient pas de l'artisan : l'article 14 exige d'en nommer la
+  // source, et le lien de confidentialite porte le reste — finalite, durees,
+  // droits. Meme exigence que l'opposition, donc meme garde sur les deux
+  // branches de `member`.
+  //
+  // On force une base d'application inhabituelle le temps de l'appel : le lien
+  // doit en decouler, et non etre ecrit en dur. Une adresse figee passerait la
+  // simple recherche de « /confidentialite ».
+  it.each([{ member: false }, { member: true }])(
+    'porte le lien de confidentialite, construit depuis la base, quand member vaut $member',
+    async ({ member }) => {
+      const previous = process.env.NEXT_PUBLIC_APP_URL
+      process.env.NEXT_PUBLIC_APP_URL = 'https://base.test'
+      try {
+        await sendAttestationRequest({ ...base, member, qualification: null })
+      } finally {
+        process.env.NEXT_PUBLIC_APP_URL = previous
+      }
+      expect(sent[0].text).toContain('https://base.test/confidentialite')
+    },
+  )
+
+  it('nomme la source de la donnee RGE, qui ne vient pas de l artisan', async () => {
+    await sendAttestationRequest({
+      ...base,
+      member: false,
+      qualification: 'Qualibat, remplacement de chaudière gaz/fioul, valide jusqu’au 7 mars 2028',
+    })
+    expect(sent[0].text).toContain('ADEME')
+  })
 })
 
 describe('mails au demandeur', () => {

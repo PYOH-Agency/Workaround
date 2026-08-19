@@ -1,4 +1,14 @@
-import { sendRawMail } from './email'
+import { sendRawMail } from '@/services/email'
+
+/**
+ * La politique de confidentialite, construite depuis la base de l'application
+ * comme les autres liens du produit — jamais ecrite en dur, sans quoi les
+ * environnements de recette pointeraient sur la production.
+ *
+ * Elle est lue a chaque envoi plutot qu'au chargement du module : les tests
+ * chargent leur environnement apres les imports.
+ */
+const privacyUrl = () => `${process.env.NEXT_PUBLIC_APP_URL}/confidentialite`
 
 /**
  * Les messages du parcours de verification.
@@ -6,6 +16,12 @@ import { sendRawMail } from './email'
  * Le demandeur et l'artisan comptent autant, et ne lisent jamais le meme texte.
  * Le detail RGE vit ICI, dans le mail a l'artisan, ou il prouve qu'on connait
  * son metier — et pas sur la page du demandeur, ou il rassurerait a tort.
+ *
+ * Cet artisan ne nous a rien demande : la base legale est l'interet legitime,
+ * et elle ne tient pas sans le lien d'opposition. La donnee RGE, elle, n'a pas
+ * ete collectee aupres de lui — l'article 14 impose donc d'en nommer la source
+ * (l'annuaire de l'ADEME) ; le lien de confidentialite porte le reste, la
+ * finalite, les durees et les droits, sans allonger le message.
  */
 export async function sendAttestationRequest(input: {
   to: string
@@ -32,7 +48,8 @@ export async function sendAttestationRequest(input: {
       ...(input.qualification
         ? [
             '',
-            `Nous savons déjà que vous êtes RGE — ${input.qualification}.`,
+            'D’après l’annuaire public des entreprises RGE de l’ADEME, vous êtes',
+            `déjà qualifié — ${input.qualification}.`,
             'Il ne manque que votre décennale.',
           ]
         : []),
@@ -42,6 +59,7 @@ export async function sendAttestationRequest(input: {
         : `Déposez-la ici, c’est gratuit : ${input.signupUrl}`,
       '',
       `Ne plus recevoir ce type de message : ${input.optoutUrl}`,
+      `Vos données, leur origine et vos droits : ${privacyUrl()}`,
     ].join('\n'),
   })
 }
@@ -51,6 +69,11 @@ export async function sendAttestationRequest(input: {
  *
  * Elle porte le lien de la page plutot qu'un simple accuse : c'est le seul
  * moyen pour le demandeur de retrouver ce qu'il a lu, une fois l'onglet ferme.
+ *
+ * Elle dit « nous venons d'ecrire », et non « nous avons transmis » : ce qui
+ * est certain est l'envoi, pas la remise — l'adresse vient souvent d'une source
+ * ouverte, et peut etre morte. Promettre la remise ferait attendre trente jours
+ * une reponse qui ne pouvait pas venir.
  */
 export async function sendRequestConfirmation(input: {
   to: string
@@ -63,7 +86,7 @@ export async function sendRequestConfirmation(input: {
     text: [
       `Bonjour ${input.requesterName},`,
       '',
-      'Nous avons transmis votre demande à l’entreprise.',
+      'Nous venons d’écrire à l’entreprise.',
       '',
       `Ce que vous avez consulté : ${input.pageUrl}`,
       '',
