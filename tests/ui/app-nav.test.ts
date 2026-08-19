@@ -143,8 +143,8 @@ describe('la navigation du demandeur', () => {
 describe('la navigation du backoffice', () => {
   const staffHrefs = staffNavGroups.flatMap((group) => group.entries.map((entry) => entry.href))
 
-  it('couvre les trois écrans internes', () => {
-    expect(staffHrefs).toEqual(['/supervision', '/attestations', '/entreprises'])
+  it('couvre les quatre écrans internes', () => {
+    expect(staffHrefs).toEqual(['/supervision', '/attestations', '/entreprises', '/leads'])
   })
 
   it('reconnaît un écran interne, et ses sous-chemins', () => {
@@ -152,6 +152,7 @@ describe('la navigation du backoffice', () => {
     expect(isBackoffice('/attestations')).toBe(true)
     expect(isBackoffice('/attestations/8f2a')).toBe(true)
     expect(isBackoffice('/entreprises')).toBe(true)
+    expect(isBackoffice('/leads')).toBe(true)
   })
 
   it('laisse les écrans de l’artisan à l’artisan', () => {

@@ -153,6 +153,7 @@ export const staffNavGroups: NavGroup[] = [
       { href: '/supervision', label: 'Supervision' },
       { href: '/attestations', label: 'Attestations' },
       { href: '/entreprises', label: 'Entreprises' },
+      { href: '/leads', label: 'Leads' },
     ],
   },
 ]
@@ -165,7 +166,7 @@ export const staffNavGroups: NavGroup[] = [
  * inscrit pas. Une route d'artisan nouvelle est un evenement bien plus
  * frequent, et c'est elle qu'on protege de l'oubli.
  */
-const BACKOFFICE = ['/supervision', '/attestations', '/entreprises']
+const BACKOFFICE = ['/supervision', '/attestations', '/entreprises', '/leads']
 
 /**
  * Une entree est courante si elle est la page, ou l'un de ses sous-chemins.
