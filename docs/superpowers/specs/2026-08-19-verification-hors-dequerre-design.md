@@ -243,7 +243,8 @@ Rien d'autre : **pas d'IP, pas de session, pas d'agent**.
 ```
 id, siret, company_id?, requester_name?, requester_email?, artisan_email?,
 channel, notify, requested_at,
-registered_at?, deposited_at?, covered_at?, covered_notified_at?, expiry_notified_at?
+registered_at?, deposited_at?, covered_at?, covered_notified_at?, expiry_notified_at?,
+anonymized_at?
 ```
 
 - `channel` ∈ `sent` | `copied`. En `copied` on n'enregistre que l'intention —
