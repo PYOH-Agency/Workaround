@@ -1,8 +1,9 @@
 # AIPD — Le passeport public de l'artisan
 
 > Analyse d'impact relative à la protection des données, article 35 du RGPD.
-> Date : 2026-08-08 · Statut : **menée, décisions prises, mesures à construire**
-> Responsable de traitement : Workaround · Traitement concerné : publication du passeport
+> Date : 2026-08-08 · **Avenant du 2026-08-19 : §7, la vérification d'un artisan hors D'équerre**
+> Statut : **menée, décisions prises, mesures à construire**
+> Responsable de traitement : Workaround · Traitements concernés : publication du passeport, et la sollicitation d'un artisan non inscrit
 >
 > Elle devait être menée **avant la première métrique publiée** — le jalon des métriques, aujourd'hui M5. Elle l'est.
 > L'échéance est **sémantique, pas numérique** : elle tient quel que soit le rang du jalon dans la séquence.
@@ -25,6 +26,17 @@ Cinq décisions en sortent. Elles ne sont pas des ajouts de conformité posés �
 | 5 | **Le régime le plus strict s'applique à toutes les entreprises**, y compris les sociétés dont le passeport n'est pas une donnée personnelle | Partout |
 
 Et un manque assumé, nommé au §5.3 : **l'avis des artisans concernés n'a pas été recueilli**, faute d'artisans. Il doit l'être avant la mise en ligne du premier passeport.
+
+**Quatre décisions de plus sortent de l'avenant du §7**, qui étend l'analyse à des personnes n'ayant jamais adhéré au service.
+
+| # | Décision | Où elle se construit |
+|---|---|---|
+| 6 | **Base légale de l'envoi à un artisan non inscrit : intérêt légitime**, adossé à une relation d'affaires réelle entre le demandeur et l'artisan | §7.2 |
+| 7 | **Le jeton d'opposition est signé, jamais stocké** — sans quoi le droit d'opposition se périmerait avec la demande qui l'a créé | §7.4 |
+| 8 | **Les demandes sont anonymisées, pas supprimées** : contacts **et SIRET** effacés, dates conservées | §7.5 |
+| 9 | **Aucune synchronisation vers un CRM tiers.** Un export CSV sans adresse est la seule couture | §7.5 |
+
+Et deux manques nommés sans détour : **l'information de l'article 14 n'est pas au bout du lien que le mail promet** (§7.3), et **la relation d'affaires n'est déclarée nulle part** (§7.2). Les deux sont bloquants avant la mise en ligne du parcours.
 
 ---
 
@@ -350,9 +362,158 @@ La dernière ligne est celle qu'on oublie. Une métrique dont la définition n'e
 
 ---
 
-## 7. Conclusion
+## 7. Avenant du 2026-08-19 — la vérification d'un artisan hors D'équerre
 
-**Le traitement est licite sous les cinq décisions du §0.** L'intérêt légitime prévaut sur l'impact réputationnel, mais uniquement parce que l'opposition est honorée sans condition, que la mesure est contestable et que toute suspension automatique ouvre un recours humain. Retirer l'une de ces trois conditions renverse la mise en balance et rend le traitement illicite.
+> Toutes les sections qui précèdent portent sur des personnes qui ont **adhéré** au service. Celle-ci porte sur des **tiers qui n'ont rien demandé** : un demandeur saisit le SIRET d'une entreprise absente de D'équerre, lit une page qui constate qu'on ne peut rien affirmer de sa décennale, et nous demande d'écrire à cette entreprise pour obtenir son attestation.
+>
+> **C'est un changement de nature, pas d'échelle.** Le passeport mesure quelqu'un qui s'est inscrit ; ici nous écrivons à quelqu'un qui n'a jamais entendu parler de nous, à propos d'une donnée que nous avons prise dans un registre ouvert. L'article 14 s'applique au lieu de l'article 13, et la mise en balance de l'article 6.1.f se refait entièrement — celle du §3.2 ne vaut pas ici, elle repose sur le fait que « l'artisan choisit de s'inscrire ».
+>
+> **Références :** [spec du parcours](../specs/2026-08-19-verification-hors-dequerre-design.md) · schéma [`lead.ts`](../../../src/db/schema/lead.ts)
+
+### 7.1 Ce qui est traité, et par quel chemin
+
+Trois tables, et il faut les distinguer parce qu'elles n'ont ni la même personne concernée, ni la même durée, ni la même base légale.
+
+| Table | Contenu réel | Personne concernée | Durée |
+|---|---|---|---|
+| `verification_lookup` | `siret`, issue (`covered` / `uncovered_member` / `stranger`), point d'entrée (`pro` / `demandeur`), horodatage | L'entreprise cherchée — chez un entrepreneur individuel, **une personne physique** | **12 mois**, purge par suppression |
+| `attestation_request` | `siret`, prénom et adresse du demandeur, adresse de l'artisan, canal, `notify`, sept dates, `company_id`, `relaunch_of` | Le demandeur **et** l'artisan | **30 jours**, ou moins — anonymisation, §7.5 |
+| `mail_optout` | Une adresse électronique normalisée, une date | L'artisan qui s'est opposé | **Sans terme, et c'est le but** — §7.4 |
+
+**`verification_lookup` ne contient ni adresse IP, ni identifiant de session, ni agent utilisateur.** Ce n'est pas un oubli : ce qu'on ne collecte pas ne fuit pas, ne se corrèle pas, et ne se réclame pas. Le journal est écrit depuis l'action, jamais depuis le rendu de la page — une page qui compte ses affichages compterait les préchargements et les robots, et `/verification/[siret]` est partageable donc revisitée.
+
+**Deux canaux, et un seul écrit un contact.** En canal `copied`, le demandeur recopie lui-même un message et l'envoie depuis sa propre messagerie : nous n'enregistrons que l'intention — le SIRET, la date, le canal. Aucun nom, aucune adresse, aucun envoi de notre part. En canal `sent`, prénom, adresse du demandeur et adresse de l'artisan sont requis, et le mail part de chez nous.
+
+### 7.2 La base légale de l'envoi à l'artisan
+
+> **Décision 6.** L'envoi repose sur l'**intérêt légitime**, article 6.1.f — celui du demandeur à obtenir une attestation qu'il a le droit d'exiger, et celui de l'artisan à savoir qu'un client la lui demande.
+
+Le consentement est hors sujet : on ne peut pas demander son consentement à quelqu'un avant de lui écrire pour la première fois. La nécessité contractuelle n'existe pas — il n'y a pas de contrat avec l'artisan, c'est la définition même de la situation.
+
+Ce qui rend l'intérêt légitime plaidable ici, ce n'est pas le nôtre : c'est qu'**une relation d'affaires réelle est en cours entre le demandeur et l'artisan**. Le demandeur envisage de lui confier des travaux et cherche à vérifier sa décennale ; le mail lui est adressé en son nom, avec son prénom et son adresse. Sans cette relation, l'envoi serait de la prospection commerciale déguisée en service rendu.
+
+**Et c'est le point faible du dispositif, il faut l'écrire ici plutôt que de le découvrir en contrôle :** cette relation, nous ne pouvons pas la vérifier, et le formulaire ne la fait pas déclarer. La spec posait que le demandeur en atteste « en saisissant l'adresse » ; en l'état, saisir une adresse n'atteste rien du tout, puisque l'écran ne demande rien. Voir le chantier 14.
+
+#### La mise en balance
+
+**Ce que pèse l'intérêt.** Un particulier ne peut pas vérifier seul la décennale d'une entreprise : aucun registre public ne la porte, et API Entreprise nous est fermée. Sa seule voie est de la demander à l'entreprise elle-même, ce qu'il n'ose souvent pas faire. L'intérêt est celui d'une protection contre un sinistre non couvert sur dix ans, et il est de même nature que celui qui fonde tout le produit.
+
+**Ce que pèse l'atteinte.** Un message non sollicité dans la boîte professionnelle d'un artisan, portant sur un défaut — l'absence d'attestation vérifiable —, et qui lui apprend qu'un client s'est renseigné sur lui. Ce n'est pas anodin : mal calibré, le même mécanisme devient du démarchage de masse à la charge d'un tiers.
+
+**Ce qui limite l'atteinte, aux valeurs réellement codées.**
+
+| Garde | Valeur dans `lead-guards.ts` | Ce qu'elle empêche |
+|---|---|---|
+| Opposition | Consultée **avant tout le reste** | Un artisan opposé ne reçoit rien, quel que soit le demandeur |
+| Mails par artisan, **tous demandeurs confondus** | **1 / 7 jours** | Dix demandeurs d'un même artisan produisant dix mails — un harcèlement que nous aurions industrialisé |
+| Demandes par couple (SIRET, demandeur) | 1 / 24 h | Le double-clic, l'onglet rouvert, l'insistance du même |
+| Demandes par demandeur, toutes entreprises | 3 / heure | Le script qui mitraille les SIRET |
+
+**L'ordre de ces contrôles est lui-même une garantie.** L'opposition passe avant tout ; la protection de l'artisan passe avant celle de nos serveurs. Un refus mal nommé se traduirait par une reprise de contact au créneau suivant.
+
+Deux propriétés achèvent de faire pencher la balance :
+
+- **Un refus n'écrit rien en base.** Une ligne posée sur un refus alimenterait elle-même les trois fenêtres et transformerait un refus passager en auto-blocage permanent, sans qu'aucun mail ne soit jamais parti.
+- **La relance manuelle depuis l'écran d'administration passe par le même code que la demande d'un inconnu.** Elle subit donc l'opposition, la trêve de sept jours et le plafond horaire. Une trêve contournable par un humain de chez nous serait une trêve inexistante — et un artisan qui a demandé à ne plus être contacté le serait *davantage* parce que la demande vient de nous.
+
+**Conclusion de la mise en balance : l'intérêt légitime prévaut, à trois conditions** — le lien d'opposition part avec le premier message et fonctionne toujours (§7.4), la trêve de sept jours par artisan reste inconditionnelle, et le demandeur déclare la relation d'affaires (chantier 14, non tenu à ce jour). Les deux premières sont construites. La troisième ne l'est pas.
+
+### 7.3 L'article 14 — la donnée ne vient pas de la personne concernée
+
+Rien de ce que contient le mail ne nous a été donné par son destinataire. L'adresse vient du demandeur ; le SIRET, la raison sociale et l'état administratif viennent de recherche-entreprises et du BODACC ; la qualification RGE vient de l'annuaire public de l'ADEME. **L'article 14 s'applique, et il exige la source.**
+
+Ce que le message dit réellement, vérifié dans [`lead-mail.ts`](../../../src/services/lead-mail.ts) :
+
+| Exigence de l'article 14 | Ce que le mail porte |
+|---|---|
+| Identité du responsable | L'expéditeur et la signature du produit |
+| Finalité | En objet et en première ligne : *« X vous demande votre attestation décennale »*, et le lien vers la page que son client a lue |
+| **Source des données (14.2.f)** | **Seulement pour le RGE** : *« D'après l'annuaire public des entreprises RGE de l'ADEME, vous êtes déjà qualifié »*. C'est la seule source nommée, et **elle n'est nommée que si une qualification existe** |
+| Droit d'opposition (14.2.c) | *« Ne plus recevoir ce type de message »*, lien direct, sans compte ni réponse à rédiger |
+| Le reste — catégories, durées, autres droits, réclamation CNIL | Renvoyé à un lien unique : *« Vos données, leur origine et vos droits »* → `/confidentialite` |
+
+**Le renvoi est le bon choix de forme** : un mail qui déroule la mention d'information complète n'est pas lu, et le lien d'opposition se perd dedans. Le premier message doit rester court, nommer le client, nommer le manque, et offrir la sortie.
+
+> **Mais le renvoi ne vaut que si la cible porte l'information, et elle ne la porte pas.** `/confidentialite` décrit aujourd'hui trois traitements — le compte de l'entreprise, le devis, la signature — et pas une ligne sur ce parcours : ni la sollicitation d'un artisan non inscrit, ni les sources ouvertes, ni les 30 jours, ni les 12 mois, ni la liste d'opposition. Le mail promet donc une information qui n'existe pas au bout du lien. **L'article 14 n'est pas satisfait en l'état** : chantier 13, bloquant avant la mise en ligne.
+
+**Le journal des recherches, lui, n'est pas notifié**, et ne le sera pas. Nous ne disposons d'aucune adresse pour la quasi-totalité des SIRET cherchés : nous en informer chacun supposerait d'aller chercher un contact que nous n'avons pas, c'est-à-dire de collecter plus pour informer davantage. L'article 14.5.b — effort disproportionné — couvre cette hypothèse, à la condition, tenue ici, que l'information soit publiée à la place : ce sera fait dans `/confidentialite` au titre du chantier 13.
+
+### 7.4 Le droit d'opposition, et pourquoi le jeton est signé plutôt que stocké
+
+> **Décision 7.** Tout message à un artisan porte un lien d'opposition. L'opposition vaut pour l'adresse, **quelle que soit la personne qui nous demande de la solliciter**, et elle **survit à l'effacement de la demande qui l'a déclenchée**.
+
+Le lien est de la forme `/stop?e=<adresse>&s=<jeton>`, où le jeton est un HMAC-SHA256 de l'adresse normalisée sous `MAIL_OPTOUT_SECRET`. **Il n'est stocké nulle part.**
+
+C'est le point le plus intéressant du dispositif, et il mérite qu'on dise ce qui se passerait autrement.
+
+**Un jeton stocké aurait dû l'être quelque part. Le seul endroit naturel était la ligne `attestation_request` qui a déclenché le mail — et cette ligne est effacée à 30 jours.** Le lien d'un message de six semaines cesserait alors de fonctionner. L'artisan qui retrouve un vieux mail dans sa boîte et clique pour ne plus être contacté tomberait sur « lien invalide ». Nous aurions construit un **droit d'opposition qui se périme**, et il se périmerait précisément par l'effet d'une mesure de minimisation — la conformité d'un article rongeant celle d'un autre. Un jeton signé ne dépend d'aucune ligne : il se recalcule à partir de l'adresse et du secret, donc il vaut aussi longtemps que le secret.
+
+L'autre issue aurait été une table de jetons vivant à part, survivant aux demandes. C'est un registre permanent d'adresses d'artisans sollicités, c'est-à-dire exactement la copie que le §7.5 s'emploie à ne pas garder.
+
+Quatre propriétés du mécanisme, toutes vérifiées dans le code :
+
+| Propriété | Où, et pourquoi |
+|---|---|
+| **Un secret absent fait échouer l'envoi** | `optoutToken` lève. HMAC accepterait une clé vide et l'algorithme est public : n'importe qui recalculerait les jetons de tous, et les adresses d'artisans sont publiques par nature — un désabonnement de masse, irréversible. **Un mail amputé de ce lien est un mail qu'on n'a pas le droit d'envoyer**, donc mieux vaut casser l'envoi |
+| **Le lien est signé avant toute écriture** | Une configuration incomplète ne laisse ni ligne en base, ni trêve consommée |
+| **Comparaison à temps constant** | `timingSafeEqual` : une comparaison naïve laisserait deviner un jeton octet par octet, et forger une opposition au nom d'autrui |
+| **L'enregistrement est idempotent** | `onConflictDoNothing`, et l'unicité porte sur l'adresse normalisée en minuscules. Sans cette normalisation, `Jean@Exemple.fr` cohabiterait avec `jean@exemple.fr` et l'opposition serait contournée au prochain envoi. Un lien de mail est cliqué deux fois, transféré, rouvert des mois plus tard : lever au second clic laisserait croire que l'opposition n'a pas été prise en compte |
+
+La page `/stop` est en `noindex`, et un lien tronqué donne « ce lien ne fonctionne pas » plutôt qu'une erreur serveur.
+
+**Deux limites, nommées.** L'opposition porte sur nos envois, pas sur le geste du demandeur : en canal `copied`, c'est lui qui écrit depuis sa messagerie, et nous n'avons rien à y opposer — mais nous continuons alors d'enregistrer une intention portant son SIRET, ce que la liste d'opposition ne bloque pas. Et l'adresse figure en clair dans l'URL du lien, donc dans les journaux d'accès de l'hébergeur : la page n'étant pas indexée et ne portant aucun lien sortant, la fuite se limite à ces journaux, mais elle existe.
+
+### 7.5 Les durées, et l'anonymisation plutôt que la suppression
+
+> **Décision 8.** Une demande est **anonymisée**, jamais supprimée : on efface les contacts **et le SIRET**, on garde le canal et les dates. Une recherche est **supprimée** à 12 mois.
+
+Les valeurs réelles, telles que la passe quotidienne [`advanceRequests`](../../../src/services/lead-advance.ts) les applique :
+
+| Donnée | Déclencheur d'effacement | Ce qui reste |
+|---|---|---|
+| `attestation_request` — contacts et SIRET | **30 jours après la demande**, ou **dès la publication de la couverture** si elle vient avant | Canal, `notify`, les sept dates, `anonymized_at` |
+| `verification_lookup` | **365 jours** après la recherche | Rien : la ligne est supprimée |
+
+**L'anonymisation ne se déclenche pas sur un envoi, elle se déclenche sur l'inutilité.** La couverture publiée clôt la demande : plus rien ne sera relancé et les contacts n'ont plus de finalité. Le mail « c'est vérifié » au demandeur est le cas le plus fréquent où cela devient vrai, pas la condition — quand `notify` vaut `false`, les contacts cessent de servir *plus tôt*, pas plus tard. Lier l'effacement à l'envoi garderait trente jours de plus deux adresses dont plus personne n'attend rien.
+
+**Pourquoi anonymiser plutôt que supprimer.** L'entonnoir est le seul instrument qui dise si la page de vérification convainc — le taux qui compte est *recherches sans couverture → demandes*. Supprimer la ligne effacerait ce dénominateur en même temps que la personne. Anonymiser sépare les deux : après effacement, l'entonnoir **compte des dates, pas des entreprises**, et il rend exactement le même chiffre qu'avant. C'est aussi pourquoi l'attribution — inscription, dépôt, couverture — est figée au fil de l'eau par la passe quotidienne, tant que le SIRET est encore là : rattacher après coup deviendrait impossible, et la tentation serait alors de garder le SIRET plus longtemps.
+
+Conséquence pratique, et elle compte : **une demande d'effacement se traite en une requête par adresse et ne laisse rien derrière**, parce qu'il n'existe aucune copie ailleurs.
+
+> **Une réserve, qui n'est pas cosmétique.** L'anonymisation efface `siret` mais **laisse `company_id`** sur les demandes dont l'artisan s'est inscrit entre-temps. La ligne reste donc rattachable à une entreprise nommée, sans terme, par simple jointure — ce n'est pas une anonymisation pour ces lignes-là, c'est une pseudonymisation. Le demandeur, lui, a bien disparu. **À corriger : chantier 15.**
+
+**Ce qui n'existe pas, et doit continuer de ne pas exister.**
+
+> **Décision 9.** Aucune synchronisation vers un CRM tiers.
+
+La valeur d'un CRM est de se souvenir pour toujours ; tout ce parcours tient sur l'oubli. Les deux sont contradictoires, et une synchronisation créerait une copie permanente, hors de notre contrôle, d'adresses que nous avons promis d'effacer — plus un sous-traitant, un contrat de sous-traitance, et cette analyse à rouvrir. La seule couture vers l'extérieur est un **export CSV**, réservé aux relecteurs, qui répond 404 à qui n'en est pas un. **Aucune adresse n'y figure**, et la garantie est posée dans le service qui alimente l'export plutôt que dans sa mise en forme — un fichier posé sur un disque, lui, ne s'anonymise pas à 30 jours. Le SIRET, en revanche, y figure : c'est la limite exacte de cette couture, et elle interdit d'en élargir les colonnes sans repasser par ici.
+
+### 7.6 Le SIRET est une donnée personnelle
+
+La majorité des entreprises du bâtiment sont des entreprises individuelles : pour elles, **le SIRET identifie une personne physique**. Le §1.1 en tirait déjà la conséquence pour le passeport ; ce parcours en tire trois de plus.
+
+1. **Journaliser une consultation n'est pas un compteur anodin.** `verification_lookup` est une liste de professionnels sur qui quelqu'un s'est renseigné, avec la date et le fait qu'aucune couverture n'a été trouvée. D'où sa purge à 12 mois, et son absence totale d'IP et de session : sans elles, le journal ne dit rien du chercheur, et ne devient donc jamais un graphe de qui s'intéresse à qui.
+2. **L'anonymisation doit emporter le SIRET, pas seulement les contacts.** Une ligne conservant le SIRET après effacement des adresses resterait une donnée personnelle sur l'artisan — c'est exactement ce qu'on prétendait avoir effacé. `siret` est donc nullable au schéma, et c'est la trace de cette obligation dans le code.
+3. **Le régime le plus strict s'applique à tous**, comme au §1.1 : nous ne distinguons pas les SAS des entrepreneurs individuels pour décider quoi effacer. Une purge conditionnée à la forme juridique serait une purge oubliée au premier changement de code.
+
+### 7.7 Les risques propres à ce parcours
+
+Les trois événements redoutés du §6.1 se transposent sans surprise. Deux risques nouveaux, qui n'entrent dans aucune des trois cases, méritent d'être nommés.
+
+| Risque | Gravité | Vraisemblance | Mesures |
+|---|---|---|---|
+| **Nous devenons un canal de démarchage** — le formulaire sert à faire écrire D'équerre à des artisans qu'aucun client ne sollicite | Élevée | **Moyenne à élevée tant que le chantier 14 n'est pas fait** | Trêve de 1 mail / 7 jours par artisan, 3 demandes / heure par demandeur, opposition en un clic. Manque : la déclaration de relation d'affaires |
+| **Un mail contredit la page** — l'artisan est présenté comme non couvert alors qu'il l'est | Moyenne | Faible | La classification du SIRET lève sur une entrée invalide plutôt que de se replier sur « inconnu » ; les jokers SQL sont bloqués en amont de la requête, faute de quoi un inconnu ressortirait « membre » |
+
+Un troisième point mérite d'être noté sans être un risque : **le message ne promet jamais la remise.** Il dit « nous venons d'écrire », jamais « nous avons transmis » — l'adresse vient d'une source ouverte et peut être morte. Promettre la remise ferait attendre trente jours une réponse qui ne pouvait pas venir, et l'exactitude d'une information due au demandeur relève aussi de l'article 5.1.d.
+
+---
+
+## 8. Conclusion
+
+**Le traitement du passeport est licite sous les cinq premières décisions du §0.** L'intérêt légitime prévaut sur l'impact réputationnel, mais uniquement parce que l'opposition est honorée sans condition, que la mesure est contestable et que toute suspension automatique ouvre un recours humain. Retirer l'une de ces trois conditions renverse la mise en balance et rend le traitement illicite.
+
+**Le parcours de vérification, lui, n'est pas licite en l'état** — non pas dans son mécanisme, qui est plus protecteur que ce que la spec annonçait, mais dans son information : le mail à l'artisan renvoie vers une page qui ne dit pas un mot de ce traitement. Les chantiers 13 et 14 sont la condition de sa mise en ligne, et non des améliorations.
 
 **Le risque dominant n'est pas la sécurité, c'est la justesse.** Les mesures de sécurité utiles sont déjà en place — journal immuable, facture immuable, signature client. L'effort à venir porte sur la contestabilité, qui n'est pas construite.
 
@@ -372,14 +533,19 @@ La dernière ligne est celle qu'on oublie. Une métrique dont la définition n'e
 | 10 | Vérifier une restauration de sauvegarde | Premier déploiement |
 | 11 | Purge automatique selon le tableau des durées | Non daté — voir le cadrage |
 | 12 | Désignation d'un délégué à la protection des données | Avant le passage à l'échelle |
+| 13 | **`/confidentialite` couvre le parcours de vérification** — sollicitation d'un artisan non inscrit, sources ouvertes nommées, 30 jours et 12 mois, liste d'opposition. Le mail y renvoie déjà : sans elle, l'article 14 n'est pas satisfait | **Avant la mise en ligne du parcours** |
+| 14 | **Le formulaire fait déclarer la relation d'affaires** avec l'entreprise. Sans elle, la mise en balance du §7.2 repose sur un fait que rien n'établit | **Avant la mise en ligne du parcours** |
+| 15 | **`company_id` effacé par l'anonymisation**, au même titre que le SIRET — sinon la ligne reste rattachable à une entreprise nommée, sans terme | **Avant la mise en ligne du parcours** |
 
 ### Revue
 
 Cette analyse est à revoir : **à la mise en service de M5**, à tout élargissement des métriques publiées, au passage à l'échelle nationale, et lors du choix définitif de l'hébergeur.
 
+Pour le §7, en outre : **à la mise en ligne du parcours de vérification**, à tout assouplissement d'une des quatre gardes du §7.2, à tout élargissement des colonnes de l'export CSV, et à la première relance automatique — qui n'existe pas aujourd'hui, et dont l'apparition referait la mise en balance.
+
 ---
 
-## 8. Sources
+## 9. Sources
 
 - [Ce qu'il faut savoir sur l'analyse d'impact (AIPD) — CNIL](https://www.cnil.fr/fr/ce-quil-faut-savoir-sur-lanalyse-dimpact-relative-la-protection-des-donnees-aipd)
 - [Liste des traitements pour lesquels une AIPD est requise — CNIL](https://www.cnil.fr/fr/analyse-dimpact-relative-la-protection-des-donnees-publication-dune-liste-des-traitements-pour)
