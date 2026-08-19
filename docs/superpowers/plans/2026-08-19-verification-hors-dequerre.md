@@ -72,6 +72,16 @@ La spec § 6.1 liste quatre valeurs pour `outcome`, dont `unknown_siret`. **C'es
 
 **Rappel :** `pnpm check:size` refuse tout fichier de plus de 250 lignes.
 
+> **Chaque fichier de test a ses propres SIRET, et n'assert jamais sur un
+> total.** Vitest exécute les fichiers en parallèle sur une base partagée. Deux
+> fichiers qui se partagent un SIRET se détruisent l'un l'autre — le `beforeAll`
+> de l'un supprime puis réinsère l'entreprise que l'autre est en train de lire,
+> et le cas B ressort `stranger` une fois sur deux. De même, compter les lignes
+> de `verification_lookup` avant/après est un faux échec en attente : un autre
+> fichier y écrit au même moment. Assertez toujours sur **vos** lignes, filtrées
+> par **votre** SIRET. Les blocs de test ci-dessous donnent des constantes à
+> titre indicatif : changez-les si un autre fichier les utilise déjà.
+>
 > **Les SIRET de test doivent passer la clé de Luhn.** `classifySiret` refuse
 > désormais un SIRET invalide, et `isValidSiret` est stricte. Deux numéros de ce
 > plan étaient faux et ont été corrigés en tâche 7 : les tests validaient un
@@ -1210,7 +1220,16 @@ et, juste après l'ouverture du `<form>` :
 - [ ] **Step 5 : Renseigner la prop aux deux appels**
 
 Run: `grep -rn "<SiretLookup" src/`
-Puis ajouter `entry="demandeur"` à l'appel de `src/app/_landing/verifier/hero.tsx` et `entry="pro"` à celui de `src/app/_landing/pro/passport.tsx` (et à tout autre appel que le `grep` révèle, selon la page qui le porte).
+**Il n'y a qu'un seul appel**, contrairement à ce que ce plan supposait :
+`src/app/_landing/verifier/hero.tsx` → `entry="demandeur"`. La page pro porte un
+lien vers l'inscription, pas un champ SIRET.
+
+> **Conséquence à connaître pour la tâche 17.** `entry` ne prend donc
+> aujourd'hui qu'une seule valeur : `demandeur`. La colonne reste — elle ne coûte
+> rien et le jour où un champ SIRET apparaît côté pro, la mesure existe — mais
+> **l'écran admin ne doit pas afficher de répartition par origine**, qui serait
+> invariablement « 100 % demandeur » et se lirait comme une information alors
+> qu'elle n'en est pas une.
 
 - [ ] **Step 6 : Lancer les tests**
 
