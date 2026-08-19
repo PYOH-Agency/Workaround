@@ -72,6 +72,15 @@ La spec § 6.1 liste quatre valeurs pour `outcome`, dont `unknown_siret`. **C'es
 
 **Rappel :** `pnpm check:size` refuse tout fichier de plus de 250 lignes.
 
+> **Les SIRET de test doivent passer la clé de Luhn.** `classifySiret` refuse
+> désormais un SIRET invalide, et `isValidSiret` est stricte. Deux numéros de ce
+> plan étaient faux et ont été corrigés en tâche 7 : les tests validaient un
+> chemin qu'aucune saisie réelle n'aurait pu emprunter. Numéros vérifiés
+> utilisables — inconnu du seed : `39315263200005`, inscrit sans couverture :
+> `78462765400006`. Ceux du seed (`50769820700036` BD PLOMBERIE, `43897654300019`,
+> `81234567800013`) sont valides mais **déjà en base, avec une couverture
+> publiée** : ne pas les réutiliser pour un cas B ou C.
+>
 > **Avant d'écrire un fichier de test, vérifier qu'il n'existe pas.** Les blocs
 > de code de ce plan sont donnés comme des contenus complets ; appliqués à un
 > fichier existant, ils l'écrasent et emportent sa couverture sans qu'aucun test
@@ -913,7 +922,7 @@ import { classifySiret, recordLookup, purgeLookups } from '@/services/verificati
 
 const MEMBER = randomUUID()
 const MEMBER_SIRET = '50769820700036'
-const STRANGER_SIRET = '39315263200025'
+const STRANGER_SIRET = '39315263200005'
 
 beforeAll(async () => {
   await db.insert(company).values({
@@ -1086,7 +1095,7 @@ import { db, connection } from '@/db/client'
 import { verificationLookup } from '@/db/schema'
 import { lookupCompany } from '@/actions/public'
 
-const STRANGER_SIRET = '39315263200025'
+const STRANGER_SIRET = '39315263200005'
 
 afterAll(async () => {
   await connection.end()
@@ -2322,7 +2331,7 @@ import { company } from '@/db/schema'
 import { verificationView } from '@/services/verification-view'
 
 const MEMBER_SIRET = '50769820700036'
-const STRANGER_SIRET = '39315263200025'
+const STRANGER_SIRET = '39315263200005'
 
 function stub(siret: string) {
   vi.stubGlobal(
@@ -3685,7 +3694,7 @@ Relever : comment la base est amorcée, comment les mails sont relus (collecteur
 ```ts
 import { test, expect } from '@playwright/test'
 
-const STRANGER_SIRET = '39315263200025'
+const STRANGER_SIRET = '39315263200005'
 
 test('un SIRET inconnu mene a la page de verification, et la demande part', async ({ page }) => {
   await page.goto('/verifier')
