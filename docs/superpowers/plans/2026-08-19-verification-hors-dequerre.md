@@ -1342,7 +1342,7 @@ describe('verificationView', () => {
     expect(view.alerts[0].kind).toBe('closed')
   })
 
-  it('remonte une procedure collective, pas une conciliation', async () => {
+  it('remonte une procedure collective', async () => {
     stubFetch((url) =>
       url.includes('bodacc')
         ? { results: [{ familleavis: 'collective' }, { familleavis: 'conciliation' }] }
@@ -1354,6 +1354,22 @@ describe('verificationView', () => {
     const kinds = view.alerts.map((a) => a.kind)
     expect(kinds).toContain('proceeding')
     expect(view.alerts).toHaveLength(1)
+  })
+
+  it('ne produit aucune alerte pour une conciliation seule', async () => {
+    // Le test precedent ne discrimine PAS : le code ne pousse qu'une alerte
+    // quel que soit le nombre d'avis retenus, donc la conciliation surnumeraire
+    // n'y change rien et `!== 'neutral'` passerait. Seule la conciliation
+    // isolee defend la distinction — une demarche volontaire de prevention,
+    // que traiter comme une liquidation punirait le bon comportement.
+    stubFetch((url) =>
+      url.includes('bodacc') ? { results: [{ familleavis: 'conciliation' }] } : ESTABLISHMENT,
+    )
+
+    const view = await verificationView(SIRET, NOW)
+
+    expect(view.alerts).toEqual([])
+    expect(view.alertsUnavailable).toBe(false)
   })
 
   it('n affiche AUCUNE alerte quand le BODACC ne repond pas, et le dit', async () => {
