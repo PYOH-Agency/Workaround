@@ -52,14 +52,13 @@ export async function leadFunnel(from: Date, to: Date): Promise<Funnel> {
  * Une demande anonymisee n'a plus de contact a relancer : la liste s'en vide
  * d'elle-meme a 30 jours, sans purge dediee — c'est l'effet recherche.
  *
- * `now` n'entre dans aucun filtre ici : « vivante » se lit uniquement sur
+ * `_now` n'entre dans aucun filtre ici : « vivante » se lit uniquement sur
  * `anonymized_at`, la meme frontiere que celle que `advanceRequests` pose.
  * Le parametre existe pour que l'appelant fournisse un instant explicite,
  * comme partout ailleurs dans ce service — pas pour un calcul d'echeance
  * qu'`advanceRequests` a deja fait.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function openRequests(now: Date): Promise<OpenRequest[]> {
+export async function openRequests(_now: Date): Promise<OpenRequest[]> {
   return db
     .select({
       id: attestationRequest.id,
