@@ -112,6 +112,8 @@ export type RequestChannel = 'sent' | 'copied'
 
 ```ts
 import { pgTable, uuid, text, timestamp, boolean, index } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+import { company } from './company'
 
 /**
  * L'evenement de recherche, sans personne dedans.
@@ -152,11 +154,14 @@ export const attestationRequest = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     siret: text('siret'),
-    companyId: uuid('company_id'),
+    companyId: uuid('company_id').references(() => company.id),
     requesterName: text('requester_name'),
+    /** **Toujours normalisee** — voir `normalizeEmail`. */
     requesterEmail: text('requester_email'),
+    /** **Toujours normalisee** — voir `normalizeEmail`. */
     artisanEmail: text('artisan_email'),
     channel: text('channel', { enum: ['sent', 'copied'] }).notNull(),
+    /** Le demandeur veut etre prevenu quand la couverture est publiee. Rien d'autre. */
     notify: boolean('notify').notNull().default(false),
     requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
     registeredAt: timestamp('registered_at', { withTimezone: true }),
@@ -170,7 +175,14 @@ export const attestationRequest = pgTable(
     index('attestation_request_siret_idx').on(t.siret, t.requestedAt),
     index('attestation_request_artisan_idx').on(t.artisanEmail, t.requestedAt),
     index('attestation_request_requester_idx').on(t.requesterEmail, t.requestedAt),
-    index('attestation_request_open_idx').on(t.anonymizedAt, t.requestedAt),
+    /**
+     * Partiel : la passe de retention ne lit que les lignes encore non
+     * anonymisees. Les indexer toutes ferait grossir l'index de tout ce qui est
+     * deja purge — precisement ce que plus rien ne relira.
+     */
+    index('attestation_request_retention_idx')
+      .on(t.requestedAt)
+      .where(sql`anonymized_at is null`),
   ],
 )
 
@@ -183,6 +195,11 @@ export const attestationRequest = pgTable(
  */
 export const mailOptout = pgTable('mail_optout', {
   id: uuid('id').primaryKey().defaultRandom(),
+  /**
+   * **Toujours normalisee** — voir `normalizeEmail`. L'unicite Postgres est
+   * sensible a la casse : sans cela `Jean@Exemple.fr` cohabiterait avec
+   * `jean@exemple.fr` et l'opposition serait contournee au prochain envoi.
+   */
   email: text('email').notNull().unique(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
@@ -665,6 +682,11 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
  *
  * L'adresse est normalisee avant signature : elle revient par une URL, ou elle
  * a pu etre recopiee dans une autre casse.
+ *
+ * Cette normalisation est locale plutot que reprise de `normalizeEmail` :
+ * celle-ci LEVE sur une adresse vide, ce qui est juste a l'inscription mais
+ * faux ici — le parametre vient d'une URL, ou il peut manquer, et un lien
+ * tronque doit donner « lien invalide », pas une page en erreur.
  */
 function normalize(email: string): string {
   return email.trim().toLowerCase()
@@ -1752,6 +1774,7 @@ import { attestationRequest, mailOptout } from '@/db/schema'
 import { guardVerdict, type GuardVerdict } from '@/domain/lead-guards'
 import { optoutToken } from '@/domain/mail-optout'
 import { activeQualifications } from '@/domain/rge'
+import { normalizeEmail } from '@/domain/requester'
 import type { RequestChannel } from '@/domain/lead'
 import { classifySiret } from '@/services/verification-lookup'
 import { fetchRgeRows } from '@/services/rge-lookup'
@@ -1793,8 +1816,10 @@ export async function createRequest(input: RequestInput, now: Date): Promise<Gua
     return 'ok'
   }
 
-  const requesterEmail = (input.requesterEmail ?? '').trim().toLowerCase()
-  const artisanEmail = (input.artisanEmail ?? '').trim().toLowerCase()
+  // `normalizeEmail` plutot qu'un `toLowerCase` local : c'est l'invariant que
+  // le schema annonce sur ces deux colonnes, et il n'existe qu'a un endroit.
+  const requesterEmail = normalizeEmail(input.requesterEmail ?? '')
+  const artisanEmail = normalizeEmail(input.artisanEmail ?? '')
 
   const [opposed] = await db
     .select({ id: mailOptout.id })
@@ -2761,6 +2786,8 @@ export async function recordOptout(
 ): Promise<boolean> {
   if (!verifyOptout(email, token, secret)) return false
 
+  // Meme normalisation que la signature du jeton — surtout pas `normalizeEmail`,
+  // qui leverait sur l'adresse vide d'un lien tronque.
   await db
     .insert(mailOptout)
     .values({ email: email.trim().toLowerCase() })
