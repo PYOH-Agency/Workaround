@@ -72,6 +72,19 @@ La spec § 6.1 liste quatre valeurs pour `outcome`, dont `unknown_siret`. **C'es
 
 **Rappel :** `pnpm check:size` refuse tout fichier de plus de 250 lignes.
 
+> **`advanceRequests` balaie toutes les demandes, y compris celles des autres
+> fichiers de test.** C'est le comportement correct en production — une passe
+> partielle laisserait des demandes non anonymisées au-delà de 30 jours, ce
+> qu'on promet au demandeur. Mais en test, la suite ne tient que parce que les
+> lignes des autres fichiers sont datées d'un instant que ces passes
+> n'atteignent jamais, et qu'aucune entreprise ne correspond à leurs SIRET.
+> **Un futur test qui appellerait `advanceRequests` avec un `now` lointain, ou
+> qui créerait une entreprise pour les SIRET d'un autre fichier, casserait ce
+> dernier.** Aucun paramètre de restriction n'a été ajouté pour arranger les
+> tests : une porte dérobée dans le code de production finit par servir en
+> production. La parade est de filtrer ses assertions sur ses propres adresses
+> et de relire ses lignes par identifiant — l'anonymisation efface le SIRET.
+>
 > **Chaque fichier de test a ses propres SIRET, et n'assert jamais sur un
 > total.** Vitest exécute les fichiers en parallèle sur une base partagée. Deux
 > fichiers qui se partagent un SIRET se détruisent l'un l'autre — le `beforeAll`
@@ -2285,9 +2298,14 @@ export async function advanceRequests(now: Date): Promise<void> {
         passportUrl: `${base}/artisan/${companySlug(known!.legalName, known!.siret)}`,
       })
       patch.coveredNotifiedAt = now
-      // Les contacts ne servent plus a rien : on anonymise du meme geste.
-      Object.assign(patch, anonymized(now))
     }
+
+    // **L'anonymisation se declenche sur l'inutilite, pas sur un envoi.** La
+    // couverture publiee clot la demande : plus rien ne sera envoye, plus rien
+    // ne sera relance. Lier l'effacement au depart du mail laisserait les
+    // contacts d'un demandeur qui n'a PAS demande a etre prevenu trainer trente
+    // jours de plus, sans qu'ils servent jamais.
+    if (patch.coveredAt || request.coveredAt) Object.assign(patch, anonymized(now))
 
     const expired = now.getTime() - request.requestedAt.getTime() >= MAX_AGE_MS
 
