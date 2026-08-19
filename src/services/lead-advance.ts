@@ -93,10 +93,20 @@ export async function advanceRequests(now: Date): Promise<void> {
         passportUrl: `${base}/artisan/${companySlug(known!.legalName, known!.siret)}`,
       })
       patch.coveredNotifiedAt = now
-      // Le mail parti, les contacts n'ont plus de finalite : on efface du meme
-      // geste plutot que de les garder jusqu'a l'echeance.
-      Object.assign(patch, anonymized(now))
     }
+
+    /**
+     * La minimisation ne se declenche pas sur un envoi, elle se declenche sur
+     * l'inutilite.
+     *
+     * La couverture publiee clot la demande : plus rien ne sera relance, et les
+     * contacts n'ont plus de finalite. Le mail au demandeur est le cas le plus
+     * frequent ou cela devient vrai, pas la condition — quand `notify` vaut
+     * `false`, ils cessent de servir PLUS TOT, pas plus tard. Lier l'effacement
+     * a l'envoi garderait trente jours de plus deux adresses dont personne
+     * n'attend plus rien.
+     */
+    if (profile) Object.assign(patch, anonymized(now))
 
     const expired = now.getTime() - request.requestedAt.getTime() >= MAX_AGE_MS
 

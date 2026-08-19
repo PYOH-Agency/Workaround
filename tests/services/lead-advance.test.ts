@@ -131,15 +131,28 @@ describe('advanceRequests, la couverture publiee', () => {
     expect(journal.map((e) => e.type).sort()).toEqual(['lead.covered', 'lead.registered'])
   })
 
-  it('fige la couverture sans ecrire quand la case n etait pas cochee', async () => {
+  /**
+   * La case decochee n'ajourne pas l'effacement, elle l'avance.
+   *
+   * Personne n'attend plus rien de ces adresses : aucun mail ne partira, la
+   * couverture est publiee, la demande est close. Les garder jusqu'a
+   * l'echeance serait conserver une donnee sans finalite — et c'est
+   * l'inutilite, pas l'envoi, qui declenche la minimisation.
+   */
+  it('anonymise des la couverture publiee quand la case n etait pas cochee', async () => {
     const id = await openRequest(COVERED, RECENT, false)
     await advanceRequests(NOW)
 
+    expect(mine(covered)).toHaveLength(0)
     const row = await reread(id)
     expect(row.coveredAt).not.toBeNull()
-    expect(mine(covered)).toHaveLength(0)
-    // Aucun mail n'est parti : rien ne justifie d'effacer avant l'echeance.
-    expect(row.anonymizedAt).toBeNull()
+    expect(row.anonymizedAt).not.toBeNull()
+    expect(row.siret).toBeNull()
+    expect(row.requesterEmail).toBeNull()
+    expect(row.artisanEmail).toBeNull()
+    // Rien n'a ete envoye : la colonne d'envoi reste vide, et le journal des
+    // envois ne raconte donc pas un mail qui n'est jamais parti.
+    expect(row.coveredNotifiedAt).toBeNull()
   })
 
   it('fige les jalons d une intention de copie sans ecrire a personne', async () => {
