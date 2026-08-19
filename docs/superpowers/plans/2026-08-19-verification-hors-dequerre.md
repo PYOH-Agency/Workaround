@@ -341,7 +341,7 @@ describe('guardVerdict', () => {
 
   it('refuse deux fois le meme couple en moins de vingt-quatre heures', () => {
     const coupleRequests = [new Date(NOW.getTime() - 2 * HOUR)]
-    expect(guardVerdict({ now: NOW, ...clear, coupleRequests })).toBe('duplicate')
+    expect(guardVerdict({ now: NOW, ...clear, coupleRequests })).toBe('already_requested')
   })
 
   it('laisse repasser le meme couple apres vingt-quatre heures', () => {
@@ -403,7 +403,7 @@ export type GuardVerdict =
   | 'ok'
   | 'opted_out'
   | 'artisan_cooldown'
-  | 'duplicate'
+  | 'already_requested'
   | 'requester_flooded'
 
 export interface GuardInput {
@@ -431,7 +431,7 @@ export function guardVerdict(input: GuardInput): GuardVerdict {
     return 'artisan_cooldown'
   }
   if (isRateLimited(input.coupleRequests, input.now, COUPLE_WINDOW, COUPLE_MAX)) {
-    return 'duplicate'
+    return 'already_requested'
   }
   if (isRateLimited(input.requesterRequests, input.now, REQUESTER_WINDOW, REQUESTER_MAX)) {
     return 'requester_flooded'
@@ -1705,7 +1705,7 @@ describe('createRequest, canal envoye', () => {
       new Date(NOW.getTime() + 3_600_000),
     )
 
-    expect(again).toBe('duplicate')
+    expect(again).toBe('already_requested')
     expect(sent).toHaveLength(1)
   })
 
@@ -3403,7 +3403,7 @@ export async function relaunch(_state: { message?: string }, form: FormData) {
     ok: 'Relance envoyée.',
     opted_out: 'Impossible : opposition, ou demande déjà effacée.',
     artisan_cooldown: 'Trop tôt : moins de sept jours depuis le dernier envoi.',
-    duplicate: 'Une demande identique date de moins de vingt-quatre heures.',
+    already_requested: 'Une demande identique date de moins de vingt-quatre heures.',
     requester_flooded: 'Plafond horaire atteint pour ce demandeur.',
   }
 
