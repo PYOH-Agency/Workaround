@@ -8,6 +8,8 @@ import { sendAnomalyDigest } from '@/services/anomaly-digest'
 import { runLegalChecks } from '@/services/legal-checks'
 import { sendExpiryNotice } from '@/services/expiry-notice'
 import { runAppointmentReminders } from '@/services/due-reminders'
+import { advanceRequests } from '@/services/lead-advance'
+import { purgeLookups } from '@/services/verification-lookup'
 
 export const runtime = 'nodejs'
 
@@ -93,6 +95,13 @@ export async function GET(request: Request) {
     .delete(contactThrottle)
     .where(lt(contactThrottle.createdAt, new Date(now.getTime() - 24 * 3_600_000)))
     .returning({ id: contactThrottle.id })
+
+  // Les demandes d'attestation : attribution figee tant que le SIRET est la,
+  // mail de suite au demandeur, puis anonymisation a trente jours. La purge des
+  // recherches a douze mois suit le meme rythme — multiplier les planifications
+  // multiplierait les facons de tomber en panne.
+  await advanceRequests(now)
+  await purgeLookups(now)
 
   return Response.json({
     checked: certificates.length,
