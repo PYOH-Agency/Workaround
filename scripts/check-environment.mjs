@@ -10,9 +10,28 @@ import { ports, workdir, ROOT } from './lib/supabase-workdir.mjs'
  * Cas frequent : un worktree fraichement cree, ou les fichiers d'environnement
  * ne sont pas suivis par git et n'ont donc pas ete copies.
  */
+/**
+ * `MAIL_OPTOUT_SECRET` figure ici parce que son absence est SILENCIEUSE.
+ *
+ * Le lien « je ne souhaite plus etre contacte » est signe, pas stocke. Sans
+ * secret, `optoutToken` leve — et l'action publique avale l'exception pour ne
+ * pas reveler au demandeur ce qui est arrive a un tiers. Une variable oubliee
+ * produirait donc une page qui remercie, et pas un seul mail envoye, sans que
+ * rien ne s'en plaigne. C'est le seul endroit ou ce defaut peut encore crier.
+ */
 const REQUIRED = {
-  '.env.local': ['DATABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'],
-  '.env.test': ['DATABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'],
+  '.env.local': [
+    'DATABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'MAIL_OPTOUT_SECRET',
+  ],
+  '.env.test': [
+    'DATABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'MAIL_OPTOUT_SECRET',
+  ],
 }
 
 const violations = []
