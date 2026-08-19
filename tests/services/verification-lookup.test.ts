@@ -6,10 +6,12 @@ import { company, verificationLookup } from '@/db/schema'
 import { classifySiret, recordLookup, purgeLookups } from '@/services/verification-lookup'
 
 const MEMBER = randomUUID()
-// Un SIREN absent du seed : `50769820700036` y designe BD PLOMBERIE, qui a une
-// couverture publiee — elle repondrait `covered`, pas `uncovered_member`.
-const MEMBER_SIRET = '78462765400018'
-const STRANGER_SIRET = '39315263200025'
+// Deux SIRET a la cle de Luhn JUSTE, sur des SIREN absents du seed.
+// La cle est desormais exigee : `classifySiret` leve sur un SIRET invalide.
+// `50769820700036` est ecarte, il y designe BD PLOMBERIE, qui a une couverture
+// publiee — elle repondrait `covered`, pas `uncovered_member`.
+const MEMBER_SIRET = '78462765400006'
+const STRANGER_SIRET = '39315263200005'
 const OLD_SIRET = '11111111111111'
 const RECENT_SIRET = '22222222222222'
 
@@ -42,6 +44,30 @@ describe('classifySiret', () => {
   it('reconnait un inconnu', async () => {
     const result = await classifySiret(STRANGER_SIRET, new Date())
     expect(result).toEqual({ outcome: 'stranger', slug: null })
+  })
+
+  it('leve sur un SIRET trop court', async () => {
+    await expect(classifySiret('123', new Date())).rejects.toThrow(/SIRET/)
+  })
+
+  /**
+   * Le vrai danger, et il est silencieux.
+   *
+   * `_` est un joker dans un LIKE SQL : il matche UN caractere quelconque. La
+   * requete cherche `${siren}%`, donc un underscore place dans les neuf
+   * premiers caracteres elargit la recherche au lieu de ne rien trouver.
+   * `7846276_400006` n'est le SIRET de personne, mais son prefixe `7846276_4`
+   * matche `784627654...` — et l'inconnu ressort `uncovered_member`, l'issue
+   * d'une entreprise qui n'est pas la sienne.
+   *
+   * C'est exactement l'invariant du parcours qui fuit : la reponse devient
+   * differente selon l'appartenance a D'equerre. D'ou une exception, et non un
+   * repli sur `stranger` — une entree non validee est un defaut de
+   * programmation, pas un cas d'usage, et la masquer produirait un affichage
+   * plausible sur une donnee fausse.
+   */
+  it('leve sur un SIRET contenant un joker LIKE', async () => {
+    await expect(classifySiret(`7846276_400006`, new Date())).rejects.toThrow(/SIRET/)
   })
 })
 

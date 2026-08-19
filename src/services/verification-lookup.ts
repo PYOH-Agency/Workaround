@@ -2,6 +2,7 @@ import { like, lt } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { company, verificationLookup } from '@/db/schema'
 import type { LookupEntry, LookupOutcome } from '@/domain/lead'
+import { isValidSiret } from '@/domain/siret'
 import { publicProfile } from '@/services/public-profile'
 
 /** Douze mois : au-dela, un compteur de recherches ne sert plus a rien. */
@@ -20,8 +21,20 @@ export interface Classification {
  * qu'a choisir le corps du mail envoye a l'artisan : rien de ce que voit le
  * demandeur ne doit permettre de les separer, sans quoi le formulaire redevient
  * un test d'appartenance a D'equerre.
+ *
+ * **Leve sur un SIRET invalide, et la garde vit ICI**, a l'endroit ou la requete
+ * est ecrite — pas seulement chez l'appelant, parce que c'est ici qu'un futur
+ * appelant l'oubliera. `_` et `%` sont des jokers dans un LIKE SQL : un SIRET
+ * non valide qui en contient elargit silencieusement la recherche `${siren}%`,
+ * et un inconnu ressort alors `uncovered_member` — l'invariant B/C fuit par la.
+ *
+ * Une exception plutot qu'un repli sur `stranger` : recevoir une entree non
+ * validee est un defaut de programmation, pas un cas d'usage, et le masquer
+ * produirait un affichage plausible sur une donnee fausse.
  */
 export async function classifySiret(siret: string, now: Date): Promise<Classification> {
+  if (!isValidSiret(siret)) throw new Error(`SIRET invalide : ${siret}`)
+
   const siren = siret.slice(0, 9)
 
   const profile = await publicProfile(siren, now)
