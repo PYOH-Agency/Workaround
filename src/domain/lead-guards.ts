@@ -3,11 +3,24 @@ import { isRateLimited } from './rate-limit'
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 
-/** Trois demandes par heure : la garde de nos serveurs. */
+/**
+ * Trois demandes par heure et par demandeur avant refus.
+ *
+ * Le chiffre freine un abus, pas une charge serveur : trois clics manuels
+ * passent, un script qui mitraille les SIRET ne passe pas. Pari faute de
+ * trafic reel, a revoir sur observation — comme `HOURLY_CONTACT_LIMIT` dans
+ * `src/domain/throttle.ts`.
+ */
 const REQUESTER_WINDOW = HOUR
 const REQUESTER_MAX = 3
 
-/** Une seule demande par couple et par jour : la garde du bon sens. */
+/**
+ * Une seule demande par couple demandeur-artisan et par jour avant refus.
+ *
+ * Vingt-quatre heures absorbent un double-clic, un onglet rouvert ou un
+ * rechargement de page sans bloquer une vraie relance le lendemain — la duree
+ * d'une session malheureuse, pas celle d'un interet reitere.
+ */
 const COUPLE_WINDOW = DAY
 const COUPLE_MAX = 1
 
@@ -24,7 +37,7 @@ export type GuardVerdict =
   | 'ok'
   | 'opted_out'
   | 'artisan_cooldown'
-  | 'duplicate'
+  | 'already_requested'
   | 'requester_flooded'
 
 export interface GuardInput {
@@ -44,6 +57,10 @@ export interface GuardInput {
  * **L'ordre des controles est le message** : l'opposition passe avant tout, et
  * la protection de l'artisan avant celle de nos serveurs. Un refus mal nomme se
  * traduirait par une reprise de contact au prochain creneau.
+ *
+ * Fonction pure : elle ne memorise rien. Un verdict `ok` doit etre suivi de
+ * l'enregistrement de la tentative par l'appelant — sans cette ecriture, les
+ * trois fenetres restent vides pour toujours et les gardes ne freinent plus rien.
  */
 export function guardVerdict(input: GuardInput): GuardVerdict {
   if (input.optedOut) return 'opted_out'
@@ -52,7 +69,7 @@ export function guardVerdict(input: GuardInput): GuardVerdict {
     return 'artisan_cooldown'
   }
   if (isRateLimited(input.coupleRequests, input.now, COUPLE_WINDOW, COUPLE_MAX)) {
-    return 'duplicate'
+    return 'already_requested'
   }
   if (isRateLimited(input.requesterRequests, input.now, REQUESTER_WINDOW, REQUESTER_MAX)) {
     return 'requester_flooded'
