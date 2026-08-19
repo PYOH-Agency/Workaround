@@ -1,5 +1,5 @@
 {
-  "id": "eb9a0957-cf32-4188-8bbe-17f1a9ec2469",
+  "id": "3f635d19-d1cc-4952-9381-46991b5ad495",
   "prevId": "3c66bd2f-2bf3-484a-bf3e-3fb502952192",
   "version": "7",
   "dialect": "postgresql",
@@ -3524,15 +3524,9 @@
           "method": "btree",
           "with": {}
         },
-        "attestation_request_open_idx": {
-          "name": "attestation_request_open_idx",
+        "attestation_request_retention_idx": {
+          "name": "attestation_request_retention_idx",
           "columns": [
-            {
-              "expression": "anonymized_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
             {
               "expression": "requested_at",
               "isExpression": false,
@@ -3541,12 +3535,27 @@
             }
           ],
           "isUnique": false,
+          "where": "anonymized_at is null",
           "concurrently": false,
           "method": "btree",
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "attestation_request_company_id_company_id_fk": {
+          "name": "attestation_request_company_id_company_id_fk",
+          "tableFrom": "attestation_request",
+          "tableTo": "company",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

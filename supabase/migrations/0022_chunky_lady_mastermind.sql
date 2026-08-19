@@ -31,8 +31,9 @@ CREATE TABLE "verification_lookup" (
 	"looked_up_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+ALTER TABLE "attestation_request" ADD CONSTRAINT "attestation_request_company_id_company_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."company"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "attestation_request_siret_idx" ON "attestation_request" USING btree ("siret","requested_at");--> statement-breakpoint
 CREATE INDEX "attestation_request_artisan_idx" ON "attestation_request" USING btree ("artisan_email","requested_at");--> statement-breakpoint
 CREATE INDEX "attestation_request_requester_idx" ON "attestation_request" USING btree ("requester_email","requested_at");--> statement-breakpoint
-CREATE INDEX "attestation_request_open_idx" ON "attestation_request" USING btree ("anonymized_at","requested_at");--> statement-breakpoint
+CREATE INDEX "attestation_request_retention_idx" ON "attestation_request" USING btree ("requested_at") WHERE anonymized_at is null;--> statement-breakpoint
 CREATE INDEX "verification_lookup_at_idx" ON "verification_lookup" USING btree ("looked_up_at");
