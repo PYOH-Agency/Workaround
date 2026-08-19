@@ -278,6 +278,45 @@
     background: currentColor;
   }
 
+  /*
+    Trois devices pour les diapositives qui, sinon, se lisent au lieu de se
+    saisir : la borne (un fait sous un filet d'accent), la citation (ce que le
+    produit dit mot pour mot), et le contrepoint (deux colonnes qui s'opposent).
+    Aucune ne porte plus d'une ligne de texte — c'est leur seule regle.
+  */
+  .chips {
+    display: grid;
+    gap: 26px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  }
+  .chip {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 3px solid var(--brand);
+  }
+  .chip b {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(17px, 1.6vw, 21px);
+    line-height: 1.15;
+    letter-spacing: -.02em;
+  }
+  .chip span { font-size: 14px; line-height: 1.45; color: var(--ink-soft); }
+  .on-ink .chip span { color: var(--on-primary-soft); }
+
+  .quote {
+    border-left: 3px solid var(--brand);
+    padding-left: 20px;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(19px, 2.2vw, 27px);
+    line-height: 1.2;
+    letter-spacing: -.025em;
+    max-width: 42ch;
+  }
+
   .panel {
     border: 1px solid var(--rule);
     border-radius: 10px;
@@ -494,35 +533,13 @@
   <section class="slide on-card" data-deck="artisan" data-title="En une phrase">
     <div class="inner">
       <p class="label">En une phrase</p>
-      <h2>Le logiciel qui fait vos papiers, et la preuve que vous ne pouvez pas fabriquer.</h2>
-      <div class="cols">
-        <div class="item">
-          <h3>Ce que vous faites avec</h3>
-          <p class="small">
-            Vos devis, vos factures, vos rendez-vous. Vos clients signent par SMS. C’est l’outil
-            que vous ouvrez tous les jours, et il ne coûte rien.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Ce que ça vous donne en plus</h3>
-          <p class="small">
-            Une page publique à votre nom, où votre assurance est vérifiée <strong>activité par
-            activité</strong> sur votre attestation. Aucun autre annuaire français ne la vérifie
-            à cette maille.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Ce que ce n’est pas</h3>
-          <p class="small">
-            Un vendeur de contacts. Votre place ne s’achète pas, et vos propres clients ne nous
-            rapportent rien.
-          </p>
-        </div>
+      <h2>Vos papiers, gratuits. Et la preuve que vous êtes assuré pour ce que vous faites.</h2>
+      <div class="chips">
+        <div class="chip"><b>L’outil</b><span>Devis, factures, signature. Tous les jours, 0 €.</span></div>
+        <div class="chip"><b>La preuve</b><span>Votre assurance vérifiée activité par activité.</span></div>
+        <div class="chip"><b>La page</b><span>Publique, indexée, à votre nom.</span></div>
       </div>
-      <p class="small">
-        Nous sommes gratuits parce que vos documents nous apprennent ce que vous faites vraiment.
-        C’est ce qui rend la preuve incontestable — et c’est tout le modèle.
-      </p>
+      <p class="small">Ce n’est pas un vendeur de contacts : votre place ne s’achète pas.</p>
     </div>
   </section>
 
@@ -531,27 +548,9 @@
       <p class="label">Le constat</p>
       <h2>Le chantier finit à 18 h. La paperasse commence à 21 h.</h2>
       <div class="cols">
-        <div class="item">
-          <h3>Le devis se fait le soir</h3>
-          <p class="small">
-            Sur Word, sur un carnet, ou sur un logiciel à 25–79 € par mois qu’on paie pour
-            l’essentiel : faire un document juste.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Les mentions changent, pas le formulaire</h3>
-          <p class="small">
-            Assureur, référence du contrat, activités garanties, zone couverte : quatre mentions
-            que la loi impose sur chaque devis, et qu’un modèle recopié laisse passer.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Le client vous croit sur parole</h3>
-          <p class="small">
-            Rien, aujourd’hui, ne lui permet de vérifier que vous êtes assuré pour ce que vous
-            allez faire. Votre sérieux ne se voit pas plus que celui du voisin.
-          </p>
-        </div>
+        <div class="item"><h3>Le devis se fait le soir</h3><p class="small">Sur Word, ou sur un logiciel à 25–79 € par mois.</p></div>
+        <div class="item"><h3>Quatre mentions obligatoires</h3><p class="small">Assureur, contrat, activités, zone. Un modèle recopié les rate.</p></div>
+        <div class="item"><h3>Votre sérieux ne se voit pas</h3><p class="small">Le client vous croit sur parole, comme il croit le voisin.</p></div>
       </div>
     </div>
   </section>
@@ -608,30 +607,14 @@
       <div class="inner" style="gap:20px">
         <p class="label">Le document</p>
         <h2>Écrit une fois, juste partout.</h2>
-        <p class="lead">
-          Le devis, l’avenant et la facture partagent les mêmes lignes et les mêmes mentions.
-          Une facture se rattache au devis signé et affiche le solde dû — pas un total ressaisi
-          à la main.
-        </p>
-        <p class="small">
-          Acompte, solde, avoir, suivi payé / impayé. Les pénalités de retard et l’indemnité de
-          40 € de l’article L441-10 sont imprimées, parce qu’elles sont obligatoires.
-        </p>
+        <p class="lead">Devis, avenant et facture partagent les mêmes lignes. La facture se rattache au devis signé et affiche le solde dû.</p>
+        <p class="small">Acompte, solde, avoir, impayé. Pénalités et indemnité de 40 € imprimées.</p>
       </div>
       <div class="panel">
         <p class="label">La signature</p>
-        <div class="item" style="border-top:0;padding-top:0">
-          <h3>Un lien, un code par SMS</h3>
-          <p class="small">Votre client n’installe rien et ne crée aucun compte.</p>
-        </div>
-        <div class="item">
-          <h3>Horodatée, scellée</h3>
-          <p class="small">Le contenu signé est figé, le PDF archivé, la piste d’audit conservée.</p>
-        </div>
-        <div class="item">
-          <h3>Il ne retrouve plus le lien ?</h3>
-          <p class="small">Il le redemande depuis dequerre.fr avec l’adresse qui l’a reçu.</p>
-        </div>
+        <div class="item" style="border-top:0;padding-top:0"><h3>Un lien, un code par SMS</h3><p class="small">Votre client n’installe rien.</p></div>
+        <div class="item"><h3>Horodatée, scellée</h3><p class="small">Contenu figé, PDF archivé, piste d’audit.</p></div>
+        <div class="item"><h3>Lien perdu ?</h3><p class="small">Il le redemande avec son adresse.</p></div>
       </div>
     </div>
   </section>
@@ -682,27 +665,11 @@
     <div class="inner">
       <p class="label">Être trouvé</p>
       <h2>Un annuaire où chaque entreprise est assurée pour ce qu’elle affiche.</h2>
-      <p class="lead">
-        Votre page publique est indexée, et l’annuaire se cherche par activité et par commune.
-        Le demandeur vous appelle directement : il n’y a ni dépôt de projet, ni appel d’offres,
-        ni demande revendue à cinq entreprises.
-      </p>
-      <div class="cols">
-        <div class="item">
-          <h3>Aucun classement acheté</h3>
-          <p class="small">Personne ne peut payer pour passer devant vous. Jamais.</p>
-        </div>
-        <div class="item">
-          <h3>Pas d’étoiles</h3>
-          <p class="small">
-            Le passeport est dérivé de faits — devis signés, chantiers réceptionnés — et n’est
-            éditable par personne, pas même par nous.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Une phrase que personne d’autre ne peut dire</h3>
-          <p class="small">« Tout professionnel visible ici est assuré pour ce qu’il fait. »</p>
-        </div>
+      <p class="lead">Le demandeur cherche par activité et par commune, puis vous appelle. Aucune demande revendue à cinq entreprises.</p>
+      <div class="chips">
+        <div class="chip"><b>Aucun classement acheté</b><span>Personne ne peut payer pour passer devant vous.</span></div>
+        <div class="chip"><b>Pas d’étoiles</b><span>Des faits mesurés, que personne ne retouche.</span></div>
+        <div class="chip"><b>Une phrase unique</b><span>« Tout professionnel visible ici est assuré pour ce qu’il fait. »</span></div>
       </div>
     </div>
   </section>
@@ -749,36 +716,14 @@
     <div class="inner split">
       <div class="inner" style="gap:20px">
         <p class="label">Ce qui vient après</p>
-        <h2>L’abonnement Pro ne reprend rien de ce que vous aviez.</h2>
-        <p class="lead">
-          Devis, facture, signature, passeport, agenda, espace client : gratuits à vie, sans
-          limite de volume. L’abonnement ne porte que sur ce qui n’a de sens qu’avec du volume
-          ou une équipe.
-        </p>
-        <p class="small">
-          Retirer plus tard quelque chose que vous aviez serait le pire geste qu’un outil puisse
-          faire. C’est pourquoi la frontière est posée maintenant, pas quand ça nous arrangera.
-        </p>
+        <h2>L’abonnement ne reprend rien de ce que vous aviez.</h2>
+        <p class="lead">Devis, facture, signature, passeport, agenda : gratuits à vie, sans limite de volume.</p>
+        <p class="small">Retirer plus tard ce que vous aviez serait irréparable. La frontière est posée maintenant.</p>
       </div>
       <div class="panel">
-        <div class="item" style="border-top:0;padding-top:0">
-          <h3>Équipe et rôles</h3>
-          <p class="small">Le compagnon fait le chantier, le patron fait l’argent. Deux rôles, pas trois.</p>
-        </div>
-        <div class="item">
-          <h3>Situations de travaux</h3>
-          <p class="small">
-            L’avancement ligne par ligne du devis, la retenue de garantie plafonnée à 5 % et
-            libérée un an après la réception.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Relances d’impayés</h3>
-          <p class="small">
-            J+7, J+21, J+45, armées par vous et arrêtées par le premier paiement. Jamais de
-            quatrième : au-delà, c’est une mise en demeure.
-          </p>
-        </div>
+        <div class="item" style="border-top:0;padding-top:0"><h3>Équipe et rôles</h3><p class="small">Le compagnon fait le chantier, le patron fait l’argent.</p></div>
+        <div class="item"><h3>Situations de travaux</h3><p class="small">L’avancement ligne à ligne, la retenue de 5 %.</p></div>
+        <div class="item"><h3>Relances d’impayés</h3><p class="small">J+7, J+21, J+45. Jamais de quatrième.</p></div>
       </div>
     </div>
   </section>
@@ -806,7 +751,7 @@
     <div class="inner split">
       <div class="inner" style="gap:20px">
         <p class="label">Ce que nous ne ferons jamais</p>
-        <h2>Deux phrases qu’aucun de nos concurrents ne peut écrire.</h2>
+        <h2>Deux phrases qu’aucun concurrent ne peut écrire.</h2>
         <div class="panel">
           <p class="vow">Nous ne vendrons jamais votre place dans un classement.</p>
           <p class="vow">Nous ne prendrons jamais de commission sur vos propres clients.</p>
@@ -815,15 +760,7 @@
       <div class="inner" style="gap:14px">
         <p class="label">La suite</p>
         <h3>Vous mettre en relation avec de nouveaux clients.</h3>
-        <p class="small">
-          Nous voulons aider de nouveaux clients à vous trouver, au-delà de ceux qui vous
-          connaissent déjà. Cette mise en relation suivra les deux mêmes règles. C’est une
-          direction, pas une date.
-        </p>
-        <p class="small">
-          Vous avez été démarché dix fois par des vendeurs de leads. Nous n’en sommes pas, et
-          c’est écrit sur la page d’accueil, pas dans les conditions générales.
-        </p>
+        <p class="small">Aux deux mêmes règles. C’est une direction, pas une date.</p>
       </div>
     </div>
   </section>
@@ -861,61 +798,23 @@
     <div class="inner">
       <p class="label">En une phrase</p>
       <h2>Vérifier l’entreprise avant de signer. Tout retrouver dix ans après.</h2>
-      <div class="cols">
-        <div class="item">
-          <p class="rank">Avant</p>
-          <h3>Vous savez pour quoi elle est assurée</h3>
-          <p class="small">
-            Son numéro SIRET, lu sur son devis, suffit. Vous voyez les travaux que son assurance
-            couvre — et ceux qu’elle ne couvre pas.
-          </p>
-        </div>
-        <div class="item">
-          <p class="rank">Après</p>
-          <h3>Votre chantier se range tout seul</h3>
-          <p class="small">
-            Devis, photos, factures, réception, dates de garantie : tout se classe à partir du
-            devis que vous avez signé. Vous n’avez rien à ranger.
-          </p>
-        </div>
-        <div class="item">
-          <p class="rank">Ce que ça coûte</p>
-          <h3>Rien, et pas même votre adresse</h3>
-          <p class="small">
-            La vérification est gratuite et sans compte. Nous ne vous demandons rien tant qu’un
-            devis ne vous a pas été adressé.
-          </p>
-        </div>
+      <div class="chips">
+        <div class="chip"><b>Avant</b><span>Son SIRET, et vous savez pour quoi elle est assurée.</span></div>
+        <div class="chip"><b>Pendant</b><span>Photos, avancement, factures : la même page qu’elle.</span></div>
+        <div class="chip"><b>Après</b><span>Documents et dates de garantie, rangés tout seuls.</span></div>
       </div>
+      <p class="small">Gratuit, sans compte. Nous ne demandons rien tant qu’aucun devis ne vous a été adressé.</p>
     </div>
   </section>
 
   <section class="slide" data-deck="demandeurs" data-title="Aujourd’hui" hidden>
     <div class="inner">
       <p class="label">Aujourd’hui</p>
-      <h2>Vous signez un devis de 12 000 € sur la foi d’une poignée de main.</h2>
+      <h2>Vous signez 12 000 € sur une poignée de main.</h2>
       <div class="cols">
-        <div class="item">
-          <h3>Vous choisissez sur recommandation</h3>
-          <p class="small">
-            Un voisin, un beau-frère, un avis en ligne que personne n’a vérifié. Rien ne vous dit
-            ce que l’entreprise a le droit — et les moyens — de faire.
-          </p>
-        </div>
-        <div class="item">
-          <h3>L’attestation, vous ne la lisez pas</h3>
-          <p class="small">
-            Vous vérifiez qu’elle existe et qu’elle est valide. La liste des activités garanties,
-            en deuxième page, personne ne la confronte aux travaux commandés.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Ensuite, les papiers se perdent</h3>
-          <p class="small">
-            La garantie dure dix ans. Le classeur où sont rangés la facture et le nom de
-            l’entreprise ne les tient jamais aussi longtemps.
-          </p>
-        </div>
+        <div class="item"><h3>Vous choisissez sur recommandation</h3><p class="small">Un voisin, un avis que personne n’a vérifié.</p></div>
+        <div class="item"><h3>L’attestation, vous ne la lisez pas</h3><p class="small">Les activités garanties sont en page deux.</p></div>
+        <div class="item"><h3>Les papiers se perdent</h3><p class="small">La garantie dure dix ans. Le classeur, non.</p></div>
       </div>
     </div>
   </section>
@@ -954,34 +853,14 @@
       <div class="inner" style="gap:20px">
         <p class="label">Le geste</p>
         <h2>Un numéro, dix secondes, aucune inscription.</h2>
-        <p class="lead">
-          Le SIRET figure sur le devis qu’on vous a remis — la loi l’y oblige. Vous le saisissez
-          sur dequerre.fr, et vous voyez activité par activité ce que l’assurance de l’entreprise
-          couvre réellement.
-        </p>
-        <p class="small">
-          Gratuit, sans compte, sans laisser votre adresse. Vous pouvez le faire depuis la table
-          de la cuisine, le devis à la main.
-        </p>
+        <p class="lead">Le SIRET figure sur le devis qu’on vous a remis — la loi l’y oblige.</p>
+        <p class="small">Gratuit, sans compte, sans laisser votre adresse.</p>
       </div>
       <div class="panel">
         <p class="label">Ce que vous lisez</p>
-        <div class="item" style="border-top:0;padding-top:0">
-          <h3>L’entreprise existe et n’est pas en procédure</h3>
-          <p class="small">Vérifié auprès de l’INSEE et du BODACC, en direct.</p>
-        </div>
-        <div class="item">
-          <h3>Ce que son assurance couvre</h3>
-          <p class="small">
-            Activité par activité, décennale ou responsabilité civile selon la nature des travaux.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Ce qu’elle ne couvre pas</h3>
-          <p class="small">
-            Écrit aussi clairement que le reste. C’est la moitié qui vous intéresse.
-          </p>
-        </div>
+        <div class="item" style="border-top:0;padding-top:0"><h3>L’entreprise existe</h3><p class="small">INSEE et BODACC, en direct.</p></div>
+        <div class="item"><h3>Ce que son assurance couvre</h3><p class="small">Activité par activité, sur son attestation.</p></div>
+        <div class="item"><h3>Ce qu’elle ne couvre pas</h3><p class="small">Écrit aussi clairement. C’est la moitié qui compte.</p></div>
       </div>
     </div>
   </section>
@@ -990,35 +869,11 @@
     <div class="inner">
       <p class="label">Avant, pendant, après</p>
       <h2>Vous n’êtes pas seul entre le devis et la garantie.</h2>
-      <p class="lead">
-        Un chantier dure des semaines et ses garanties, dix ans. Ce que vous vérifiez aujourd’hui
-        vous reste acquis demain, sans rien avoir à classer.
-      </p>
+      <p class="lead">Un chantier dure des semaines. Ses garanties, dix ans.</p>
       <div class="cols">
-        <div class="item">
-          <p class="rank">Avant</p>
-          <h3>Vous vérifiez</h3>
-          <p class="small">
-            Le SIRET suffit. Vous voyez les activités couvertes par son assurance, et celles qui
-            ne le sont pas.
-          </p>
-        </div>
-        <div class="item">
-          <p class="rank">Pendant</p>
-          <h3>Vous suivez</h3>
-          <p class="small">
-            Photos, avancement, factures, réception : le chantier s’écrit dans votre espace, et
-            l’entreprise lit la même page que vous.
-          </p>
-        </div>
-        <div class="item">
-          <p class="rank">Après</p>
-          <h3>Vous gardez</h3>
-          <p class="small">
-            Devis, factures, dates de garantie, et le répertoire des entreprises déjà venues chez
-            vous — avec leur assurance d’aujourd’hui.
-          </p>
-        </div>
+        <div class="item"><p class="rank">Avant</p><h3>Vous vérifiez</h3><p class="small">Les activités couvertes, et celles qui ne le sont pas.</p></div>
+        <div class="item"><p class="rank">Pendant</p><h3>Vous suivez</h3><p class="small">Photos, avancement, factures, réception.</p></div>
+        <div class="item"><p class="rank">Après</p><h3>Vous gardez</h3><p class="small">Dates de garantie et entreprises déjà venues.</p></div>
       </div>
     </div>
   </section>
@@ -1027,31 +882,13 @@
     <div class="inner split">
       <div class="inner" style="gap:20px">
         <p class="label">Pendant les travaux</p>
-        <h2>Le lien qui vous a servi à signer vous montre où en est le chantier.</h2>
-        <p class="lead">
-          Rien à installer, aucun mot de passe à retenir, aucune application à télécharger.
-          L’entreprise publie l’avancement et les photos ; vous voyez la même page qu’elle.
-        </p>
-        <p class="small">
-          Vous prononcez la réception vous-même, avec vos réserves s’il y en a. C’est elle qui
-          ouvre les garanties légales — et personne d’autre que vous ne peut la déclarer.
-        </p>
+        <h2>Le lien qui vous a servi à signer vous montre le chantier.</h2>
+        <p class="lead">Rien à installer, aucun mot de passe. Vous prononcez la réception vous-même, avec vos réserves.</p>
       </div>
       <div class="panel">
-        <div class="item" style="border-top:0;padding-top:0">
-          <h3>Le fil de chantier</h3>
-          <p class="small">Daté, publié par l’entreprise, consultable depuis votre téléphone.</p>
-        </div>
-        <div class="item">
-          <h3>Les documents</h3>
-          <p class="small">Devis signé, avenants, factures, acomptes et solde dû, au même endroit.</p>
-        </div>
-        <div class="item">
-          <h3>Vous avez perdu le lien ?</h3>
-          <p class="small">
-            Redemandez-le sur dequerre.fr avec l’adresse à laquelle le devis a été envoyé.
-          </p>
-        </div>
+        <div class="item" style="border-top:0;padding-top:0"><h3>Le fil de chantier</h3><p class="small">Daté, publié par l’entreprise.</p></div>
+        <div class="item"><h3>Les documents</h3><p class="small">Devis, avenants, factures, solde dû.</p></div>
+        <div class="item"><h3>Lien perdu ?</h3><p class="small">Redemandez-le avec votre adresse.</p></div>
       </div>
     </div>
   </section>
@@ -1083,40 +920,13 @@
     <div class="inner">
       <p class="label">La question qui vient toujours</p>
       <h2>Et si mon artisan n’est pas chez vous ?</h2>
-      <p class="lead">
-        Vous obtenez quand même une page — et elle ne vous rassurera pas. Elle dit ce que nous ne
-        pouvons pas affirmer : aucune attestation vérifiée ne nous a été transmise, et une
-        garantie décennale ne figure dans aucun registre public. Seule l’attestation de son
-        assureur la nomme.
-      </p>
-      <div class="cols">
-        <div class="item">
-          <h3>Ce qu’elle vous dit</h3>
-          <p class="small">
-            L’identité de l’entreprise, pour lever le doute d’homonymie, et les alertes publiques
-            s’il y en a — liquidation, radiation, procédure collective.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Ce qu’elle ne dira jamais</h3>
-          <p class="small">
-            Aucune coche verte, aucun score, aucun « rien à signaler ». L’absence d’alerte ne
-            signifie pas que tout va bien, et nous l’écrivons noir sur blanc.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Ce que vous pouvez faire</h3>
-          <p class="small">
-            Demander l’attestation. Nous écrivons à l’entreprise en votre nom, ou vous copiez le
-            message et vous l’envoyez vous-même.
-          </p>
-        </div>
+      <p class="quote">« Nous ne pouvons rien affirmer sur l’assurance de cette entreprise. »</p>
+      <p class="lead">C’est ce que la page vous répond, mot pour mot. Une décennale ne figure dans aucun registre public : seule l’attestation de l’assureur la nomme.</p>
+      <div class="chips">
+        <div class="chip"><b>Ce qu’elle dit</b><span>L’identité, et les alertes publiques s’il y en a.</span></div>
+        <div class="chip"><b>Jamais de coche verte</b><span>L’absence d’alerte ne veut pas dire que tout va bien.</span></div>
+        <div class="chip"><b>Ce que vous faites</b><span>Vous demandez l’attestation. Nous écrivons pour vous.</span></div>
       </div>
-      <p class="small">
-        Elle dépose son attestation, nous la vérifions, vous êtes prévenu. Elle y gagne ses devis
-        et ses factures gratuits — et tant qu’elle n’est pas là, votre chantier ne se range pas
-        tout seul. Nous ne prétendrons pas le contraire.
-      </p>
     </div>
   </section>
 
@@ -1149,28 +959,10 @@
     <div class="inner">
       <p class="label">Ce qu’on ne vous demande pas</p>
       <h2>Vérifier ne coûte rien, et surtout pas votre adresse.</h2>
-      <div class="cols">
-        <div class="item">
-          <h3>Aucun compte avant la signature</h3>
-          <p class="small">
-            Nous ne collectons pas votre adresse électronique tant qu’un devis ne vous a pas été
-            adressé. Il n’y a pas de liste d’attente à rejoindre.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Aucune donnée revendue</h3>
-          <p class="small">
-            Ni à un assureur, ni à un courtier, ni à une entreprise. Votre chantier ne devient le
-            prospect de personne.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Ni étoiles ni avis anonymes</h3>
-          <p class="small">
-            Ce qu’on affiche est vérifié sur pièces ou calculé à partir de faits — devis signés,
-            chantiers réceptionnés. Personne ne peut le retoucher, nous compris.
-          </p>
-        </div>
+      <div class="chips">
+        <div class="chip"><b>Aucun compte avant la signature</b><span>Pas de liste d’attente à rejoindre.</span></div>
+        <div class="chip"><b>Aucune donnée revendue</b><span>Ni assureur, ni courtier, ni entreprise.</span></div>
+        <div class="chip"><b>Ni étoiles ni avis anonymes</b><span>Des pièces vérifiées et des faits mesurés.</span></div>
       </div>
     </div>
   </section>
@@ -1207,30 +999,12 @@
     <div class="inner">
       <p class="label">En une phrase</p>
       <h2>Nous lisons les attestations d’assurance, et nous disons ce qu’elles couvrent vraiment.</h2>
-      <div class="cols">
-        <div class="item">
-          <h3>Ce que nous vérifions</h3>
-          <p class="small">
-            L’existence légale de l’entreprise, sa couverture <strong>activité par activité</strong>,
-            et les habilitations sans lesquelles le chantier est illégal. Sur pièces, pas sur
-            déclaration.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Ce que nous en faisons</h3>
-          <p class="small">
-            Une page publique par entreprise, un annuaire où rien ne s’achète, et un dossier de
-            chantier que le donneur d’ordre garde pendant toute la durée des garanties.
-          </p>
-        </div>
-        <div class="item">
-          <h3>D’où viennent nos données</h3>
-          <p class="small">
-            L’entreprise fait ses devis et ses factures chez nous, gratuitement. C’est ce qui nous
-            permet de mesurer sans rien lui demander de déclarer.
-          </p>
-        </div>
+      <div class="chips">
+        <div class="chip"><b>Sur pièces</b><span>Activité par activité, pas sur déclaration.</span></div>
+        <div class="chip"><b>À jour</b><span>Recontrôlé à chaque échéance, sans vous.</span></div>
+        <div class="chip"><b>Gratuit pour l’entreprise</b><span>Ses devis et ses factures — c’est notre capteur.</span></div>
       </div>
+      <p class="small">Une page publique par entreprise, un annuaire où rien ne s’achète, un dossier de chantier qui dure.</p>
     </div>
   </section>
 
@@ -1238,33 +1012,11 @@
     <div class="inner">
       <p class="label">Le problème</p>
       <h2>Une attestation ne dit pas qu’une entreprise est assurée. Elle dit pour quoi.</h2>
-      <p class="lead">
-        L’assurance décennale est souscrite par activité déclarée. L’entreprise assurée en
-        plomberie-chauffage qui refait un tableau électrique est parfaitement en règle — et le
-        sinistre électrique n’est pas couvert.
-      </p>
+      <p class="lead">Assurée en plomberie-chauffage, elle refait un tableau électrique : elle est en règle, et le sinistre n’est pas couvert.</p>
       <div class="cols">
-        <div class="item">
-          <h3>Personne ne lit l’attestation en entier</h3>
-          <p class="small">
-            On vérifie qu’elle existe et qu’elle est en cours de validité. La liste des activités
-            garanties, en page 2, n’est presque jamais confrontée aux travaux commandés.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Le code APE n’y répond pas</h3>
-          <p class="small">
-            Il est déclaratif et ne détermine jamais ce qu’une entreprise a le droit de faire,
-            ni ce que son assureur accepte de couvrir.
-          </p>
-        </div>
-        <div class="item">
-          <h3>La découverte se fait au sinistre</h3>
-          <p class="small">
-            C’est le premier motif de refus d’indemnisation du secteur, et il se constate des
-            années après la signature du devis.
-          </p>
-        </div>
+        <div class="item"><h3>Personne ne la lit en entier</h3><p class="small">Les activités garanties sont en page deux.</p></div>
+        <div class="item"><h3>Le code APE n’y répond pas</h3><p class="small">Déclaratif, et sans lien avec la couverture.</p></div>
+        <div class="item"><h3>On le découvre au sinistre</h3><p class="small">Premier motif de refus d’indemnisation, des années après.</p></div>
       </div>
     </div>
   </section>
@@ -1300,38 +1052,13 @@
   <section class="slide on-card" data-deck="partenaires" data-title="La vérification" hidden>
     <div class="inner">
       <p class="label">Comment on vérifie</p>
-      <h2>Trois niveaux, et un seul est réellement absent du marché.</h2>
+      <h2>Trois niveaux, et un seul est absent du marché.</h2>
       <div class="cols">
-        <div class="item">
-          <p class="rank">Niveau 1</p>
-          <h3>Existence légale</h3>
-          <p class="small">
-            SIRET actif, dénomination, ancienneté par l’API Sirene de l’INSEE ; absence de
-            procédure collective par le BODACC. Automatique, et bloquant.
-          </p>
-        </div>
-        <div class="item">
-          <p class="rank">Niveau 2</p>
-          <h3>La couverture</h3>
-          <p class="small">
-            L’attestation est lue, ses activités extraites, puis <strong>revues par un
-            humain</strong> et confrontées aux activités déclarées. Décennale pour les travaux de
-            l’article 1792, RC Pro pour le reste.
-          </p>
-        </div>
-        <div class="item">
-          <p class="rank">Niveau 3</p>
-          <h3>Les habilitations bloquantes</h3>
-          <p class="small">
-            Amiante SS3 / SS4, gaz PGN / PGP, fluides frigorigènes, RGE. Sans elles l’activité
-            est illégale : elle n’est pas affichée, sans tolérance.
-          </p>
-        </div>
+        <div class="item"><p class="rank">Niveau 1</p><h3>Existence légale</h3><p class="small">Sirene et BODACC. Automatique, bloquant.</p></div>
+        <div class="item"><p class="rank">Niveau 2</p><h3>La couverture</h3><p class="small">Attestation lue, puis <strong>revue par un humain</strong>.</p></div>
+        <div class="item"><p class="rank">Niveau 3</p><h3>Les habilitations</h3><p class="small">Amiante, gaz, fluides, RGE. Sans elles, rien n’est affiché.</p></div>
       </div>
-      <p class="small">
-        Nous ne revérifions pas ce que l’État vérifie déjà : la qualification est contrôlée à
-        l’immatriculation. Ce que personne ne contrôle, c’est la couverture.
-      </p>
+      <p class="small">Nous ne revérifions pas ce que l’État vérifie déjà. Ce que personne ne contrôle, c’est la couverture.</p>
     </div>
   </section>
 
@@ -1340,32 +1067,12 @@
       <div class="inner" style="gap:20px">
         <p class="label">Ce que ça change</p>
         <h2>Une attestation périmée retire l’activité le jour même.</h2>
-        <p class="lead">
-          La suspension est granulaire : une entreprise peut perdre la visibilité sur une
-          activité et la garder sur les autres. C’est ce qui distingue une vérification d’un
-          document classé dans un dossier.
-        </p>
-        <p class="small">
-          L’entreprise est prévenue à J-60, J-30 et J-7, avec la raison, la voie de
-          rétablissement et un recours humain. Aucune suspension muette — c’est une exigence de
-          l’analyse d’impact que nous avons conduite.
-        </p>
+        <p class="lead">La suspension est granulaire : l’entreprise perd une activité et garde les autres.</p>
+        <p class="small">Préavis à J-60, J-30, J-7, avec la raison et un recours humain. Aucune suspension muette.</p>
       </div>
       <div class="panel">
-        <div class="item" style="border-top:0;padding-top:0">
-          <h3>Ce que vous obtenez sans nous appeler</h3>
-          <p class="small">
-            La page publique d’une entreprise, indexée, avec ses activités couvertes et la date
-            du dernier contrôle.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Ce que ça ne remplace pas</h3>
-          <p class="small">
-            L’attestation elle-même, que l’entreprise vous remet. Nous vous disons ce qu’elle
-            couvre ; nous ne nous substituons pas à son assureur.
-          </p>
-        </div>
+        <div class="item" style="border-top:0;padding-top:0"><h3>Sans nous appeler</h3><p class="small">La page publique de l’entreprise, avec la date du dernier contrôle.</p></div>
+        <div class="item"><h3>Ce que ça ne remplace pas</h3><p class="small">L’attestation elle-même. Nous ne sommes pas son assureur.</p></div>
       </div>
     </div>
   </section>
@@ -1397,29 +1104,11 @@
     <div class="inner">
       <p class="label">Pendant les travaux</p>
       <h2>L’entreprise et vous lisez la même page.</h2>
-      <p class="lead">
-        Le lien reçu pour signer le devis reste celui qui montre où en est le chantier. Rien à
-        installer, aucun compte à créer avant qu’un devis ne soit signé.
-      </p>
-      <div class="cols">
-        <div class="item">
-          <h3>Le fil de chantier</h3>
-          <p class="small">Photos et avancement publiés par l’entreprise, datés.</p>
-        </div>
-        <div class="item">
-          <h3>La réception déclarée</h3>
-          <p class="small">
-            Prononcée par le maître d’ouvrage, avec ses réserves. Elle ouvre les garanties
-            légales et fait courir la retenue.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Le répertoire</h3>
-          <p class="small">
-            Les entreprises déjà venues, avec leur couverture <strong>d’aujourd’hui</strong>, pas
-            celle du jour du chantier.
-          </p>
-        </div>
+      <p class="lead">Le lien reçu pour signer le devis montre où en est le chantier. Aucun compte à créer avant la signature.</p>
+      <div class="chips">
+        <div class="chip"><b>Le fil de chantier</b><span>Photos et avancement, datés.</span></div>
+        <div class="chip"><b>La réception</b><span>Prononcée par vous, avec réserves.</span></div>
+        <div class="chip"><b>Le répertoire</b><span>Les entreprises déjà venues, couverture d’aujourd’hui.</span></div>
       </div>
     </div>
   </section>
@@ -1431,29 +1120,13 @@
         <h2>Nous ne sommes pas un vendeur de contacts.</h2>
         <div class="panel">
           <p class="vow">Aucune place dans un classement n’est achetable.</p>
-          <p class="vow">Aucune commission sur les clients apportés par l’entreprise.</p>
+          <p class="vow">Aucune commission sur les clients de l’entreprise.</p>
         </div>
-        <p class="small">
-          Ni dépôt de projet, ni appel d’offres, ni demande revendue. Le demandeur trouve une
-          entreprise vérifiée et l’appelle.
-        </p>
       </div>
       <div class="inner" style="gap:14px">
         <p class="label">Sur les données</p>
-        <div class="item">
-          <h3>Le passeport est dérivé, jamais éditable</h3>
-          <p class="small">
-            Ni par l’entreprise, ni par nous. Aucun opérateur ne peut faire monter ou descendre
-            quelqu’un : on corrige un fait, la mesure se recalcule.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Aucune donnée identifiante n’est vendue</h3>
-          <p class="small">
-            Le traitement du passeport public a fait l’objet d’une analyse d’impact, avec droit
-            de contestation et recours humain.
-          </p>
-        </div>
+        <div class="item"><h3>Le passeport est dérivé, jamais éditable</h3><p class="small">Ni par l’entreprise, ni par nous.</p></div>
+        <div class="item"><h3>Aucune donnée identifiante vendue</h3><p class="small">Analyse d’impact conduite, recours humain prévu.</p></div>
       </div>
     </div>
   </section>
@@ -1461,43 +1134,14 @@
   <section class="slide on-card" data-deck="partenaires" data-title="Travailler ensemble" hidden>
     <div class="inner">
       <p class="label">Ce qu’on peut faire ensemble</p>
-      <h2>Trois usages disponibles aujourd’hui, un quatrième à écrire avec vous.</h2>
-      <div class="cols">
-        <div class="item">
-          <h3>Vérifier vos entreprises</h3>
-          <p class="small">
-            Passez les SIRET des entreprises que vous mandatez. Vous voyez, activité par
-            activité, ce que leur assurance couvre.
-          </p>
-        </div>
-        <div class="item">
-          <h3>En trouver de nouvelles</h3>
-          <p class="small">
-            L’annuaire se cherche par activité et par commune. Chaque entreprise affichée est
-            assurée pour cette activité-là.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Suivre et archiver</h3>
-          <p class="small">
-            Les entreprises que vous mandatez passent leurs devis chez nous ; le suivi et les
-            documents se rangent dans l’espace du signataire.
-          </p>
-        </div>
-        <div class="item">
-          <h3>Le parc, en une vue</h3>
-          <p class="small">
-            <strong>Ça n’existe pas encore.</strong> Plusieurs immeubles ou lots sous un même
-            compte, avec l’alerte quand une attestation expire : c’est ce qu’un pilote avec vous
-            servirait à cadrer.
-          </p>
-        </div>
+      <h2>Trois usages aujourd’hui, un quatrième à écrire avec vous.</h2>
+      <div class="chips">
+        <div class="chip"><b>Vérifier vos entreprises</b><span>Vos SIRET, activité par activité.</span></div>
+        <div class="chip"><b>En trouver de nouvelles</b><span>L’annuaire, par activité et par commune.</span></div>
+        <div class="chip"><b>Suivre et archiver</b><span>Le chantier et ses documents, dans l’espace du signataire.</span></div>
+        <div class="chip"><b>Le parc, en une vue</b><span><strong>Ça n’existe pas.</strong> C’est ce qu’un pilote servirait à cadrer.</span></div>
       </div>
-      <p class="small">
-        Nous préférons le dire : le produit est conçu pour l’entreprise artisanale et pour le
-        particulier qui signe. Le donneur d’ordre professionnel s’y branche déjà, mais rien n’a
-        encore été construit pour lui.
-      </p>
+      <p class="small">Le produit est conçu pour l’entreprise artisanale et pour le particulier qui signe. Rien n’a encore été construit pour le donneur d’ordre.</p>
     </div>
   </section>
 
