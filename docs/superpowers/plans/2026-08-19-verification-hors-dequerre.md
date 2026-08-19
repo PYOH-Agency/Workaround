@@ -1972,7 +1972,7 @@ export async function createRequest(input: RequestInput, now: Date): Promise<Gua
   if (verdict !== 'ok') return verdict
 
   const { outcome } = await classifySiret(input.siret, now)
-  const base = process.env.APP_URL ?? ''
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
   const [row] = await db
     .insert(attestationRequest)
@@ -2258,7 +2258,7 @@ export async function advanceRequests(now: Date): Promise<void> {
 
     // Le mail de suite, une seule fois — c'est `coveredNotifiedAt` qui le tient.
     if (profile && request.notify && request.requesterEmail && !request.coveredNotifiedAt) {
-      const base = process.env.APP_URL ?? ''
+      const base = process.env.NEXT_PUBLIC_APP_URL ?? ''
       await sendCoveragePublished({
         to: request.requesterEmail,
         requesterName: request.requesterName ?? 'Bonjour',
