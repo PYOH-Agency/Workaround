@@ -115,6 +115,37 @@ describe('relaunchRequest, les memes gardes que le public', () => {
     expect(relance.notify).toBe(true)
   })
 
+  it('marque la relance, et laisse la demande publique vierge', async () => {
+    const id = await firstRequest()
+
+    const [origine] = await ourRows()
+    // Un geste de visiteur ne pointe rien : c'est lui, et lui seul, que
+    // l'entonnoir compte comme une demande.
+    expect(origine.relaunchOf).toBeNull()
+
+    expect(await relaunchRequest(id, later(8))).toBe('ok')
+
+    const rows = await ourRows()
+    const [relance] = rows.filter((row) => row.id !== id)
+    expect(relance.relaunchOf).toBe(id)
+  })
+
+  it('rattache une relance de relance a la demande d origine, pas au maillon precedent', async () => {
+    const id = await firstRequest()
+    expect(await relaunchRequest(id, later(8))).toBe('ok')
+    const [premiere] = (await ourRows()).filter((row) => row.id !== id)
+
+    // Huit jours de plus : la treve de l'artisan est de nouveau franchie.
+    expect(await relaunchRequest(premiere.id, later(16))).toBe('ok')
+
+    const [seconde] = (await ourRows()).filter(
+      (row) => row.id !== id && row.id !== premiere.id,
+    )
+    // La chaine reste plate : `relaunch_of` renseigne dit « geste de chez
+    // nous », sans qu'aucun lecteur ait a la remonter pour le savoir.
+    expect(seconde.relaunchOf).toBe(id)
+  })
+
   it('respecte une opposition posterieure a la demande', async () => {
     const id = await firstRequest()
     await db.insert(mailOptout).values({ email: ARTISAN })

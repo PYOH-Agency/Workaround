@@ -1,0 +1,2 @@
+ALTER TABLE "attestation_request" ADD COLUMN "relaunch_of" uuid;--> statement-breakpoint
+ALTER TABLE "attestation_request" ADD CONSTRAINT "attestation_request_relaunch_of_attestation_request_id_fk" FOREIGN KEY ("relaunch_of") REFERENCES "public"."attestation_request"("id") ON DELETE no action ON UPDATE no action;

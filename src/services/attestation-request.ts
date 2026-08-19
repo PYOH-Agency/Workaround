@@ -23,6 +23,12 @@ export interface RequestInput {
   requesterName?: string
   requesterEmail?: string
   artisanEmail?: string
+  /**
+   * La demande d'origine, quand l'appelant est `relaunchRequest` — jamais
+   * renseignee par un chemin public. C'est elle qui distingue, dans
+   * l'entonnoir, un visiteur convaincu d'un geste de chez nous.
+   */
+  relaunchOf?: string
 }
 
 /**
@@ -145,6 +151,8 @@ export async function createRequest(input: RequestInput, now: Date): Promise<Gua
       requesterEmail,
       artisanEmail,
       requestedAt: now,
+      // Seule branche a en porter : sans adresse d'artisan, rien a relancer.
+      relaunchOf: input.relaunchOf ?? null,
     })
     .returning({ id: attestationRequest.id })
 
@@ -216,6 +224,8 @@ export async function relaunchRequest(id: string, now: Date): Promise<GuardVerdi
       requesterName: row.requesterName ?? undefined,
       requesterEmail: row.requesterEmail,
       artisanEmail: row.artisanEmail,
+      // La racine, jamais le maillon precedent : la chaine reste plate.
+      relaunchOf: row.relaunchOf ?? row.id,
     },
     now,
   )

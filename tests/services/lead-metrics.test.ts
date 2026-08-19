@@ -158,3 +158,75 @@ describe('openRequests', () => {
     expect(rows.some((r) => r.siret === null)).toBe(false)
   })
 })
+
+/**
+ * Une relance, telle que `relaunchRequest` la pose : une seconde ligne sur le
+ * meme SIRET, qui pointe la demande d'origine.
+ */
+async function pair(values: Partial<typeof attestationRequest.$inferInsert> = {}) {
+  const [origin] = await db
+    .insert(attestationRequest)
+    .values({ siret: SIRET_A, channel: 'sent', notify: true, requestedAt: IN_WINDOW, ...values })
+    .returning({ id: attestationRequest.id })
+
+  const [relaunch] = await db
+    .insert(attestationRequest)
+    .values({
+      siret: SIRET_A,
+      channel: 'sent',
+      notify: true,
+      requestedAt: IN_WINDOW,
+      ...values,
+      relaunchOf: origin.id,
+    })
+    .returning({ id: attestationRequest.id })
+
+  return { origin: origin.id, relaunch: relaunch.id }
+}
+
+/**
+ * Le defaut que ces trois tests tiennent fermes : une relance est un geste de
+ * chez nous. Comptee comme une demande, elle gonflerait avec notre propre
+ * activite le seul taux qui dit si la page de verification convainc.
+ */
+describe('leadFunnel, les relances de chez nous', () => {
+  it('ne compte pas une relance comme une demande de plus', async () => {
+    await db
+      .insert(verificationLookup)
+      .values({ siret: SIRET_A, outcome: 'stranger', entry: 'demandeur', lookedUpAt: IN_WINDOW })
+    await pair()
+
+    const result = await leadFunnel(FROM, TO)
+
+    expect(result.uncovered).toBe(1)
+    expect(result.requests).toBe(1)
+    expect(result.sent).toBe(1)
+  })
+
+  it('ne compte qu une fois l inscription posee sur les deux lignes', async () => {
+    // Ce que `advanceRequests` laisse derriere lui : il boucle ligne par ligne
+    // et estampille les deux, sans voir qu'elles portent le meme SIRET (voir
+    // `lead-advance.test.ts`). Une seule inscription a eu lieu.
+    await pair({ registeredAt: IN_WINDOW, depositedAt: IN_WINDOW, coveredAt: IN_WINDOW })
+
+    const result = await leadFunnel(FROM, TO)
+
+    expect(result.registered).toBe(1)
+    expect(result.deposited).toBe(1)
+    expect(result.covered).toBe(1)
+  })
+})
+
+describe('openRequests, les relances de chez nous', () => {
+  it('n ajoute pas de seconde ligne pour la meme demande', async () => {
+    const { origin } = await pair()
+
+    const rows = await openRequests(new Date('2099-03-20T00:00:00.000Z'))
+    const ours = rows.filter((r) => r.siret === SIRET_A)
+
+    // Une seule ligne, et c'est celle d'origine : le relecteur ne relance pas
+    // sa propre relance en croyant relancer le demandeur.
+    expect(ours).toHaveLength(1)
+    expect(ours[0].id).toBe(origin)
+  })
+})

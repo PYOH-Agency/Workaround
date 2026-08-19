@@ -1,4 +1,12 @@
-import { pgTable, uuid, text, timestamp, boolean, index } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  boolean,
+  index,
+  type AnyPgColumn,
+} from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 import { company } from './company'
 
@@ -48,6 +56,17 @@ export const attestationRequest = pgTable(
     /** **Toujours normalisee** — voir `normalizeEmail`. */
     artisanEmail: text('artisan_email'),
     channel: text('channel', { enum: ['sent', 'copied'] }).notNull(),
+    /**
+     * La demande d'origine, quand cette ligne est une relance de chez nous.
+     *
+     * **Nulle sur un geste de visiteur, renseignee sur un geste interne** — et
+     * c'est toute sa raison d'etre. Le taux `sans couverture -> demandes` dit
+     * si la page de verification convainc quelqu'un d'agir : une relance
+     * declenchee par un relecteur n'est pas quelqu'un qu'on a convaincu, et la
+     * compter reviendrait a mesurer notre propre activite dans le chiffre qui
+     * mesure la page.
+     */
+    relaunchOf: uuid('relaunch_of').references((): AnyPgColumn => attestationRequest.id),
     /** Le demandeur veut etre prevenu quand la couverture est publiee. Rien d'autre. */
     notify: boolean('notify').notNull().default(false),
     requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),

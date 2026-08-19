@@ -84,8 +84,18 @@ export async function resetFixtures() {
   await certify(COMPANIES[2], 'validated')
 }
 
-/** Une demande ouverte, canal `sent`. */
-export async function openRequest(siret: string, requestedAt: Date, notify = true) {
+/**
+ * Une demande ouverte, canal `sent`.
+ *
+ * `relaunchOf` reproduit ce que pose `relaunchRequest` : une seconde ligne sur
+ * le meme SIRET, que la passe balaie comme n'importe quelle autre.
+ */
+export async function openRequest(
+  siret: string,
+  requestedAt: Date,
+  notify = true,
+  relaunchOf: string | null = null,
+) {
   const [row] = await db
     .insert(attestationRequest)
     .values({
@@ -96,6 +106,7 @@ export async function openRequest(siret: string, requestedAt: Date, notify = tru
       requesterEmail: CLAIRE,
       artisanEmail: `artisan${DOMAIN}`,
       requestedAt,
+      relaunchOf,
     })
     .returning({ id: attestationRequest.id })
   return row.id

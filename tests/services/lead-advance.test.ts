@@ -225,3 +225,25 @@ describe('advanceRequests, les trente jours', () => {
     expect(row.anonymizedAt).not.toBeNull()
   })
 })
+
+describe('advanceRequests, une relance sur le meme SIRET', () => {
+  /**
+   * Constate, non suppose : la passe boucle ligne par ligne sans regarder si
+   * une autre porte le meme SIRET, donc les DEUX recoivent leurs jalons. C'est
+   * ce qui rend necessaire l'ecart des relances dans `lead-metrics` : sans
+   * lui, une seule inscription en compterait deux.
+   */
+  it('estampille les deux lignes, l origine et la relance', async () => {
+    const origin = await openRequest(REGISTERED, RECENT)
+    const relaunch = await openRequest(REGISTERED, RECENT, true, origin)
+
+    await advanceRequests(NOW)
+
+    // La meme entreprise des deux cotes : c'est deux fois la meme
+    // inscription, pas deux inscriptions.
+    for (const id of [origin, relaunch]) {
+      expect((await reread(id)).registeredAt).not.toBeNull()
+      expect((await reread(id)).companyId).toBe(COMPANIES[0])
+    }
+  })
+})

@@ -30,6 +30,12 @@ export interface Funnel {
  *
  * Le taux qui compte n'est pas le dernier mais `uncovered -> requests` : il dit
  * si la page convainc. Les suivants mesurent le circuit de revue.
+ *
+ * Il compte donc ce qu'on lui donne, et c'est a l'appelant de ne lui donner que
+ * des gestes de visiteurs : une relance declenchee depuis l'ecran d'admin ne
+ * mesure pas la page mais notre activite, et `lead-metrics` l'ecarte avant
+ * d'arriver ici. Lui faire porter ce tri lui demanderait de lire un lien entre
+ * deux lignes — quelque chose qui n'est ni une date ni un canal.
  */
 export function funnel(input: FunnelInput): Funnel {
   const count = <T>(rows: T[], keep: (row: T) => boolean) => rows.filter(keep).length

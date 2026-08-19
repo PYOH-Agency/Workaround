@@ -24,6 +24,15 @@ export interface OpenRequest {
  * jour a lire `siret` ou un email, une ligne anonymisee resterait comptable
  * mais une jointure ou un filtre sur ces colonnes romprait discretement cette
  * propriete — d'ou l'absence volontaire de toute colonne personnelle ici.
+ *
+ * **Les relances de chez nous sont ecartees ici, pas dans le calcul.** Le
+ * chiffre qui pilote le produit est `sans couverture -> demandes` : il dit si
+ * la page convainc un visiteur d'agir. Une relance declenchee par un relecteur
+ * n'est pas un visiteur convaincu, et l'y compter reviendrait a gonfler ce taux
+ * avec notre propre activite. Le tri est une question de population, pas de
+ * comptage : `funnel` compte ce qu'on lui donne, et `relaunch_of` reste dans le
+ * `where` sans jamais entrer dans le `select` — la propriete « rien que des
+ * dates et des canaux » tient donc telle quelle.
  */
 export async function leadFunnel(from: Date, to: Date): Promise<Funnel> {
   const lookups = await db
@@ -40,7 +49,11 @@ export async function leadFunnel(from: Date, to: Date): Promise<Funnel> {
     })
     .from(attestationRequest)
     .where(
-      and(gte(attestationRequest.requestedAt, from), lte(attestationRequest.requestedAt, to)),
+      and(
+        gte(attestationRequest.requestedAt, from),
+        lte(attestationRequest.requestedAt, to),
+        isNull(attestationRequest.relaunchOf),
+      ),
     )
 
   return funnel({ lookups, requests })
@@ -57,6 +70,12 @@ export async function leadFunnel(from: Date, to: Date): Promise<Funnel> {
  * Le parametre existe pour que l'appelant fournisse un instant explicite,
  * comme partout ailleurs dans ce service — pas pour un calcul d'echeance
  * qu'`advanceRequests` a deja fait.
+ *
+ * **Une relance n'y figure pas.** Elle n'ouvre rien : la demande d'origine est
+ * deja dans la liste, et l'y ajouter afficherait deux lignes pour la meme
+ * entreprise — le relecteur relancerait alors la seconde en croyant relancer la
+ * premiere. Une relance existe pour la trace de l'envoi et pour les gardes de
+ * cadence, pas pour rouvrir un dossier deja ouvert.
  */
 export async function openRequests(_now: Date): Promise<OpenRequest[]> {
   return db
@@ -70,6 +89,6 @@ export async function openRequests(_now: Date): Promise<OpenRequest[]> {
       coveredAt: attestationRequest.coveredAt,
     })
     .from(attestationRequest)
-    .where(isNull(attestationRequest.anonymizedAt))
+    .where(and(isNull(attestationRequest.anonymizedAt), isNull(attestationRequest.relaunchOf)))
     .orderBy(desc(attestationRequest.requestedAt))
 }
