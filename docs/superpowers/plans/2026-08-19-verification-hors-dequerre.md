@@ -72,6 +72,13 @@ La spec § 6.1 liste quatre valeurs pour `outcome`, dont `unknown_siret`. **C'es
 
 **Rappel :** `pnpm check:size` refuse tout fichier de plus de 250 lignes.
 
+> **Avant d'écrire un fichier de test, vérifier qu'il n'existe pas.** Les blocs
+> de code de ce plan sont donnés comme des contenus complets ; appliqués à un
+> fichier existant, ils l'écrasent et emportent sa couverture sans qu'aucun test
+> ne devienne rouge — la suite reste verte, avec moins de tests qu'avant. Le cas
+> s'est produit en tâche 6. Les onze autres fichiers de tests du plan ont été
+> vérifiés comme réellement absents.
+
 ---
 
 ## Task 1 : Le schéma et la migration
@@ -784,11 +791,17 @@ git commit -m "feat(lead): jeton signe pour le lien d opposition"
 
 **Files:**
 - Modify: `src/services/company-lookup.ts`
-- Test: `tests/services/company-lookup.test.ts`
+- Test: `tests/services/company-lookup.test.ts` — **ce fichier existe déjà** et
+  couvre le mapping société / entrepreneur individuel, les paramètres d'URL et
+  l'établissement fermé. Les cas ci-dessous s'y **fusionnent**, en enrichissant
+  les tests existants d'assertions `instanceof` ; ils ne le remplacent pas.
 
 - [ ] **Step 1 : Écrire le test qui échoue**
 
-Créer `tests/services/company-lookup.test.ts` :
+Enrichir `tests/services/company-lookup.test.ts`. Trois de ses tests existants
+(`rejette une reponse dont le SIRET ne correspond pas`, `signale une entreprise
+introuvable`, `signale une panne de l API`) passent de `rejects.toThrow('…')` à
+une assertion de type, en gardant l'assertion de message :
 
 ```ts
 import { describe, expect, it, vi, afterEach } from 'vitest'
