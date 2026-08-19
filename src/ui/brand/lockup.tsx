@@ -26,7 +26,7 @@ export function Lockup({
       )}
     >
       <Mark size={markSize} />
-      <span className={cn('font-display font-extrabold tracking-[-0.035em]', textSize)}>
+      <span className={cn('font-logo font-extrabold tracking-[-0.035em]', textSize)}>
         d’équerre
       </span>
     </span>

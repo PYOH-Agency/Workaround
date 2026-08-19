@@ -1,0 +1,116 @@
+/**
+ * L'ouverture des deux accroches.
+ *
+ * Elle remplace le `Reveal` qui portait le bloc entier. Le geste etait juste —
+ * le bloc arrive de travers et se met d'equerre — mais applique a une colonne
+ * de six elements il n'en reste rien : tout apparait ensemble, en un temps, et
+ * une accroche qui s'affiche d'un coup ne raconte pas plus qu'une image fixe.
+ *
+ * La sequence dit l'ordre de lecture, et rien d'autre : l'etiquette, puis le
+ * titre ligne a ligne, puis le chapeau, puis l'action. Chaque ligne du titre se
+ * DECOUVRE — un balayage, jamais un fondu : le texte a l'air ecrit sur la
+ * page, pas projete dessus. C'est le meme vocabulaire que le chiffre des
+ * bandes d'encre.
+ *
+ * Trois regles tenues, comme dans `motion.css` :
+ * - l'etat initial est porte par `.dq-motion`, posee par le script du layout.
+ *   Sans JavaScript, rien n'est masque et la page est entiere ;
+ * - `transform`, `opacity` et `clip-path` uniquement ;
+ * - `prefers-reduced-motion` livre l'etat final, il ne degrade pas.
+ *
+ * Le rang vient de `--dq-i`, ecrit par l'appelant : le nombre de lignes d'un
+ * titre depend de la page, et une classe par rang obligerait a les declarer
+ * toutes ici.
+ */
+
+/* --- Les elements de la colonne, un par un ------------------------------- */
+
+:global(.dq-motion) .step {
+  opacity: 0;
+}
+
+:global(.dq-motion) .step {
+  animation: dq-hero-step 520ms cubic-bezier(0.22, 1.05, 0.36, 1) both;
+  animation-delay: calc(320ms + var(--dq-i, 0) * 90ms);
+}
+
+@keyframes dq-hero-step {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Le titre, ligne a ligne --------------------------------------------
+ *
+ * `display: block` sur chaque ligne : c'est ce qui donne au balayage une boite
+ * a sa mesure. Le `padding-bottom` compense le masque — a une chasse aussi
+ * serree, les jambages du « q » de « d'equerre » et du « g » de « gratuits »
+ * tombent sous la ligne de base et se faisaient couper net.
+ */
+.line {
+  display: block;
+  padding-bottom: 0.08em;
+}
+
+:global(.dq-motion) .line {
+  clip-path: inset(100% 0 0 0);
+}
+
+:global(.dq-motion) .line {
+  animation: dq-hero-line 620ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(var(--dq-i, 0) * 110ms);
+}
+
+@keyframes dq-hero-line {
+  from {
+    clip-path: inset(100% 0 0 0);
+    transform: translateY(10px);
+  }
+  to {
+    clip-path: inset(0 0 -0.12em 0);
+    transform: none;
+  }
+}
+
+/* --- Le carre de l'angle verifie, hors de son `Reveal` -------------------
+ *
+ * `RevealTick` est ecrit pour vivre dans un `Reveal` : `motion.css` le masque
+ * tant que le bloc n'est pas entre, et l'accroche n'en a plus. Sans cette
+ * regle il resterait invisible a jamais. Il se pose donc ici a la fin de la
+ * derniere ligne du titre — au meme instant qu'avant, pour la meme raison :
+ * l'angle s'appose quand l'alignement est atteint.
+ */
+:global(.dq-motion) .line :global([data-reveal-tick]) {
+  animation: dq-hero-tick 260ms ease-out 780ms both;
+}
+
+@keyframes dq-hero-tick {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.dq-motion) .step,
+  :global(.dq-motion) .line :global([data-reveal-tick]),
+  :global(.dq-motion) .line {
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}

@@ -234,21 +234,31 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Les liens de connexion partent par le meme expediteur que les devis.
+# SMTP applicatif — **a configurer chez l'hebergeur, pas ici.**
 #
-# L'expediteur par defaut de Supabase est plafonne bas et sans reputation
-# d'envoi. Tant que les seuls destinataires etaient des artisans qui
-# s'inscrivaient au compte-gouttes, cela passait ; une porte publique
-# d'inscription demandeur multiplie ces envois, et un lien de connexion qui
-# tombe en spam est un compte perdu sans trace.
-[auth.email.smtp]
-enabled = true
-host = "env(SMTP_HOST)"
-port = "env(SMTP_PORT)"
-user = "env(SMTP_USER)"
-pass = "env(SMTP_PASSWORD)"
-admin_email = "env(SMTP_ADMIN_EMAIL)"
-sender_name = "D'équerre"
+# Ce fichier ne gouverne que la pile LOCALE. L'activer y dirige l'envoi des
+# liens de connexion vers `SMTP_HOST`, que le conteneur d'authentification
+# resout depuis SON reseau : `127.0.0.1` y designe le conteneur lui-meme, et
+# non la machine ou tourne le collecteur. Resultat, `dial tcp 127.0.0.1:
+# connection refused`, aucun lien magique, et tous les parcours qui se
+# connectent tombent en delai d'attente sans dire pourquoi.
+#
+# Desactive, Supabase livre dans son propre collecteur, ou les parcours vont
+# deja chercher les liens. C'est ce qu'on veut en local.
+#
+# Le besoin de production reste entier — l'expediteur par defaut de Supabase
+# est plafonne bas et sans reputation d'envoi, ce qui ne tient pas une porte
+# publique d'inscription — mais il se regle dans les reglages du projet
+# heberge, ou ce fichier n'a aucune prise.
+#
+# [auth.email.smtp]
+# enabled = true
+# host = "env(SMTP_HOST)"
+# port = "env(SMTP_PORT)"
+# user = "env(SMTP_USER)"
+# pass = "env(SMTP_PASSWORD)"
+# admin_email = "env(SMTP_ADMIN_EMAIL)"
+# sender_name = "D'équerre"
 
 # Gabarit du lien magique : passe par {{ .TokenHash }} et notre route
 # /auth/confirm, et non par le lien /auth/v1/verify du gabarit par defaut.

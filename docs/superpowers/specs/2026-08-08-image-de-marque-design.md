@@ -203,14 +203,36 @@ Sur un écran de facturation, une action destructive est toujours à portée —
 
 ### 5.5 Typographie
 
-Deux familles, pas trois. **Archivo** en titrage, **Inter** en corps, toutes deux libres et auto-hébergées via `next/font/google` — aucune requête sortante, ce qui sert aussi le cadrage RGPD.
+> **Amendement du 19 août 2026 — la voix de titrage.** Archivo quitte le titrage et garde le logotype. La règle « deux familles, pas trois » n'est pas abandonnée à la légère : le produit en charge désormais trois fichiers, et c'est un coût réel qu'il faut nommer.
+>
+> Ce qui l'a emporté : Archivo à 100 px ne dit rien de plus qu'à 32. C'est une excellente police d'interface et une police d'affichage sans opinion — d'où deux pages d'entrée qui, agrandies, se lisaient comme un formulaire agrandi. **Bricolage Grotesque** porte un axe optique (`opsz`) et un axe de chasse (`wdth`) : la même famille se resserre et durcit ses angles à mesure qu'on monte en corps. C'est ce que l'accroche demandait, et c'est une seule famille de plus, pas deux.
+>
+> **Le logotype ne suit pas.** « d'équerre » reste en Archivo 800 — sur l'écran (`--font-logo`), sur le PDF et sur les images de partage, qui tirent déjà le même fichier depuis `src/pdf/fonts`. Une marque qui change de police à chaque révision de charte n'est plus une marque. Un seul poids est chargé pour cet emploi.
+>
+> **Les images de partage suivent l'écran** : titre en Bricolage, logotype en Archivo. Satori n'applique pas les axes d'une police variable — lui donner le fichier variable rendrait l'instance par défaut, un romain maigre au lieu d'un gras resserré. Le dépôt embarque donc l'**instance statique** `opsz 48 / wdth 92 / wght 800`, c'est-à-dire exactement le réglage appliqué à l'accroche, dans `src/pdf/fonts` — le seul endroit du dépôt où vivent des TTF.
+>
+> **Le PDF garde Archivo** en titrage. Un document imprimé et un écran d'acquisition n'ont pas le même travail à faire, et changer la fonte du PDF obligerait à embarquer un second fichier variable dans le rendu.
+>
+> Le tabulaire est vérifié : Bricolage porte `tnum`. La règle non négociable ci-dessous est donc tenue à l'identique.
+
+> **Correctif du 19 août 2026 — les fontes sont dans le dépôt.** `next/font/google` les servait déjà depuis notre domaine, donc le cadrage RGPD était respecté ; mais il les **téléchargeait à la construction**. Un build sans réseau, derrière un proxy ou dans un CI isolé échoue alors sur une police, et le message ne dit pas que c'est le réseau qui manque. La panne est arrivée dès l'ajout de Bricolage — la seule des trois qui n'était encore dans le cache de personne.
+>
+> Les trois familles passent en `next/font/local` : trois `woff2` en sous-ensemble latin, **194 Ko en tout**, moins que ce que le chargeur Google servait, qui livrait Inter en trois graisses statiques. Le fichier de Bricolage est le **variable** — c'est ce qui permet à `Heading` de descendre la chasse à 92 sur les grands corps ; une instance figée ne le pourrait pas.
+>
+> **Deux dépôts de fontes, et c'est voulu.** `src/ui/typefaces` porte les `woff2`, que seul un navigateur sait lire ; `src/pdf/fonts` porte les `ttf`, parce que ni `@react-pdf` ni Satori ne décompressent le woff2. Un format unique obligerait ces deux-là à embarquer un décompresseur pour économiser un dossier. Les licences OFL sont rappelées dans `src/ui/typefaces/LICENSE.md`.
+
+Deux familles en titrage et en corps, plus le logotype. **Bricolage Grotesque** en titrage, **Inter** en corps, **Archivo** pour le seul logotype — toutes libres, embarquées dans le dépôt et servies depuis notre domaine via `next/font/local` : aucune requête sortante, ni au build ni à l'exécution.
+
+Les rôles d'affichage sont fluides depuis l'amendement : ils se lisent en `clamp()`, et la chasse descend à `wdth 92` au-delà de `display` — une accroche à chasse ouverte tenait sur cinq lignes trouées au lieu de trois pleines.
 
 | Rôle | Police | Taille / interligne | Chasse |
 |---|---|---|---|
-| `display` | Archivo 800 | 40 / 44 | −3 % |
-| `h1` | Archivo 800 | 32 / 38 | −2,5 % |
-| `h2` | Archivo 700 | 24 / 30 | −2 % |
-| `h3` | Archivo 700 | 19 / 26 | −1,5 % |
+| `hero` | Bricolage 800, `wdth 92` | 40 → 64 / ×0,94 | −4 % |
+| `figure` | Bricolage 800, `wdth 92` | 52 → 120 / ×0,85 | −5 % |
+| `display` | Bricolage 800, `wdth 92` | 36 → 56 / ×1 | −3,5 % |
+| `h1` | Bricolage 800 | 36 / 40 | −3 % |
+| `h2` | Bricolage 700 | 24 → 30 / ×1,15 | −2,5 % |
+| `h3` | Bricolage 700 | 19 / 26 | −1,5 % |
 | `body` | Inter 400 | 16 / 26 | 0 |
 | `body-sm` | Inter 400 | 14 / 21 | 0 |
 | `label` | Inter 600 | 11 / 14 | +8 %, capitales |
