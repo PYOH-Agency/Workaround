@@ -711,16 +711,41 @@ function normalize(email: string): string {
   return email.trim().toLowerCase()
 }
 
+/**
+ * **Un secret vide rend le jeton forgeable par n'importe qui** : HMAC accepte
+ * une clef vide, et l'algorithme est public. Une variable d'environnement
+ * absente en production donnerait des liens qui ont l'air de marcher et que
+ * n'importe qui peut recalculer — de quoi desabonner en masse un fichier
+ * d'adresses qui sont, par nature, publiques.
+ *
+ * Les deux fonctions reagissent donc differemment a la meme cause : signer sans
+ * secret est une panne de configuration, qui doit s'entendre a l'envoi ;
+ * verifier sans secret doit rester une page « lien invalide ».
+ */
 export function optoutToken(email: string, secret: string): string {
+  if (!secret) throw new Error('MAIL_OPTOUT_SECRET manquant')
   return createHmac('sha256', secret).update(normalize(email)).digest('hex')
 }
 
-export function verifyOptout(email: string, token: string, secret: string): boolean {
+export function verifyOptout(
+  email: string | undefined,
+  token: string | undefined,
+  secret: string,
+): boolean {
+  // Les trois absences donnent « lien invalide », jamais une page en erreur :
+  // `searchParams` rend `undefined` — et non la chaine vide — pour un parametre
+  // absent d'une URL tronquee.
+  if (!secret || !email || !token) return false
+
   const expected = Buffer.from(optoutToken(email, secret))
-  const given = Buffer.from(token)
+  // Minuscules : un jeton hexadecimal recopie en majuscules est le meme jeton.
+  const given = Buffer.from(token.trim().toLowerCase())
 
   // Comparaison a temps constant : une comparaison naive laisse deviner le
-  // jeton octet par octet.
+  // jeton octet par octet. Le garde de longueur est indispensable —
+  // `timingSafeEqual` LEVE sur deux tailles differentes, ce qui transformerait
+  // un lien tronque en erreur 500. Il ne fuit rien : la longueur d'un
+  // HMAC-SHA256 en hexadecimal est publique et constante.
   if (expected.length !== given.length) return false
   return timingSafeEqual(expected, given)
 }
@@ -2799,17 +2824,19 @@ Ajouter à la fin de `src/services/attestation-request.ts` :
  * l'opposition n'a pas ete prise en compte.
  */
 export async function recordOptout(
-  email: string,
-  token: string,
+  email: string | undefined,
+  token: string | undefined,
   secret: string,
 ): Promise<boolean> {
+  // `verifyOptout` porte les gardes : secret vide, adresse ou jeton absents.
+  // Apres ce test, `email` est necessairement une chaine non vide.
   if (!verifyOptout(email, token, secret)) return false
 
   // Meme normalisation que la signature du jeton — surtout pas `normalizeEmail`,
   // qui leverait sur l'adresse vide d'un lien tronque.
   await db
     .insert(mailOptout)
-    .values({ email: email.trim().toLowerCase() })
+    .values({ email: email!.trim().toLowerCase() })
     .onConflictDoNothing()
 
   return true
