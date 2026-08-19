@@ -22,11 +22,17 @@ describe('siret', () => {
 
 describe('parseSiretInput', () => {
   it('accepte un SIRET avec des espaces et rend le SIREN', () => {
-    expect(parseSiretInput('507 698 207 00036')).toEqual({ siren: '507698207' })
+    expect(parseSiretInput('507 698 207 00036')).toEqual({
+      siren: '507698207',
+      siret: '50769820700036',
+    })
   })
 
   it('accepte un SIRET colle', () => {
-    expect(parseSiretInput('50769820700036')).toEqual({ siren: '507698207' })
+    expect(parseSiretInput('50769820700036')).toEqual({
+      siren: '507698207',
+      siret: '50769820700036',
+    })
   })
 
   it('refuse une saisie trop courte', () => {
@@ -57,5 +63,17 @@ describe('parseSiretInput', () => {
     expect(parseSiretInput('50769820700037')).toEqual({
       error: 'Ce SIRET n’existe pas : vérifiez les chiffres.',
     })
+  })
+})
+
+describe('parseSiretInput rend aussi le SIRET', () => {
+  it('rend les quatorze chiffres normalises', () => {
+    const parsed = parseSiretInput('507 698 207 00036')
+    expect(parsed).toEqual({ siren: '507698207', siret: '50769820700036' })
+  })
+
+  it('ne rend pas de SIRET quand la saisie est refusee', () => {
+    const parsed = parseSiretInput('123')
+    expect(parsed).not.toHaveProperty('siret')
   })
 })

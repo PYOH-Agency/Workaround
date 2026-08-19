@@ -36,7 +36,7 @@ export function isValidSiret(value: string): boolean {
  * Les confondre laisse l'utilisateur devant un champ rouge sans savoir quoi
  * faire.
  */
-export function parseSiretInput(value: string): { siren: string } | { error: string } {
+export function parseSiretInput(value: string): { siren: string; siret: string } | { error: string } {
   const digits = normalizeSiret(value)
 
   if (!/^\d*$/.test(digits)) {
@@ -52,5 +52,7 @@ export function parseSiretInput(value: string): { siren: string } | { error: str
     return { error: 'Ce SIRET n’existe pas : vérifiez les chiffres.' }
   }
 
-  return { siren: digits.slice(0, 9) }
+  // Le SIRET complet accompagne le SIREN : la page de verification est
+  // adressee par etablissement, la couverture se lit par entreprise.
+  return { siren: digits.slice(0, 9), siret: digits }
 }
