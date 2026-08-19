@@ -3,7 +3,7 @@ import { db } from '@/db/client'
 import { attestationRequest, mailOptout } from '@/db/schema'
 import type { RequestChannel } from '@/domain/lead'
 import { guardVerdict, type GuardVerdict } from '@/domain/lead-guards'
-import { optoutToken, verifyOptout } from '@/domain/mail-optout'
+import { optoutToken } from '@/domain/mail-optout'
 import { normalizeEmail } from '@/domain/requester'
 import { activeQualifications } from '@/domain/rge'
 import { isValidSiret } from '@/domain/siret'
@@ -182,35 +182,43 @@ export async function createRequest(input: RequestInput, now: Date): Promise<Gua
 }
 
 /**
- * Enregistre l'opposition portee par le lien « je ne souhaite plus etre
- * contacte », si son jeton est valide.
+ * Relance une demande a la main, par le chemin exact d'une demande publique.
  *
- * `email` et `token` viennent d'une URL et peuvent manquer ou avoir ete
- * altérés — `verifyOptout` rend alors `false` sans lever, et rien n'est ecrit.
+ * **La delegation a `createRequest` est la garantie, pas la commodite.** Elle
+ * seule fait porter au geste d'un ecran interne les memes gardes qu'a un
+ * inconnu : l'opposition, la treve de sept jours par artisan, le doublon de
+ * couple, le plafond horaire. Un envoi reimplemente ici rendrait la treve
+ * contournable par un humain de chez nous, ce qui revient a ne pas l'avoir —
+ * et un artisan qui a demande a ne plus etre contacte le serait davantage
+ * parce que la demande vient de nous.
  *
- * Normalisation locale plutot que `normalizeEmail` : celle-ci LEVE sur une
- * adresse vide, ce qui est juste a l'inscription mais transformerait un lien
- * tronque en erreur serveur au lieu du simple `false` attendu ici. Meme choix
- * que dans `mail-optout.ts`, pour la meme raison.
+ * Une ligne sans SIRET ni contacts n'a rien a relancer : anonymisee a trente
+ * jours, ou posee en canal `copied`, qui n'a jamais eu d'adresse d'artisan.
+ * `already_requested` est alors le seul des cinq verdicts qui n'affirme rien
+ * de faux — cette demande a bien eu lieu, et rien de neuf n'en partira. Les
+ * trois autres refus inventeraient un fait sur un tiers : une opposition, une
+ * treve en cours, un demandeur abusif.
  *
- * L'insertion est idempotente via `onConflictDoNothing` plutot qu'une lecture
- * suivie d'une ecriture : un lien de mail est clique deux fois, transfere,
- * rouvert des mois plus tard — une contrainte d'unicite qui leverait au second
- * clic laisserait croire que l'opposition n'a pas ete prise en compte.
+ * Un identifiant inconnu LEVE. Aucune ligne n'est jamais supprimee, seulement
+ * videe : il ne vient donc pas d'une liste perimee mais d'une adresse forgee,
+ * et le taire derriere un verdict le ferait passer pour un refus ordinaire.
  */
-export async function recordOptout(
-  email: string | undefined,
-  token: string | undefined,
-  secret: string,
-): Promise<boolean> {
-  if (!verifyOptout(email, token, secret)) return false
+export async function relaunchRequest(id: string, now: Date): Promise<GuardVerdict> {
+  const [row] = await db.select().from(attestationRequest).where(eq(attestationRequest.id, id))
+  if (!row) throw new Error(`Demande introuvable : ${id}`)
+  if (!row.siret || !row.artisanEmail || !row.requesterEmail) return 'already_requested'
 
-  await db
-    .insert(mailOptout)
-    .values({ email: email!.trim().toLowerCase() })
-    .onConflictDoNothing()
-
-  return true
+  return createRequest(
+    {
+      siret: row.siret,
+      channel: 'sent',
+      notify: row.notify,
+      requesterName: row.requesterName ?? undefined,
+      requesterEmail: row.requesterEmail,
+      artisanEmail: row.artisanEmail,
+    },
+    now,
+  )
 }
 
 /**

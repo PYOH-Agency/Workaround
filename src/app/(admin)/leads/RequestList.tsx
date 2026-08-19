@@ -4,6 +4,7 @@ import { Icon, type IconName } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { DataTable } from '@/ui/organisms/data-table'
+import { RelaunchButton } from './RelaunchButton'
 
 type Status = 'covered' | 'reviewing' | 'registered' | 'silent'
 
@@ -66,9 +67,18 @@ export function RequestList({ requests, now }: { requests: OpenRequest[]; now: D
         { label: 'Canal' },
         { label: 'Âge', align: 'right' },
         { label: 'Statut' },
+        { label: 'Relance', hideLabel: true },
       ]}
       rows={requests.map((request) => {
         const status = statusOf(request)
+
+        /**
+         * Une relance a besoin d'un SIRET et d'une adresse d'artisan. Le canal
+         * `copied` n'en a jamais eu — le demandeur a transmis lui-meme — et une
+         * ligne videe de son SIRET n'a plus rien a quoi ecrire. Proposer le
+         * bouton la reviendrait a promettre un envoi qui ne peut pas partir.
+         */
+        const relaunchable = request.siret !== null && request.channel === 'sent'
 
         return {
           id: request.id,
@@ -97,6 +107,13 @@ export function RequestList({ requests, now }: { requests: OpenRequest[]; now: D
             >
               {LABELS[status]}
             </Badge>,
+            relaunchable ? (
+              <RelaunchButton key="relaunch" id={request.id} />
+            ) : (
+              <Text key="relaunch" as="span" size="sm" tone="muted">
+                Rien à relancer
+              </Text>
+            ),
           ],
         }
       })}

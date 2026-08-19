@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterAll } from 'vitest'
 import { inArray, sql } from 'drizzle-orm'
 import { db, connection } from '@/db/client'
 import { mailOptout } from '@/db/schema'
-import { recordOptout } from '@/services/attestation-request'
+import { recordOptout } from '@/services/optout'
 import { optoutToken } from '@/domain/mail-optout'
 
 /**

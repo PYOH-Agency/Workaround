@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { recordOptout } from '@/services/attestation-request'
+import { recordOptout } from '@/services/optout'
 import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
 import { PublicShell } from '@/ui/shells/public-shell'
