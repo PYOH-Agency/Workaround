@@ -35,6 +35,7 @@ export function Hero() {
               </Text>
             </div>
             <SiretLookup
+              entry="demandeur"
               tone="conversion"
               label="SIRET de l’entreprise"
               cta="Vérifier"

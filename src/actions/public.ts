@@ -2,7 +2,8 @@
 
 import { redirect } from 'next/navigation'
 import { parseSiretInput } from '@/domain/siret'
-import { publicProfile } from '@/services/public-profile'
+import type { LookupEntry } from '@/domain/lead'
+import { classifySiret, recordLookup } from '@/services/verification-lookup'
 import { resendQuoteLinks } from '@/services/quote-link'
 
 /**
@@ -18,12 +19,13 @@ export interface LookupState {
 }
 
 /**
- * Redirige vers le passeport public d'une entreprise.
+ * Redirige vers ce qu'on sait dire d'une entreprise.
  *
- * **Une entreprise introuvable et une entreprise sans activite couverte
- * recoivent le meme message.** `publicProfile` renvoyant `null` dans les deux
- * cas, l'indistinction est acquise par construction : il ne faut surtout pas
- * l'affiner, sinon le formulaire devient un test d'existence.
+ * **Un inscrit sans activite couverte et un inconnu recoivent la meme page.**
+ * L'indistinction etait acquise par le `null` de `publicProfile` ; elle est
+ * desormais acquise par une redirection commune. Elle n'a pas change de nature,
+ * seulement de branche — et il ne faut surtout pas l'affiner, sinon le
+ * formulaire devient un test d'appartenance a D'equerre.
  */
 export async function lookupCompany(
   _state: LookupState,
@@ -32,13 +34,14 @@ export async function lookupCompany(
   const parsed = parseSiretInput(String(form.get('siret') ?? ''))
   if ('error' in parsed) return { error: parsed.error }
 
-  const profile = await publicProfile(parsed.siren, new Date())
-  if (!profile) {
-    return { error: 'Cette entreprise n’a pas encore de page publique sur D’équerre.' }
-  }
+  const entry: LookupEntry = form.get('entry') === 'pro' ? 'pro' : 'demandeur'
+  const now = new Date()
+
+  const { outcome, slug } = await classifySiret(parsed.siret, now)
+  await recordLookup({ siret: parsed.siret, outcome, entry }, now)
 
   // `redirect` leve : jamais dans un try/catch.
-  redirect(`/artisan/${profile.slug}`)
+  redirect(outcome === 'covered' && slug ? `/artisan/${slug}` : `/verification/${parsed.siret}`)
 }
 
 export interface QuoteLinkState {

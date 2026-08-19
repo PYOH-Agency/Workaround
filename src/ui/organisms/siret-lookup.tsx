@@ -17,11 +17,18 @@ const initialState: LookupState = {}
  * alentour (charte §5.4).
  */
 export function SiretLookup({
+  entry,
   tone = 'primary',
   label,
   cta,
   hint,
 }: {
+  /**
+   * La page d'ou part la recherche. Obligatoire, et sans valeur par defaut :
+   * les deux publics ne se comportent pas pareil, et l'entonnoir de l'admin
+   * distingue les deux origines — un defaut silencieux fausserait la mesure.
+   */
+  entry: 'pro' | 'demandeur'
   tone?: 'primary' | 'conversion'
   label: string
   cta: string
@@ -31,6 +38,7 @@ export function SiretLookup({
 
   return (
     <form action={action} className="flex flex-col gap-2">
+      <input type="hidden" name="entry" value={entry} />
       <div className="flex max-w-md flex-wrap items-end gap-3">
         <div className="min-w-56 flex-1">
           <Field label={label} error={state.error} required>
