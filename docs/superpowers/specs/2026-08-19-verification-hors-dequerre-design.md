@@ -227,7 +227,9 @@ Deux tables, dans un nouveau `src/db/schema/lead.ts`.
 id, siret, outcome, entry, looked_up_at
 ```
 
-- `outcome` ∈ `covered` | `uncovered_member` | `stranger` | `unknown_siret`
+- `outcome` ∈ `covered` | `uncovered_member` | `stranger` — « SIRET absent des
+  registres » n'en fait pas partie : le journal est écrit par une action qui ne
+  fait aucun appel réseau. C'est un état d'affichage de la page (§ 8).
 - `entry` ∈ `pro` | `demandeur`
 
 > **Décision.** Le cas A (`covered`) est journalisé lui aussi. Sans lui,
@@ -241,7 +243,7 @@ Rien d'autre : **pas d'IP, pas de session, pas d'agent**.
 ```
 id, siret, company_id?, requester_name?, requester_email?, artisan_email?,
 channel, notify, requested_at,
-registered_at?, covered_at?, covered_notified_at?, expiry_notified_at?
+registered_at?, deposited_at?, covered_at?, covered_notified_at?, expiry_notified_at?
 ```
 
 - `channel` ∈ `sent` | `copied`. En `copied` on n'enregistre que l'intention —
