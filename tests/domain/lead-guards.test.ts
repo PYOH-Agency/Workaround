@@ -27,6 +27,16 @@ describe('guardVerdict', () => {
     expect(guardVerdict({ now: NOW, ...clear, coupleRequests })).toBe('ok')
   })
 
+  it('laisse repasser le demandeur une heure apres trois demandes', () => {
+    // Sans ce test, confondre HOUR et DAY dans REQUESTER_WINDOW ne se verrait
+    // pas : les autres tests de ce plafond ne verrouillent que le nombre trois,
+    // jamais la duree de la fenetre.
+    const requesterRequests = [10, 20, 30].map(
+      (m) => new Date(NOW.getTime() - HOUR - m * 60_000),
+    )
+    expect(guardVerdict({ now: NOW, ...clear, requesterRequests })).toBe('ok')
+  })
+
   it('protege l artisan d un second mail dans les sept jours, quel que soit le demandeur', () => {
     const artisanMails = [new Date(NOW.getTime() - 3 * DAY)]
     expect(guardVerdict({ now: NOW, ...clear, artisanMails })).toBe('artisan_cooldown')
