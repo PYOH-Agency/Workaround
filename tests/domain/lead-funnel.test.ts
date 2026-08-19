@@ -60,18 +60,11 @@ describe('funnel', () => {
     expect(result.covered).toBe(1)
   })
 
-  // Propriete cle : l'entonnoir ne lit que des dates et des canaux, jamais un
-  // SIRET ni une adresse. A 30 jours, l'anonymisation efface les contacts et
-  // le SIRET d'une demande mais garde ses dates et son canal. On simule ici
-  // les deux etats d'une meme ligne : avant, avec un SIRET et un contact ;
-  // apres, ces champs remplaces par null/vide comme le ferait la purge. Les
-  // deux jeux passent le meme FunnelInput (le type n'expose que dates et
-  // canaux), donc le seul moyen pour ce test d'echouer serait que
-  // l'implementation aille lire des champs hors de FunnelInput — ce que le
-  // type interdit deja au niveau de la compilation. Le test verifie donc en
-  // plus, a l'execution, qu'aucune propriete additionnelle presente sur les
-  // objets (siret, contact) ne se glisse dans le calcul via un acces non
-  // type (ex. un `as any`, un spread, un JSON.stringify malencontreux).
+  // La purge a 30 jours retire le SIRET et le contact d'une demande, sans
+  // toucher a ses dates ni a son canal. L'entonnoir doit continuer de la
+  // compter a l'identique. Ce test attrape la faute concrete ou une
+  // implementation, voyant une ligne sans SIRET, la traite comme purgee et
+  // l'exclut du calcul.
   it('rend le meme resultat avant et apres anonymisation des demandes', () => {
     const before = [
       {
@@ -91,15 +84,11 @@ describe('funnel', () => {
         contactEmail: 'demandeur@example.com',
       },
     ]
-    // La purge a 30 jours vide le SIRET et le contact, mais laisse dates et
-    // canal intacts : c'est exactement ce que reproduit ce second jeu.
     const after = before.map(({ channel, registeredAt, depositedAt, coveredAt }) => ({
       channel,
       registeredAt,
       depositedAt,
       coveredAt,
-      siret: null,
-      contactEmail: null,
     }))
 
     expect(funnel({ lookups: [], requests: before })).toEqual(
