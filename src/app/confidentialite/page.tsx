@@ -116,6 +116,46 @@ export default function PrivacyPage() {
         </Text>
       </section>
 
+      {/*
+        La section que le mail de sollicitation promet.
+        Le message envoye a un artisan non inscrit se termine par « Vos donnees,
+        leur origine et vos droits », suivi d'un lien vers cette page. C'est ce
+        lien qui decharge l'article 14 — l'information due quand la donnee n'a
+        pas ete collectee aupres de la personne. Tant que la page ne disait rien
+        de ce parcours, le mail promettait une information qui n'existait pas au
+        bout du lien.
+        Elle s'adresse a quelqu'un qui n'a pas de compte chez nous et n'en veut
+        peut-etre pas : elle se lit donc seule, sans supposer le reste de la
+        page.
+      */}
+      <section className="flex flex-col gap-2">
+        <Heading level={3} as="h2">Si vous avez reçu un message sans nous connaître</Heading>
+        <Text size="sm" tone="soft">
+          Un de vos clients a cherché à vérifier votre garantie décennale et nous a demandé de vous
+          écrire. <strong>C’est lui qui nous a donné votre adresse</strong>, en confirmant envisager
+          des travaux avec vous. Nous ne l’avons ni achetée ni collectée ailleurs.
+        </Text>
+        <Text size="sm" tone="soft">
+          Le message peut mentionner une qualification RGE : elle vient de{' '}
+          <strong>l’annuaire public des entreprises RGE de l’ADEME</strong>. Le reste de ce que nous
+          affichons sur une entreprise non inscrite — raison sociale, forme juridique, commune, date
+          de création, procédures collectives — vient du répertoire des entreprises et du BODACC,
+          tous deux publics.
+        </Text>
+        <Text size="sm" tone="soft">
+          <strong>Vous pouvez refuser d’être contacté</strong>, en un clic, par le lien présent dans
+          le message. Nous n’écrirons plus à cette adresse, quelle que soit la personne qui le
+          demande. Sans cela, nous n’écrivons de toute façon au plus qu’une fois par semaine à une
+          même entreprise, tous demandeurs confondus.
+        </Text>
+        <Text size="sm" tone="soft">
+          La demande de votre client est effacée au bout de trente jours, ou plus tôt si elle n’a
+          plus lieu d’être — son adresse, la vôtre et votre SIRET avec elle. Ne subsiste alors qu’un
+          compteur sans nom. Les recherches par SIRET sont effacées au bout de douze mois. Rien de
+          tout cela n’est publié ni référencé : ces pages sont interdites aux moteurs de recherche.
+        </Text>
+      </section>
+
       <section className="flex flex-col gap-2">
         <Heading level={3} as="h2">Qui d’autre y a accès</Heading>
         <Text size="sm" tone="soft">

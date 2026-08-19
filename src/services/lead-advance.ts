@@ -144,6 +144,17 @@ function anonymized(now: Date): RequestPatch {
     requesterName: null,
     requesterEmail: null,
     artisanEmail: null,
+    /**
+     * `company_id` s'efface AUSSI, et c'est le point qu'on avait manque.
+     *
+     * Vider le SIRET en laissant la clef de l'entreprise ne fait qu'un detour :
+     * une jointure rend le nom, l'adresse et le numero. La ligne resterait
+     * rattachable a une entreprise nommee, sans terme — ce serait une
+     * pseudonymisation presentee comme une anonymisation.
+     *
+     * L'entonnoir n'y perd rien : il compte des dates, jamais des entreprises.
+     */
+    companyId: null,
     anonymizedAt: now,
   }
 }

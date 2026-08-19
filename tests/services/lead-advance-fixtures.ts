@@ -117,3 +117,11 @@ export async function reread(id: string) {
   const [row] = await db.select().from(attestationRequest).where(eq(attestationRequest.id, id))
   return row
 }
+
+/**
+ * `advanceRequests` balaie TOUTES les demandes non anonymisees, y compris
+ * celles que les autres fichiers de test laissent derriere eux. Aucune
+ * assertion ne porte donc sur un total : nos lignes sont relues par leur
+ * identifiant, et les envois filtres sur notre domaine.
+ */
+export const mine = (list: string[]) => list.filter((to) => to.endsWith(DOMAIN))

@@ -15,6 +15,7 @@ import {
   REGISTERED,
   UNKNOWN,
   openRequest,
+  mine,
   reread,
   resetFixtures,
 } from './lead-advance-fixtures'
@@ -39,14 +40,6 @@ beforeEach(async () => {
 })
 
 afterAll(async () => connection.end())
-
-/**
- * `advanceRequests` balaie TOUTES les demandes non anonymisees, y compris
- * celles que les autres fichiers de test laissent derriere eux. Aucune
- * assertion ne porte donc sur un total : nos lignes sont relues par leur
- * identifiant, et les envois filtres sur notre domaine.
- */
-const mine = (list: string[]) => list.filter((to) => to.endsWith(DOMAIN))
 
 describe('advanceRequests, l attribution figee', () => {
   it('fige l inscription des que l entreprise existe', async () => {
@@ -99,6 +92,9 @@ describe('advanceRequests, la couverture publiee', () => {
     expect(row.anonymizedAt).not.toBeNull()
     expect(row.siret).toBeNull()
     expect(row.requesterEmail).toBeNull()
+    // La garder rendrait le nom et le SIRET par une jointure : ce serait une
+    // pseudonymisation qui dit son contraire.
+    expect(row.companyId).toBeNull()
   })
 
   /**

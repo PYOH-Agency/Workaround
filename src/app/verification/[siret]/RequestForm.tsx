@@ -85,9 +85,18 @@ export function RequestForm({ siret }: { siret: string }) {
         </Button>
       </div>
 
+      {/*
+        La phrase qui suit n'est pas une formalite : toute la base legale de
+        l'envoi tient sur elle. Nous ecrivons a un artisan qui ne nous a rien
+        demande, et ce qui rend cet envoi legitime est qu'il vient de quelqu'un
+        avec qui il est reellement en affaires. Tant que rien ne le disait a
+        l'ecran, saisir une adresse n'attestait de rien — et la mise en balance
+        reposait sur un fait que rien n'etablissait.
+      */}
       <Text size="sm" tone="muted">
-        Nous écrivons à l’entreprise en votre nom, avec votre prénom et votre e-mail pour qu’elle
-        puisse vous répondre.{' '}
+        En envoyant, vous confirmez envisager des travaux avec cette entreprise. Nous lui écrivons
+        en votre nom, avec votre prénom et votre e-mail pour qu’elle puisse vous répondre — au plus
+        une fois par semaine, et jamais si elle nous a demandé de ne plus la solliciter.{' '}
         <Link href="/confidentialite" newTab>
           Protection des données
         </Link>
