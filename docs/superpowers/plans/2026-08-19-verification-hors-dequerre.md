@@ -527,17 +527,36 @@ describe('funnel', () => {
     expect(result.covered).toBe(1)
   })
 
-  it('compte une demande anonymisee comme les autres', () => {
-    // L'anonymisation efface les contacts et le SIRET, jamais les dates :
-    // l'entonnoir doit donner le meme chiffre avant et apres.
-    const result = funnel({
-      lookups: [],
-      requests: [{ channel: 'sent', registeredAt: AT, depositedAt: AT, coveredAt: AT }],
-    })
-    expect(result).toMatchObject({ requests: 1, registered: 1, deposited: 1, covered: 1 })
+  it('rend le meme resultat avant et apres anonymisation des demandes', () => {
+    // La purge a 30 jours retire le SIRET et les contacts, jamais les dates.
+    // Le test attrape la faute de celui qui croirait qu'une ligne purgee n'a
+    // plus de sens et la filtrerait : l'entonnoir compterait alors de moins en
+    // moins a mesure que le passe s'efface.
+    const before = [
+      { channel: 'sent' as const, registeredAt: AT, depositedAt: AT, coveredAt: null,
+        siret: '73282932000074', contactEmail: 'artisan@exemple.fr' },
+    ]
+    // `after` OMET les champs plutot que de les mettre a null : deux objets de
+    // meme forme ne se distinguent que par leurs valeurs, et le test serait
+    // alors aveugle a une implementation qui compte les clefs.
+    const after = before.map(({ channel, registeredAt, depositedAt, coveredAt }) => ({
+      channel,
+      registeredAt,
+      depositedAt,
+      coveredAt,
+    }))
+
+    expect(funnel({ lookups: [], requests: before })).toEqual(
+      funnel({ lookups: [], requests: after }),
+    )
   })
 })
 ```
+
+> **Ce cinquième test n'est pas décoratif.** Deux fautes plausibles le font
+> échouer, et lui seul : filtrer les lignes purgées (`requests: rows.filter(r =>
+> r.siret != null).length`), et compter par nombre de clés. Les quatre autres
+> tests les laissent passer.
 
 - [ ] **Step 2 : Lancer le test pour le voir échouer**
 
