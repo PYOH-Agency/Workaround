@@ -1,7 +1,8 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { screenNoteDismissal } from '@/db/schema'
-import type { ScreenNoteKey } from '@/domain/screen-notes'
+import { SCREEN_NOTES, type ScreenNoteKey } from '@/domain/screen-notes'
+import { recordEvent } from '@/services/events'
 
 /**
  * Ce que cette personne a deja referme.
@@ -30,9 +31,37 @@ export async function dismissedNotes(userId: string): Promise<Set<string>> {
  * second appel ne doit pas remonter une violation de cle primaire jusqu'a
  * l'ecran, et il n'a rien a rafraichir non plus — c'est la premiere fermeture
  * qui fait foi.
+ *
+ * **Le fait n'est consigne que si la ligne est nee** (spec §7). Le seuil des
+ * deux mois se lit en parts de personnes, pas en clics : compter le second
+ * onglet gonflerait le numerateur sans qu'une carte de plus ait ete lue, et le
+ * journal etant ineffacable, l'erreur ne se rattraperait pas.
  */
 export async function dismissNote(userId: string, noteKey: ScreenNoteKey): Promise<void> {
-  await db.insert(screenNoteDismissal).values({ userId, noteKey }).onConflictDoNothing()
+  const inserted = await db
+    .insert(screenNoteDismissal)
+    .values({ userId, noteKey })
+    .onConflictDoNothing()
+    .returning({ noteKey: screenNoteDismissal.noteKey })
+
+  if (inserted.length === 0) return
+
+  await recordEvent({
+    type: 'note.dismissed',
+    // Le sujet est le compte : la cle d'ecran n'est pas un UUID, et cette table
+    // n'est adossee a rien d'autre qu'`auth.users`.
+    subjectType: 'user',
+    subjectId: userId,
+    // Deduit du catalogue, seule chose que ce service sache du public : les
+    // deux coquilles appellent la meme action, qui ne lui passe qu'un compte.
+    actorType: SCREEN_NOTES[noteKey].audience === 'company' ? 'company' : 'customer',
+    actorId: userId,
+    // La cle, et rien d'autre. Un declencheur rend le journal ineffacable : y
+    // ecrire une adresse ou un nom rendrait le droit a l'effacement
+    // structurellement impossible a honorer. L'identifiant, lui, est deja dans
+    // `actor_id`.
+    payload: { key: noteKey },
+  })
 }
 
 /**
