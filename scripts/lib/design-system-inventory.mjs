@@ -60,6 +60,14 @@
  * - `MoneyFlow` — la barre segmentee de l'argent en cours. Ni `DataTable`
  *   (aucune comparaison) ni `SummaryLine` (aucun total a additionner).
  *
+ * Une entree pour l'arrivee (spec A2 §4) :
+ *
+ * - `ScreenNote` — la carte qui presente un ecran, une fois. Les deux coquilles
+ *   connectees la posent, sur six ecrans : la loger dans l'une d'elles
+ *   obligerait l'autre a en dependre. Elle n'est pas un `Notice` : celui-ci
+ *   interrompt, et ses trois tons sont des etats — danger, mise en garde,
+ *   verification. Une presentation n'alarme pas, elle se referme.
+ *
  * Toute autre addition doit passer par la spec avant d'arriver ici.
  */
 export const INVENTORY = {
@@ -72,7 +80,7 @@ export const INVENTORY = {
     'Field', 'Card', 'StatusBadge', 'SealBadge', 'LogoLockup', 'EmptyState',
     'Toast', 'Tooltip', 'ButtonGroup', 'SummaryLine', 'Dialog', 'ThemeToggle',
     'SectionHeader', 'StepCard', 'Reveal', 'Stagger', 'RevealTick', 'SignOut',
-    'Notice', 'PageHeader', 'Rail', 'RailItem', 'TaskRow',
+    'Notice', 'PageHeader', 'Rail', 'RailItem', 'TaskRow', 'ScreenNote',
     // La navigation doit connaitre la page courante, et un composant serveur ne
     // peut pas lire l'URL. L'isoler garde `AppHeader` cote serveur au lieu d'y
     // verser `Lockup` et `Text` pour un seul `usePathname()`. Molecule et non

@@ -32,7 +32,8 @@ export type ScreenNoteKey =
   | 'mes-logements'
   | 'mon-repertoire'
 
-export interface ScreenNote {
+/** `Entry` parce que la molecule qui rend une notice s'appelle `ScreenNote`. */
+export interface ScreenNoteEntry {
   key: ScreenNoteKey
   /**
    * Le public concerne — c'est aussi son groupe de routes.
@@ -50,7 +51,7 @@ export interface ScreenNote {
   text: string
 }
 
-export const SCREEN_NOTES: Record<ScreenNoteKey, ScreenNote> = {
+export const SCREEN_NOTES: Record<ScreenNoteKey, ScreenNoteEntry> = {
   devis: {
     key: 'devis',
     audience: 'company',
