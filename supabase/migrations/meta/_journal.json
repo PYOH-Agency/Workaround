@@ -169,6 +169,13 @@
       "when": 1787229525130,
       "tag": "0023_loud_scream",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1787259684620,
+      "tag": "0024_mature_starfox",
+      "breakpoints": true
     }
   ]
 }

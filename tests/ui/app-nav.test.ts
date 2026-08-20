@@ -137,8 +137,12 @@ describe('la navigation du demandeur', () => {
 describe('la navigation du backoffice', () => {
   const staffHrefs = staffNavGroups.flatMap((group) => group.entries.map((entry) => entry.href))
 
-  it('couvre les trois écrans internes', () => {
-    expect(staffHrefs).toEqual(['/supervision', '/attestations', '/entreprises'])
+  it('couvre les quatre écrans internes', () => {
+    // Quatre depuis les leads. L'assertion est exhaustive et ordonnee a
+    // dessein : ce que le relecteur voit dans son en-tete est la seule liste
+    // de ses destinations, et un ecran interne ajoute sans y figurer serait un
+    // ecran qu'on n'atteint qu'en tapant son adresse.
+    expect(staffHrefs).toEqual(['/supervision', '/attestations', '/entreprises', '/leads'])
   })
 
   it('ne partage AUCUNE entrée avec celle de l’artisan', () => {

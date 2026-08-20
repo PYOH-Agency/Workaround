@@ -6,7 +6,7 @@ import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { EmptyState } from '@/ui/molecules/empty-state'
 import { PageHeader } from '@/ui/molecules/page-header'
-import { AppShell } from '@/ui/shells/app-shell'
+import { AdminShell } from '@/ui/shells/admin-shell'
 import { Funnel } from './Funnel'
 import { RequestList } from './RequestList'
 
@@ -60,7 +60,7 @@ export default async function LeadsPage({
   const [counts, requests] = await Promise.all([leadFunnel(from, now), openRequests(now)])
 
   return (
-    <AppShell>
+    <AdminShell>
       <PageHeader
         title="Leads"
         subtitle={
@@ -105,6 +105,6 @@ export default async function LeadsPage({
       ) : (
         <RequestList requests={requests} now={now} />
       )}
-    </AppShell>
+    </AdminShell>
   )
 }
