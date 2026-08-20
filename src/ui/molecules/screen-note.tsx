@@ -35,7 +35,7 @@ export function ScreenNote({
 
   return (
     <Card elevation="flat">
-      <div className="flex items-start gap-3">
+      <div className="flex items-start justify-between gap-3">
         <Text size="sm" tone="soft">
           {SCREEN_NOTES[note].text}
         </Text>
