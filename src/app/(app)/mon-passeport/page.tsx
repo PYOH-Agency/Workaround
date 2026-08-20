@@ -9,11 +9,13 @@ import { companyMetrics } from '@/services/passport-metrics'
 import { companyQuoteLeadTime } from '@/services/quote-lead-time'
 import { disputesInReview } from '@/services/disputes'
 import { companyCoverage } from '@/services/visibility'
+import { dismissedNotes } from '@/services/screen-notes'
 import { logoPublicUrl } from '@/domain/logo'
 import { Heading } from '@/ui/atoms/heading'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
+import { ScreenNote } from '@/ui/molecules/screen-note'
 import { AppShell } from '@/ui/shells/app-shell'
 import { MetricCard } from './MetricCard'
 import { MedianCard } from './MedianCard'
@@ -73,6 +75,9 @@ export default async function PassportPage() {
 
   return (
     <AppShell access={session}>
+      {/* La page passe SA cle — le catalogue ne sait pas quel ecran porte quoi. */}
+      <ScreenNote note="mon-passeport" dismissed={await dismissedNotes(session.userId)} />
+
       <div className="flex flex-col gap-2">
         <Heading level={1}>Votre passeport</Heading>
         <Card elevation="flat">

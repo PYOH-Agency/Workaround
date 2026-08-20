@@ -3,10 +3,12 @@ import { desc, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { company, project, quote } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
+import { dismissedNotes } from '@/services/screen-notes'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Icon } from '@/ui/atoms/icon'
 import { EmptyState } from '@/ui/molecules/empty-state'
 import { PageHeader } from '@/ui/molecules/page-header'
+import { ScreenNote } from '@/ui/molecules/screen-note'
 import { QuoteTable } from '@/ui/organisms/quote-table'
 import { AppShell } from '@/ui/shells/app-shell'
 
@@ -43,6 +45,13 @@ export default async function QuotesPage() {
 
   return (
     <AppShell access={session} companyName={myCompany.legalName}>
+      {/*
+        La page passe SA cle : le catalogue ne sait pas quel ecran porte quoi,
+        et une coquille qui les connaitrait tous serait le registre d'etapes
+        que la spec ecarte (§2.1).
+      */}
+      <ScreenNote note="devis" dismissed={await dismissedNotes(session.userId)} />
+
       {/*
         Un seul appel a l'action par ecran. Quand la liste est vide, c'est
         l'etat vide qui le porte — deux boutons identiques cote a cote

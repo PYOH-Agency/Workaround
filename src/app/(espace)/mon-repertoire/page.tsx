@@ -4,6 +4,7 @@ import { db } from '@/db/client'
 import { activity } from '@/db/schema'
 import { currentRequester, SessionError } from '@/lib/session'
 import { addressBookFor, type BookEntry } from '@/services/address-book'
+import { dismissedNotes } from '@/services/screen-notes'
 import { Badge } from '@/ui/atoms/badge'
 import { Icon } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
@@ -11,6 +12,7 @@ import { Text } from '@/ui/atoms/text'
 import { DataTable, type TableRow } from '@/ui/organisms/data-table'
 import { Notice } from '@/ui/molecules/notice'
 import { PageHeader } from '@/ui/molecules/page-header'
+import { ScreenNote } from '@/ui/molecules/screen-note'
 import { SpaceShell } from '@/ui/shells/space-shell'
 import { AddEntryForm } from './AddEntryForm'
 
@@ -49,6 +51,9 @@ export default async function AddressBookPage() {
 
   return (
     <SpaceShell layout="wide">
+      {/* La page passe SA cle — le catalogue ne sait pas quel ecran porte quoi. */}
+      <ScreenNote note="mon-repertoire" dismissed={await dismissedNotes(session.userId)} />
+
       <PageHeader
         back={{ href: '/mes-logements', label: 'Retour à mes logements' }}
         title="Mon répertoire"

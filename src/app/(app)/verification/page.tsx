@@ -5,9 +5,11 @@ import { can } from '@/domain/authorization'
 import { currentCompany, SessionError } from '@/lib/session'
 import { companyCertificates } from '@/services/certificates'
 import { companyCoverage } from '@/services/visibility'
+import { dismissedNotes } from '@/services/screen-notes'
 import { Heading } from '@/ui/atoms/heading'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
+import { ScreenNote } from '@/ui/molecules/screen-note'
 import { AppShell } from '@/ui/shells/app-shell'
 import { ActivityForm } from './ActivityForm'
 import { CertificateForm } from './CertificateForm'
@@ -45,6 +47,9 @@ export default async function VerificationPage() {
 
   return (
     <AppShell access={session}>
+      {/* La page passe SA cle — le catalogue ne sait pas quel ecran porte quoi. */}
+      <ScreenNote note="verification" dismissed={await dismissedNotes(session.userId)} />
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <Heading level={1}>Vérification</Heading>

@@ -3,6 +3,7 @@ import { weekOf } from '@/domain/agenda-week'
 import { currentCompany, SessionError } from '@/lib/session'
 import { weekAgenda, type BookedAppointment } from '@/services/appointments'
 import { busyFor } from '@/services/calendar-links'
+import { dismissedNotes } from '@/services/screen-notes'
 import { Badge } from '@/ui/atoms/badge'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
@@ -10,6 +11,7 @@ import { Icon } from '@/ui/atoms/icon'
 import { Text } from '@/ui/atoms/text'
 import { PageHeader } from '@/ui/molecules/page-header'
 import { Rail, RailItem } from '@/ui/molecules/rail'
+import { ScreenNote } from '@/ui/molecules/screen-note'
 import { AppShell } from '@/ui/shells/app-shell'
 import { CancelButton } from './CancelButton'
 import { BusyNotice, SyncHint } from './BusyNotice'
@@ -90,6 +92,9 @@ export default async function AgendaPage({
 
   return (
     <AppShell access={session}>
+      {/* La page passe SA cle — le catalogue ne sait pas quel ecran porte quoi. */}
+      <ScreenNote note="agenda" dismissed={await dismissedNotes(session.userId)} />
+
       <PageHeader
         title="Agenda"
         subtitle={
