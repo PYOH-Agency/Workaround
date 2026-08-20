@@ -38,9 +38,14 @@ export function PageHeader({
   return (
     <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
       <div className="flex min-w-0 flex-col gap-1">
+        {/*
+          `standalone` : ce lien de retour est une action a lui seul, pas un mot
+          dans une phrase. Il faisait 32 px de haut — un `min-h-8` pose ici avant
+          que l'atome sache poser les 44 px de la charte.
+        */}
         {back ? (
-          <Link href={back.href} tone="bare">
-            <span className="inline-flex min-h-8 items-center gap-1.5 text-sm">
+          <Link href={back.href} tone="bare" standalone>
+            <span className="inline-flex items-center gap-1.5 text-sm">
               <Icon name="back" size="sm" />
               {back.label}
             </span>

@@ -103,7 +103,7 @@ export default async function PassportPage() {
                   Aucune de vos activités n’est couverte : vous n’apparaissez pas encore dans
                   l’annuaire.
                 </Text>
-                <Link href="/verification" testId="completer-verification">
+                <Link href="/verification" testId="completer-verification" standalone>
                   Voir ce qu’il manque
                 </Link>
               </>

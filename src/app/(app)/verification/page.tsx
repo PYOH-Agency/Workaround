@@ -59,7 +59,7 @@ export default async function VerificationPage() {
               : 'Votre page publique s’affichera dès qu’une activité sera couverte.'}
           </Text>
         </div>
-        <Link href="/devis" tone="bare">
+        <Link href="/devis" tone="bare" standalone>
           <span className="text-sm">Vos devis</span>
         </Link>
       </div>

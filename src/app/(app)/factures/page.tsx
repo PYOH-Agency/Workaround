@@ -62,7 +62,7 @@ export default async function InvoicesPage() {
     <AppShell access={session}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Heading level={1}>Vos factures</Heading>
-        <Link href="/devis" tone="bare">
+        <Link href="/devis" tone="bare" standalone>
           <span className="text-sm">Vos devis</span>
         </Link>
       </div>
