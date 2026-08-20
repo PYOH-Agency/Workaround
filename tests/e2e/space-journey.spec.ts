@@ -62,7 +62,16 @@ test('de la signature du devis à la réception déclarée', async ({ page, brow
     await page.getByLabel('Code reçu par SMS').fill(await smsCodeFor('0612345678'))
     await page.getByRole('button', { name: 'Signer le devis' }).click()
 
-    await expect(page.getByRole('status')).toContainText('Devis signé')
+    const confirmation = page.getByRole('status')
+    await expect(confirmation).toContainText('Devis signé')
+
+    // Spec A2 §6 : l'ecran nomme l'espace, et s'arrete la. Le titre de cette
+    // etape le promettait sans rien en verifier — un bouton « Creer mon
+    // compte » serait passe sans reveiller personne.
+    await expect(confirmation).toContainText('suivre ce chantier')
+    await expect(confirmation).toContainText('Le lien est dans le courriel')
+    await expect(confirmation.getByRole('button')).toHaveCount(0)
+    await expect(confirmation.getByRole('textbox')).toHaveCount(0)
   })
 
   await test.step('il reçoit l’adresse de son dossier', async () => {
