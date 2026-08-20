@@ -7,6 +7,7 @@ import {
   Clock,
   Copy,
   FileText,
+  LogOut,
   Hammer,
   KeyRound,
   Moon,
@@ -39,6 +40,7 @@ const GLYPHS = {
   close: X,
   copy: Copy,
   document: FileText,
+  logout: LogOut,
   /**
    * « Revoir les explications », et rien d'autre.
    *

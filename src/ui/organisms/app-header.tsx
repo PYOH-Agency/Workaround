@@ -92,29 +92,21 @@ export function AppHeader({ companyName, access }: { companyName?: string; acces
         <div className="ml-auto flex shrink-0 items-center gap-1">
           <ThemeToggle />
           {/*
-            « Revoir les explications » a cote de la sortie — mais seulement a
-            partir de `lg`, et c'est un arbitrage, pas un oubli.
+            Les deux commandes secondaires se replient en icones sous `lg`.
 
-            Mesure au navigateur, en 375 px : cette rangee est pleine au pixel
-            pres. Le logotype fait 125 px, l'ecart 16, le theme et la sortie
-            186 — 327 px pour les 327 px que laissent les marges. Il n'y a pas
-            un pixel a prendre. Un bouton de plus, meme reduit a son icone,
-            comprime la colonne d'identite a 77 px : le logotype deborde alors
-            de 48 px et passe SOUS la bascule de theme. Avec son libelle en
-            clair, ce sont les commandes qui tombent sur un quatrieme rang,
-            c'est-a-dire les 80 px que ce bloc a ete resserre pour rendre.
-            Au dela de `lg` la rangee a 649 px libres, et le bouton n'y coute
-            rien.
+            La premiere rangee etait pleine au pixel pres — 125 px de logotype,
+            16 d'ecart, 186 de commandes, pour 327 disponibles en 375 px —, et
+            « Revoir les explications » n'y entrait pas : ajoute avec son
+            libelle, il poussait les commandes sur un quatrieme rang ; reduit a
+            l'icone, il ecrasait la colonne d'identite et faisait deborder le
+            logotype.
 
-            Ce que ca laisse ouvert : l'artisan qui n'a qu'un telephone ne
-            rouvre pas ses notices. La spec (§4) logeait ce geste dans un
-            « menu du compte » qui n'existe pas — un declencheur unique a la
-            place du theme et de la sortie rendrait 138 px, et refermerait ce
-            trou. C'est la decision a prendre, et elle depasse cette carte.
+            Ce n'est pas le bouton neuf qui etait de trop, c'est le texte de
+            « Se déconnecter » : 142 px dans la rangee la plus disputee du
+            telephone, pour un geste rare. Replies tous les deux, les deux
+            tiennent, et le texte revient des `lg`.
           */}
-          <span className="hidden lg:flex">
-            <ReopenNotes />
-          </span>
+          <ReopenNotes />
           <SignOut />
         </div>
       </div>
