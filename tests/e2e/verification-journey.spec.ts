@@ -73,9 +73,19 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
 
     const nav = page.getByRole('navigation', { name: 'Navigation principale' })
     const links = nav.getByRole('link')
-    // Six, et non cinq : l'accueil a ajoute sa propre entree de navigation,
-    // au meme titre que les cinq deja comptees ici.
-    await expect(links).toHaveCount(6)
+    /*
+      Sept, et non six : « Offre Pro » s'est ajoutee aux six precedentes.
+
+      Elle n'apparait qu'a un responsable en gratuit — ce qu'est l'artisan de
+      ce parcours — et elle existe parce que `team.manage` exige le plan Pro et
+      masque donc « Equipe » : sans elle, l'offre payante n'aurait plus AUCUN
+      point d'entree dans la navigation.
+
+      Le compte est verifie plutot que la liste : ce que ce test protege est
+      qu'aucune entree ne disparaisse au premier repli sur telephone, pas leur
+      composition — celle-ci est deja couverte par `tests/ui/app-nav.test.ts`.
+    */
+    await expect(links).toHaveCount(7)
 
     // 44 px : le seuil que le socle s'impose deja pour `Input`. La cible faisait
     // la hauteur du texte, soit 20 px, avant ce lot.
@@ -173,12 +183,23 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
     await reviewer.goto('/supervision')
     await expect(reviewer.getByRole('heading', { name: 'Supervision' })).toBeVisible()
 
-    // Le backoffice partage `AppShell`, donc l'en-tete. Les liens « Devis » ou
-    // « Passeport » n'y ont rien a faire : ils menent a l'entreprise du
-    // relecteur, pas a celle qu'il examine.
-    await expect(
-      reviewer.getByRole('navigation', { name: 'Navigation principale' }),
-    ).toHaveCount(0)
+    /*
+      Le backoffice partage `AppShell`, donc l'en-tete. Les liens « Devis » ou
+      « Passeport » n'y ont rien a faire : ils menent a l'entreprise du
+      relecteur, pas a celle qu'il examine.
+
+      Ce test attendait l'absence de toute navigation, parce que la premiere
+      regle masquait la barre dans le backoffice. Elle a ete remplacee par une
+      substitution — masquer laissait le relecteur sans aucun moyen d'aller
+      d'un ecran a l'autre. Ce qu'il faut donc verifier n'est plus qu'il n'y a
+      rien, mais qu'il n'y a pas la navigation de l'artisan.
+    */
+    const nav = reviewer.getByRole('navigation', { name: 'Navigation principale' })
+    await expect(nav.getByRole('link', { name: 'Attestations', exact: true })).toBeVisible()
+
+    for (const artisanOnly of ['Devis', 'Factures', 'Passeport', 'Agenda']) {
+      await expect(nav.getByRole('link', { name: artisanOnly, exact: true })).toHaveCount(0)
+    }
   })
 
   await test.step('un artisan n’accède pas à la supervision', async () => {

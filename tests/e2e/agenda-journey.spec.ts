@@ -154,7 +154,25 @@ test('de la prise de rendez-vous à la semaine', async ({ page }) => {
 
   await test.step('régénérer l’adresse fait taire l’ancienne', async () => {
     const href = (await page.getByTestId('abonnement').innerText()).trim()
+
+    /*
+      Deux clics, et c'est le sujet du test autant que sa mecanique.
+
+      Le geste est destructif — l'ancienne adresse cesse aussitot de repondre,
+      et un artisan qui l'a collee dans trois appareils devra les reprendre. Le
+      bouton a donc recu une confirmation, apres avoir longtemps regenere au
+      premier clic. Un test qui n'en cliquerait qu'un seul echouerait en
+      denoncant une regression la ou il y a eu une correction : c'est le
+      garde-fou lui-meme qui l'arreterait.
+
+      D'ou l'assertion sur la carte de confirmation entre les deux clics — elle
+      verifie que la porte est bien la, et pas seulement que le second clic
+      finit par passer.
+    */
     await page.getByRole('button', { name: 'Régénérer l’adresse' }).click()
+    await expect(page.getByText(/cessera aussitôt de répondre/)).toBeVisible()
+    await page.getByRole('button', { name: 'Régénérer l’adresse' }).click()
+
     await expect(page.getByTestId('abonnement')).not.toContainText(href.split('/abonnement/')[1])
 
     expect((await page.request.get(href)).status()).toBe(404)

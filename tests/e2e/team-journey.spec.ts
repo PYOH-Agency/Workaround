@@ -43,10 +43,20 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
       Elle a ete livree avec `action={null}` : « Ecrivez-nous », et rien a
       cliquer. Un cul-de-sac sur cet ecran-la ne coute pas une friction, il
       coute la vente — d'ou une assertion plutot qu'une relecture.
+
+      La porte a change de destination sans changer de raison d'etre : elle
+      ouvrait un brouillon de mail, elle mene desormais a la page qui presente
+      l'offre. Ce qui est verifie ici n'est donc pas la forme du lien mais
+      qu'il y en ait un, et qu'il aille quelque part.
     */
-    const enquiry = patron.getByRole('link', { name: 'Demander l’offre Pro' })
+    const enquiry = patron.getByRole('link', { name: 'Découvrir l’offre Pro' })
     await expect(enquiry).toBeVisible()
-    expect(await enquiry.getAttribute('href')).toMatch(/^mailto:.+@.+\?subject=/)
+    expect(await enquiry.getAttribute('href')).toBe('/offre-pro')
+
+    await enquiry.click()
+    await expect(patron).toHaveURL(/\/offre-pro$/)
+    await expect(patron.getByRole('heading', { name: 'Offre Pro' })).toBeVisible()
+    await patron.goBack()
   })
 
   await test.step('passée en Pro, l’entreprise peut inviter', async () => {
