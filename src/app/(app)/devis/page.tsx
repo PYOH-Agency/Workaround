@@ -11,6 +11,7 @@ import { PageHeader } from '@/ui/molecules/page-header'
 import { ScreenNote } from '@/ui/molecules/screen-note'
 import { QuoteTable } from '@/ui/organisms/quote-table'
 import { AppShell } from '@/ui/shells/app-shell'
+import { QuoteSketch } from './QuoteSketch'
 
 export default async function QuotesPage() {
   let session
@@ -74,6 +75,10 @@ export default async function QuotesPage() {
           <EmptyState
             title="Aucun devis pour l’instant"
             description="Rédigez votre premier devis : vos mentions obligatoires sont déjà enregistrées, il ne reste que les prestations à saisir."
+            // L'apercu enseigne la forme ; il n'entre pas dans la liste. Une
+            // ligne de tableau grisee aurait fini par etre cliquee, ou pire,
+            // comptee (spec A2 §5 et §2.2).
+            illustration={<QuoteSketch />}
             action={
               <ButtonLink href="/devis/nouveau" size="lg">
                 <Icon name="plus" size="sm" />
