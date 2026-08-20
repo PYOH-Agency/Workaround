@@ -1,3 +1,4 @@
+import { ONBOARDING_STEP, ONBOARDING_STEPS, type OnboardingStepKey } from '@/domain/onboarding-steps'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
@@ -51,6 +52,30 @@ export function Onboarding({
     )
   }
 
+  /**
+   * Ce que l'accueil ajoute a la liste partagee : la capacite qu'exige
+   * l'etape, et la phrase qui depend de son avancement.
+   *
+   * Les titres et l'ordre, eux, viennent de `ONBOARDING_STEPS` — ce sont les
+   * memes que ceux annonces a l'inscription, et ils ne doivent pas pouvoir
+   * diverger.
+   */
+  const stepState: Record<OnboardingStepKey, { allowed: boolean; note: string }> = {
+    mentions: {
+      allowed: canManageLegal,
+      note: legalMentionsDone
+        ? 'Renseignées. Vos devis sont conformes.'
+        : 'Sans elles, un devis adressé à un particulier n’est pas conforme.',
+    },
+    certificate: {
+      allowed: canManageLegal,
+      note: certificateDone
+        ? 'Déposée. En cours de vérification.'
+        : 'Elle rend votre page publique visible par vos clients.',
+    },
+    quote: { allowed: canWriteQuote, note: 'C’est là que tout commence.' },
+  }
+
   return (
     <section className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
@@ -62,36 +87,31 @@ export function Onboarding({
 
       <div className="grid gap-4 sm:grid-cols-3">
         {/* `StepCard` prend ses enfants, pas une prop `description`. */}
-        {canManageLegal ? (
-          <StepCard step={1} title="Vos mentions obligatoires">
-            {legalMentionsDone
-              ? 'Renseignées. Vos devis sont conformes.'
-              : 'Sans elles, un devis adressé à un particulier n’est pas conforme.'}
-          </StepCard>
-        ) : null}
-        {canManageLegal ? (
-          <StepCard step={2} title="Votre attestation décennale">
-            {certificateDone
-              ? 'Déposée. En cours de vérification.'
-              : 'Elle rend votre page publique visible par vos clients.'}
-          </StepCard>
-        ) : null}
-        {canWriteQuote ? (
-          <StepCard step={3} title="Votre premier devis">
-            C’est là que tout commence.
-          </StepCard>
-        ) : null}
+        {ONBOARDING_STEPS.map((step, index) =>
+          stepState[step.key].allowed ? (
+            <StepCard key={step.key} step={index + 1} title={step.title}>
+              {stepState[step.key].note}
+            </StepCard>
+          ) : null,
+        )}
       </div>
 
+      {/*
+        Les boutons ne suivent pas l'ordre des cartes : le devis passe devant,
+        parce que c'est lui qui fait basculer l'accueil. Et une etape faite ne
+        garde pas son bouton — un devis, lui, se reetablit toujours.
+      */}
       <div className="flex flex-wrap gap-3">
-        {canWriteQuote ? <ButtonLink href="/devis/nouveau">Établir un devis</ButtonLink> : null}
+        {canWriteQuote ? (
+          <ButtonLink href={ONBOARDING_STEP.quote.href}>Établir un devis</ButtonLink>
+        ) : null}
         {canManageLegal && !legalMentionsDone ? (
-          <ButtonLink href="/mentions" tone="raised">
+          <ButtonLink href={ONBOARDING_STEP.mentions.href} tone="raised">
             Compléter mes mentions
           </ButtonLink>
         ) : null}
         {canManageLegal && !certificateDone ? (
-          <ButtonLink href="/verification" tone="raised">
+          <ButtonLink href={ONBOARDING_STEP.certificate.href} tone="raised">
             Déposer mon attestation
           </ButtonLink>
         ) : null}

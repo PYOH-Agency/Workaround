@@ -22,6 +22,42 @@ const LEGAL_FORM_LABELS: Record<string, string> = {
 }
 
 /**
+ * Le repli par FAMILLE, sur les deux premiers chiffres.
+ *
+ * La table ci-dessus ne couvre que les formes d'artisan, et rend `null` pour
+ * tout le reste : l'ecran d'inscription affichait alors « SIRET 552 081 317 »
+ * sans forme juridique, ce qui donne l'air d'un annuaire incomplet la ou c'est
+ * notre table qui l'etait. Une SA, un GIE ou une societe civile d'exercice ne
+ * sont pas des cas rares au point de n'avoir aucun nom.
+ *
+ * Les deux premiers chiffres sont le niveau II de la nomenclature INSEE des
+ * categories juridiques, et ils sont stables. Le libelle de famille est moins
+ * precis que celui du code exact — « Société anonyme » plutot que « Société
+ * anonyme a conseil d'administration » — et c'est assume : mieux vaut un nom
+ * juste et large que pas de nom. Une forme qui reviendrait souvent merite en
+ * revanche son entree exacte dans la table.
+ *
+ * **N'entre jamais tel quel sur un devis** : `company.legal_form_label` est
+ * relu et corrigeable dans les mentions, ou l'artisan a le dernier mot.
+ */
+const LEGAL_FORM_FAMILIES: Record<string, string> = {
+  '10': 'Entreprise individuelle',
+  '52': 'Société en nom collectif',
+  '53': 'Société en commandite',
+  '54': 'Société à responsabilité limitée',
+  '55': 'Société anonyme',
+  '56': 'Société anonyme',
+  '57': 'Société par actions simplifiée',
+  '62': "Groupement d'intérêt économique",
+  '65': 'Société civile',
+}
+
+function legalFormLabel(code: string | null): string | null {
+  if (!code) return null
+  return LEGAL_FORM_LABELS[code] ?? LEGAL_FORM_FAMILIES[code.slice(0, 2)] ?? null
+}
+
+/**
  * L'entreprise n'existe pas au repertoire — a distinguer d'une panne.
  *
  * Les deux cas menaient au meme `Error`, et l'appelant ne pouvait les separer
@@ -117,9 +153,7 @@ export async function findEstablishment(input: string): Promise<Establishment> {
     // nom_raison_sociale est nul. Le nom est toujours dans nom_complet.
     legalName: result.nom_complet,
     legalForm: result.nature_juridique,
-    legalFormLabel: result.nature_juridique
-      ? (LEGAL_FORM_LABELS[result.nature_juridique] ?? null)
-      : null,
+    legalFormLabel: legalFormLabel(result.nature_juridique),
     // L'API ne publie pas de numero de TVA pour les entrepreneurs individuels
     // — la forme dominante du metier. On le calcule alors depuis le SIREN, ce
     // qui evite de le demander a l'artisan : il ne l'a jamais sous la main et

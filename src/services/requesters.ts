@@ -49,3 +49,27 @@ export async function claimRequester(userId: string, rawEmail: string) {
   const [existing] = await db.select().from(requester).where(eq(requester.email, email))
   return existing ?? null
 }
+
+/**
+ * Le compte cree par la personne elle-meme, sans qu'elle ait jamais signe.
+ *
+ * `onConflictDoNothing` plutot que `DoUpdate` : si un dossier existe deja — ne
+ * d'une signature d'il y a six mois —, c'est LUI qui vaut, avec sa source
+ * d'origine. Ecraser la source ferait oublier que ce dossier est ne d'un acte.
+ */
+export async function requesterFromSignUp(input: { email: string; name: string }) {
+  const email = normalizeEmail(input.email)
+  const name = input.name.trim()
+  if (!name) throw new Error('Le nom est obligatoire')
+
+  const [created] = await db
+    .insert(requester)
+    .values({ email, name, source: 'self' })
+    .onConflictDoNothing({ target: requester.email })
+    .returning()
+
+  if (created) return created
+
+  const [existing] = await db.select().from(requester).where(eq(requester.email, email))
+  return existing
+}

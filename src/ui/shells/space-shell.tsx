@@ -4,6 +4,8 @@ import { Text } from '@/ui/atoms/text'
 import { Lockup } from '@/ui/brand/lockup'
 import { AppNav } from '@/ui/molecules/app-nav'
 import { spaceNavGroups } from '@/ui/molecules/app-nav-routes'
+import { ReopenNotes } from '@/ui/molecules/reopen-notes'
+import { SignOut } from '@/ui/molecules/sign-out'
 import { ThemeToggle } from '@/ui/molecules/theme-toggle'
 
 /**
@@ -48,9 +50,27 @@ export function SpaceShell({
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-surface">
+      {/*
+        Meme decoupe qu'`AppHeader`, et pour la meme raison mesuree : en 375 px
+        cet en-tete s'empilait sur trois rangs — le logo, la navigation, puis le
+        theme et la deconnexion — et pesait 117 px. La navigation prend un rang
+        entier sous `lg`, donc la marque et les commandes de compte se partagent
+        le premier. Au dela, tout revient sur un seul rang et rien n'est perdu
+        au bureau.
+      */}
       <header className="border-b border-rule bg-card">
-        <div className={cn('mx-auto flex w-full items-center gap-4 px-6 py-3', width)}>
-          <Link href="/mes-logements" className="rounded-badge" aria-label="Accueil">
+        <div
+          className={cn(
+            'mx-auto flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-6 py-2',
+            width,
+          )}
+        >
+          {/*
+            `flex` et non l'`inline` par defaut du lien : en ligne, il portait
+            la hauteur de ligne de sa police et ouvrait 14 px de vide sous les
+            jambages du logotype.
+          */}
+          <Link href="/mes-logements" className="flex rounded-badge" aria-label="Accueil">
             <Lockup size="sm" />
           </Link>
 
@@ -63,18 +83,37 @@ export function SpaceShell({
             C'est `AppNav`, la meme que l'atelier, et non une seconde : elle
             recoit ses entrees au lieu de les deduire, donc rien de l'artisan
             n'a eu besoin d'etre recopie.
-          */}
-          <AppNav groups={spaceNavGroups} />
 
-          {alsoCompany ? (
-            <Link href="/devis" className="rounded-badge">
-              <Text size="sm" tone="muted" as="span">
-                Mon atelier
-              </Text>
-            </Link>
-          ) : null}
-          <div className="ml-auto">
+            « Mon atelier » l'accompagne au lieu de cotoyer le theme et la
+            deconnexion : c'est une destination, elle se lit avec les autres, et
+            `min-h-11` lui donne la cible tactile des entrees qu'elle rejoint.
+          */}
+          <div className="order-last flex w-full flex-wrap items-center gap-x-4 lg:order-none lg:w-auto">
+            <AppNav groups={spaceNavGroups} />
+
+            {alsoCompany ? (
+              <Link href="/devis" className="inline-flex min-h-11 items-center rounded-badge px-2">
+                <Text size="sm" tone="muted" as="span">
+                  Mon atelier
+                </Text>
+              </Link>
+            ) : null}
+          </div>
+
+          {/*
+            « Revoir les explications » a cote de la sortie : les deux sont des
+            commandes de compte, et le geste inverse de la carte d'accueil se
+            cherche la ou l'on cherche deja son compte (spec A2 §4).
+
+            Elle tient ici, et c'est mesure : en 375 px cette rangee de
+            commandes est deja passee sous la marque — elle dispose de 141 px
+            libres, l'icone en prend 52. L'en-tete de l'artisan, lui, n'a pas
+            cette marge (voir `AppHeader`).
+          */}
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <ThemeToggle />
+            <ReopenNotes />
+            <SignOut />
           </div>
         </div>
       </header>

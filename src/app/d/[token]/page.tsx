@@ -131,12 +131,27 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
       {found.status === 'signed' ? (
         <div
           role="status"
-          className="flex items-center gap-3 rounded-card border border-verified bg-verified-bg px-5 py-4 text-verified"
+          className="flex items-start gap-3 rounded-card border border-verified bg-verified-bg px-5 py-4 text-verified"
         >
           <Icon name="check" />
-          <Text as="span">
-            <strong>Devis signé.</strong>
-          </Text>
+          <div className="flex flex-col gap-2">
+            <Text as="span">
+              <strong>Devis signé.</strong>
+            </Text>
+            {/*
+              Le MEME message qu'apres la signature, et c'est ici qu'il compte
+              le plus : ce bloc est ce qu'on voit en rouvrant le lien plus tard,
+              justement quand on se demande ou en est le chantier. Le porter
+              seulement dans `SignatureBlock` le reservait a la minute qui suit
+              la signature — le moment ou l'on y pense le moins.
+
+              Aucun bouton, aucun champ, aucune creation de compte (spec A2 §6).
+            */}
+            <Text as="span" size="sm" tone="soft">
+              Vous pourrez suivre ce chantier — les photos, l’avancement, la réception — sur votre
+              espace. Le lien est dans le courriel.
+            </Text>
+          </div>
         </div>
       ) : found.status === 'sent' && found.customer.phone ? (
         <SignatureBlock token={token} phoneHint={maskPhone(found.customer.phone)} />

@@ -4,6 +4,7 @@ import { db } from '@/db/client'
 import { member } from '@/db/schema'
 import { currentRequester, SessionError } from '@/lib/session'
 import { myProperties } from '@/services/my-properties'
+import { dismissedNotes } from '@/services/screen-notes'
 import { Badge } from '@/ui/atoms/badge'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
@@ -13,6 +14,7 @@ import { Text } from '@/ui/atoms/text'
 import { EmptyState } from '@/ui/molecules/empty-state'
 import { PageHeader } from '@/ui/molecules/page-header'
 import { Rail, RailItem } from '@/ui/molecules/rail'
+import { ScreenNote } from '@/ui/molecules/screen-note'
 import { SpaceShell } from '@/ui/shells/space-shell'
 
 /**
@@ -43,6 +45,9 @@ export default async function MyPropertiesPage() {
 
   return (
     <SpaceShell alsoCompany={company !== undefined}>
+      {/* La page passe SA cle — le catalogue ne sait pas quel ecran porte quoi. */}
+      <ScreenNote note="mes-logements" dismissed={await dismissedNotes(session.userId)} />
+
       <PageHeader
         title="Mes logements"
         subtitle="Les chantiers que vous avez signés, regroupés par adresse."

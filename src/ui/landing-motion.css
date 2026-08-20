@@ -108,7 +108,45 @@
     linear-gradient(var(--dq-rule) 1px, transparent 1px),
     linear-gradient(90deg, var(--dq-rule) 1px, transparent 1px);
   background-size: 48px 48px;
-  opacity: 0.05;
+  opacity: 0.07;
+}
+
+/* --- Le papier calque de l'accroche --------------------------------------
+ *
+ * La trame ci-dessus est une texture de fond : fixe, tres basse, on la sent
+ * plus qu'on ne la voit — c'est son role, et il n'a pas change. Elle ne
+ * suffisait pas a ouvrir la page : les deux accroches s'ouvraient sur un aplat
+ * de craie nu, ou rien ne dit que ce produit parle du batiment.
+ *
+ * L'accroche pose donc son propre papier : un quadrillage de plan, minute a
+ * 12 px et coupe tous les cinq carreaux, qui s'efface vers le bas. Le degrade
+ * de masque est ce qui l'empeche d'etre un motif — le papier commence sous le
+ * titre et a disparu quand la section se termine, comme une feuille glissee
+ * sous l'accroche.
+ */
+.dq-sheet {
+  position: relative;
+  isolation: isolate;
+}
+
+.dq-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--dq-rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--dq-rule) 1px, transparent 1px),
+    linear-gradient(var(--dq-rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--dq-rule) 1px, transparent 1px);
+  background-size:
+    60px 60px,
+    60px 60px,
+    12px 12px,
+    12px 12px;
+  opacity: 0.42;
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 55%, transparent 92%);
 }
 
 /* Le contenu passe au-dessus de la trame ; le fil a plomb au-dessus du contenu. */
@@ -197,21 +235,4 @@
     opacity: 1;
     transform: none;
   }
-}
-
-
-/* ==========================================================================
- * Rythme des sections : une sur deux prend un lavis d'encre.
- *
- * Pose en `background-image` et non en `background-color` : le lavis se
- * COMPOSE sur le fond existant de la section — craie ou `bg-card` — au lieu de
- * le remplacer. Rien a savoir de ce que chaque section declare, donc rien a
- * casser. Tres leger : il cadence la lecture sans decouper la page.
- * ========================================================================== */
-
-.dq-landing main > section:nth-of-type(even) {
-  background-image: linear-gradient(
-    color-mix(in oklab, var(--dq-ink) 3%, transparent),
-    color-mix(in oklab, var(--dq-ink) 3%, transparent)
-  );
 }

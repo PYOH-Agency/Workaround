@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { archivo, inter } from '@/ui/fonts'
+import { archivo, bricolage, inter } from '@/ui/fonts'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="fr"
-      className={`${archivo.variable} ${inter.variable} h-full antialiased`}
+      className={`${bricolage.variable} ${archivo.variable} ${inter.variable} h-full antialiased`}
       // L'amorce ci-dessus modifie `data-theme` avant l'hydratation.
       suppressHydrationWarning
     >

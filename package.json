@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "prepare": "node scripts/install-hooks.mjs",
-    "validate": "pnpm check:env && pnpm check:size && pnpm check:ds && pnpm check:isolation && pnpm build && vitest run",
+    "validate": "pnpm check:env && pnpm check:size && pnpm check:ds && pnpm check:isolation && pnpm check:admin && pnpm build && vitest run",
     "check:env": "node scripts/check-environment.mjs",
     "check:size": "node scripts/check-file-size.mjs",
     "check:ds": "node scripts/check-design-system.mjs",
     "check:isolation": "node scripts/check-feature-isolation.mjs",
+    "check:admin": "node scripts/check-admin-guard.mjs",
     "dev": "node scripts/dev.mjs",
     "build": "next build",
     "start": "next start",

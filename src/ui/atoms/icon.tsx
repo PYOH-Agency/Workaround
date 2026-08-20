@@ -3,9 +3,11 @@ import {
   ArrowLeft,
   Check,
   ChevronRight,
+  CircleHelp,
   Clock,
   Copy,
   FileText,
+  LogOut,
   Hammer,
   KeyRound,
   Moon,
@@ -38,6 +40,16 @@ const GLYPHS = {
   close: X,
   copy: Copy,
   document: FileText,
+  logout: LogOut,
+  /**
+   * « Revoir les explications », et rien d'autre.
+   *
+   * Aucun des seize glyphes precedents ne disait « explication » : `alert`
+   * previent, `search` cherche, `document` designe une piece. Le point
+   * d'interrogation cercle est la convention, et une commande de compte sans
+   * glyphe serait un bouton vide sous `lg`, ou son libelle se replie.
+   */
+  help: CircleHelp,
   moon: Moon,
   next: ChevronRight,
   phone: Phone,

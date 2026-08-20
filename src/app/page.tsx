@@ -13,6 +13,7 @@ import { Pricing } from './_landing/pro/pricing'
 import { Principles } from './_landing/pro/principles'
 import { Sequence } from './_landing/pro/sequence'
 import { Steps } from './_landing/pro/steps'
+import { Trades } from './_landing/trades'
 
 export const metadata: Metadata = {
   title: "D'équerre — devis, factures et assurance vérifiée pour le bâtiment",
@@ -61,10 +62,11 @@ export default async function RootPage() {
   return (
     <LandingShell audience="pro">
       <Hero />
+      <Trades />
       <Steps />
       <Mentions />
-      <Sequence />
       <Passport />
+      <Sequence />
       <Principles />
       <Next />
       <Pricing />

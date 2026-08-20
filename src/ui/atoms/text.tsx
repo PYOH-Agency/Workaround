@@ -6,10 +6,19 @@ const SIZES = {
   label: 'text-[0.6875rem] leading-[0.875rem] font-semibold uppercase tracking-[0.08em]',
 } as const
 
+/**
+ * `inverse` et `inverse-soft` servent les bandes d'encre de la vitrine —
+ * `bg-primary` pleine largeur. Elles ne sont pas la transposition sombre de
+ * `default` et `soft` : c'est un fond, pas un theme, et `dark:` n'a aucune
+ * prise sur un sous-arbre encre pose dans un sous-arbre clair (tokens.css).
+ * D'ou deux tons nommes, dont le contraste est verifie comme les autres.
+ */
 const TONES = {
   default: 'text-ink',
   soft: 'text-ink-soft',
   muted: 'text-ink-muted',
+  inverse: 'text-on-primary',
+  'inverse-soft': 'text-on-primary-soft',
 } as const
 
 export function Text({

@@ -3,12 +3,15 @@ import { desc, eq } from 'drizzle-orm'
 import { db } from '@/db/client'
 import { company, project, quote } from '@/db/schema'
 import { currentCompany, SessionError } from '@/lib/session'
+import { dismissedNotes } from '@/services/screen-notes'
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Icon } from '@/ui/atoms/icon'
 import { EmptyState } from '@/ui/molecules/empty-state'
 import { PageHeader } from '@/ui/molecules/page-header'
+import { ScreenNote } from '@/ui/molecules/screen-note'
 import { QuoteTable } from '@/ui/organisms/quote-table'
 import { AppShell } from '@/ui/shells/app-shell'
+import { QuoteSketch } from './QuoteSketch'
 
 export default async function QuotesPage() {
   let session
@@ -16,7 +19,7 @@ export default async function QuotesPage() {
     session = await currentCompany()
   } catch (e) {
     if (e instanceof SessionError) {
-      redirect(e.message.includes('Aucune entreprise') ? '/inscription' : '/connexion')
+      redirect(e.message.includes('Aucune entreprise') ? '/creer-mon-entreprise' : '/connexion')
     }
     throw e
   }
@@ -44,6 +47,13 @@ export default async function QuotesPage() {
   return (
     <AppShell access={session} companyName={myCompany.legalName}>
       {/*
+        La page passe SA cle : le catalogue ne sait pas quel ecran porte quoi,
+        et une coquille qui les connaitrait tous serait le registre d'etapes
+        que la spec ecarte (§2.1).
+      */}
+      <ScreenNote note="devis" dismissed={await dismissedNotes(session.userId)} />
+
+      {/*
         Un seul appel a l'action par ecran. Quand la liste est vide, c'est
         l'etat vide qui le porte — deux boutons identiques cote a cote
         diluent l'action et violent le mode strict des selecteurs de test.
@@ -65,6 +75,10 @@ export default async function QuotesPage() {
           <EmptyState
             title="Aucun devis pour l’instant"
             description="Rédigez votre premier devis : vos mentions obligatoires sont déjà enregistrées, il ne reste que les prestations à saisir."
+            // L'apercu enseigne la forme ; il n'entre pas dans la liste. Une
+            // ligne de tableau grisee aurait fini par etre cliquee, ou pire,
+            // comptee (spec A2 §5 et §2.2).
+            illustration={<QuoteSketch />}
             action={
               <ButtonLink href="/devis/nouveau" size="lg">
                 <Icon name="plus" size="sm" />

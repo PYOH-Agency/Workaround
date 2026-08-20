@@ -52,6 +52,31 @@ Annoncer l'un ou l'autre comme disponible attirerait des artisans venus pour rec
 
 Les principes n° 1 et n° 2 sont **le meilleur argument commercial de la page**. Un artisan du bâtiment a été démarché dix fois par des vendeurs de leads ; aucun concurrent ne peut écrire ces deux phrases. Elles ne sont donc pas une mention légale en bas de page mais une section à part entière.
 
+## 3 bis. Le rythme des deux pages — la bande d'encre
+
+> **Amendement du 19 août 2026.** Les deux pages étaient justes et se lisaient triste. La cause n'était ni le contenu ni le mouvement, qui existait déjà et respectait tout ce qu'il fallait respecter : c'est qu'il n'y avait **aucun contraste de valeur**. `surface` (#F5F1E8) et `card` (#FDFCF8) sont à 2 % l'un de l'autre ; sur 3 000 px, huit sections qui alternent ces deux surfaces ne font pas un rythme, elles font un seul aplat de craie où rien n'accroche et où tout se vaut.
+
+**Chaque page porte deux bandes d'encre, et jamais plus.** `bg-primary` / `text-on-primary`, pleine largeur, à mi-page et en clôture. Entre les deux, la craie et la carte alternent strictement — l'alternance ne se voit que si elle est tenue.
+
+| | Bande 1 — le problème | Bande 2 — la contrepartie |
+|---|---|---|
+| `/` | « 15 000 € » d'amende | « 0 € », et la reprise de l'action |
+| `/verifier` | Le piège, et les trois verdicts | « 10 ans », et le carnet du logement |
+
+Les deux bandes d'une page **riment** : c'est ce qui justifie qu'elles se partagent la seule couleur forte de la page. Trois bandes feraient une page zébrée, où l'encre ne dirait plus rien.
+
+> **Ce n'est pas un thème sombre.** Un sous-arbre sombre imbriqué dans un sous-arbre clair n'est pas supporté (image de marque §5.7), et la variante `dark:` y reste inerte. La bande repose sur deux jetons dont le contraste est vérifié en CI, plus deux rôles ajoutés pour elle : `on-primary-soft` (texte secondaire, 9,32:1 en clair) et `primary-rule` (filet, décoratif). `Text`, `Heading` et `SectionHeader` portent un ton `inverse` — les trois descendent **ensemble**, ce qui est précisément l'oubli qu'un ton porté par le composant empêche.
+
+**Le mouvement suit le même régime.** Trois ajouts, tous en CSS, tous neutralisés par `prefers-reduced-motion`, aucun script :
+
+- **l'ouverture des accroches** est orchestrée — étiquette, titre ligne à ligne par balayage, chapeau, action. Le `Reveal` qui portait le bloc entier faisait arriver six éléments en un temps ;
+- **le chiffre des bandes se découvre** par balayage au défilement (`animation-timeline: view()`), suivi de son filet terre cuite. Jamais un fondu : un nombre en transparence a l'air incertain, un nombre qu'on découvre a l'air écrit ;
+- **le défilé des activités**, sous l'accroche pro, est le seul mouvement continu des deux pages. Il dit la maille à laquelle la couverture est vérifiée ; ce ne sont ni des clients ni des secteurs, et une bande de logos serait ici un mensonge.
+
+Deux choses sont **retirées** : le lavis d'encre d'une section sur deux, qui faisait double emploi avec les bandes et brouillait l'alternance, et l'idée d'animer la frise du chantier — un geste de plus n'aurait fait que diluer les trois qui restent.
+
+L'accroche pose enfin son propre papier de plan (`.dq-sheet`) : un quadrillage minuté qui s'efface vers le bas. La trame de fond générale reste ce qu'elle était, une texture qu'on sent plus qu'on ne la voit.
+
 ## 4. La page pro — `/`
 
 Sept sections. Une seule action, présentée deux fois, jamais concurrencée.
@@ -89,10 +114,17 @@ La dernière section porte deux choses à la fois, et c'est voulu : l'énoncé d
 > 2. **L'annuaire apparaît** (§5.6). `/annuaire` est public et indexé depuis M4, et cette page ne le mentionnait nulle part : un demandeur sans SIRET en main n'avait rien à y faire.
 > 3. **Le carnet cesse d'être « bientôt »** (§5.4). L'espace demandeur est livré depuis M6. Annoncer comme à venir ce qui existe est le défaut le plus coûteux qu'une page de confiance puisse porter.
 >
-> L'ordre alterne désormais l'avertissement et la contrepartie — le piège, puis l'annuaire ; ce qu'on garde, puis le carnet. `Retrieve` descend en fin de page : c'est un service rendu à qui a perdu son lien, pas un argument.
+> L'ordre alterne désormais l'avertissement et la contrepartie. Depuis l'amendement du 19 août, les deux bandes d'encre l'encadrent (§3 bis) : le piège ouvre, le carnet ferme, et entre les deux viennent ce qu'on obtient puis où trouver une entreprise. `Retrieve` reste en fin de page : c'est un service rendu à qui a perdu son lien, pas un argument.
 
 ### 5.1 Accroche
-« Votre artisan est-il assuré pour ce qu'il va faire ? » Champ SIRET + bouton **en terre cuite** — seule page du produit où la terre cuite est autorisée en fond, faute d'action destructive alentour (charte §5.4). Mention : gratuit, sans compte, le SIRET figure sur le devis.
+
+> **Amendement du 19 août 2026 — la proposition de valeur du demandeur.** « Votre artisan est-il assuré pour ce qu'il va faire ? » était juste, et c'était tout ce que la page avait à offrir : une mise en garde, un piège, un dépannage. Un visiteur sans SIRET en main n'y trouvait rien ; un visiteur qui en avait un repartait dès la réponse obtenue. Sur le seul public qui arrive sans rien connaître de nous, la page obtenait de la vigilance, pas de la confiance.
+>
+> Ce que le produit donne vraiment à ce public **existe et est livré depuis M6** : le suivi de chantier, les documents, les dates de garantie, le répertoire des entreprises déjà intervenues. C'est un carnet, il se tient tout seul, et c'est cela que l'accroche promet désormais : **« Le carnet de votre logement, tenu tout seul. »**
+>
+> **La vérification n'est pas rétrogradée.** Elle reste l'unique action de conversion, en champ SIRET et bouton terre cuite, et elle devient ce qu'elle est réellement dans le parcours : le commencement de ce qu'on promet. Le chapeau fait le pont en une phrase et dit sans détour à quel moment le carnet s'ouvre — **à la signature, pas ici**. Promettre un espace à qui vient de lire qu'on ne collecte rien serait le seul mensonge qu'une page de confiance ne peut pas se permettre (§10 du socle).
+
+Champ SIRET + bouton **en terre cuite** — seule page du produit où la terre cuite est autorisée en fond, faute d'action destructive alentour (charte §5.4). Mention : gratuit, sans compte, le SIRET figure sur le devis.
 
 ### 5.2 Le piège
 Assuré ne veut pas dire assuré pour tout. Premier motif de refus d'indemnisation du secteur. Trois cartes en cadence *calepinage*.

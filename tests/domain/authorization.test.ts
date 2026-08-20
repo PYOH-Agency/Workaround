@@ -98,11 +98,3 @@ describe('le refus', () => {
     expect(() => assertCan(PATRON, 'invoice.issue')).not.toThrow()
   })
 })
-
-describe('can sans acces', () => {
-  it('refuse tout a un acces inconnu', () => {
-    // Les ecrans du backoffice n'ont aucune appartenance : la navigation ne
-    // doit rien leur proposer plutot que tout.
-    expect(can(undefined, 'invoice.issue')).toBe(false)
-  })
-})

@@ -3,10 +3,10 @@ import { test, expect } from '@playwright/test'
 import {
   clearMailbox,
   contactMailFor,
-  magicLinkFor,
   mailboxHas,
   quoteLinkFor,
   signatureReceiptFor,
+  signIn,
   smsCodeFor,
 } from './helpers'
 import { quoteFor } from './fixtures'
@@ -34,10 +34,7 @@ test('de la signature du devis à la réception déclarée', async ({ page, brow
   const artisan = await shop.newPage()
 
   await test.step('connexion de l’artisan', async () => {
-    await artisan.goto('/connexion')
-    await artisan.getByLabel('E-mail').fill(ARTISAN)
-    await artisan.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await artisan.goto(await magicLinkFor(ARTISAN))
+    await signIn(artisan, ARTISAN)
   })
 
   // Brouillon, pas signe : la signature doit passer par l'ecran du client,
@@ -65,7 +62,16 @@ test('de la signature du devis à la réception déclarée', async ({ page, brow
     await page.getByLabel('Code reçu par SMS').fill(await smsCodeFor('0612345678'))
     await page.getByRole('button', { name: 'Signer le devis' }).click()
 
-    await expect(page.getByRole('status')).toContainText('Devis signé')
+    const confirmation = page.getByRole('status')
+    await expect(confirmation).toContainText('Devis signé')
+
+    // Spec A2 §6 : l'ecran nomme l'espace, et s'arrete la. Le titre de cette
+    // etape le promettait sans rien en verifier — un bouton « Creer mon
+    // compte » serait passe sans reveiller personne.
+    await expect(confirmation).toContainText('suivre ce chantier')
+    await expect(confirmation).toContainText('Le lien est dans le courriel')
+    await expect(confirmation.getByRole('button')).toHaveCount(0)
+    await expect(confirmation.getByRole('textbox')).toHaveCount(0)
   })
 
   await test.step('il reçoit l’adresse de son dossier', async () => {
@@ -73,10 +79,7 @@ test('de la signature du devis à la réception déclarée', async ({ page, brow
   })
 
   await test.step('il se connecte et arrive chez lui, pas sur l’inscription artisan', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(CLIENT)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(CLIENT))
+    await signIn(page, CLIENT)
 
     await expect(page).toHaveURL(/\/mes-logements$/)
     await expect(page.getByRole('heading', { name: 'Mes logements' })).toBeVisible()

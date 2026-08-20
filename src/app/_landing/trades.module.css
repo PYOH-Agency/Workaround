@@ -1,0 +1,72 @@
+/**
+ * Le ruban des activites.
+ *
+ * Deux copies du meme ruban, cote a cote, translatees de la moitie de la piste
+ * puis remises a zero : a l'instant du bouclage, la seconde copie occupe
+ * exactement la position de depart de la premiere, et la jointure est
+ * invisible. C'est la seule facon d'obtenir un defile continu sans script.
+ *
+ * `prefers-reduced-motion` arrete la piste ; elle ne disparait pas, elle
+ * s'immobilise sur son premier tiers, qui reste lisible.
+ */
+
+.window {
+  overflow: hidden;
+  /*
+   * Les deux bords s'effacent : sans cela, les mots se coupent net sur le bord
+   * de l'ecran et le ruban a l'air tronque plutot qu'infini.
+   */
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 4rem,
+    #000 calc(100% - 4rem),
+    transparent
+  );
+}
+
+.track {
+  display: flex;
+  width: max-content;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .track {
+    animation: dq-trades-run 44s linear infinite;
+  }
+
+  /* Le defile s'arrete sous le pointeur : on lit ce qu'on vise. */
+  .window:hover .track {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes dq-trades-run {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.ribbon {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+  white-space: nowrap;
+}
+
+/* Le carre terre cuite : le meme signe que le sceau et que la frise, en 5 px. */
+.tick {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+}

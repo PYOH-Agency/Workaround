@@ -35,7 +35,7 @@ export function Today({ today, tomorrow }: { today: Slot[]; tomorrow: Slot[] }) 
         </Heading>
         <Day slots={tomorrow} />
 
-        <Link href="/agenda">Ouvrir l’agenda</Link>
+        <Link href="/agenda" standalone>Ouvrir l’agenda</Link>
       </div>
     </Card>
   )

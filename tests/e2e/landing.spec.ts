@@ -31,10 +31,33 @@ async function everythingVisible(page: Page) {
 for (const path of PAGES) {
   test(`${path} — le contenu apparait`, async ({ page }) => {
     await page.goto(path)
-    // Les elements hors de l'ecran n'ont pas encore ete observes : on ne juge
-    // que l'accroche, qui est visible des le chargement.
     await expect(page.locator('h1')).toBeVisible()
-    await expect(page.locator('[data-reveal]').first()).toHaveCSS('opacity', '1')
+
+    /*
+      On amene le premier `Reveal` dans le champ avant de le juger.
+
+      L'assertion se contentait de le lire au chargement, en supposant que le
+      premier etait l'accroche. Il l'etait ; il ne l'est plus. L'ouverture est
+      passee a une animation d'entree dediee — `hero-entrance.module.css` —, et
+      le premier `[data-reveal]` de la page vit desormais plus bas, hors de
+      l'ecran. Jamais observe, il restait a zero, et le test denoncait une
+      disparition qui n'existait pas.
+
+      Le faire defiler jusqu'a lui eprouve ce que cette suite existe pour
+      eprouver : que l'observateur d'intersection rend bien le contenu visible.
+      La version precedente ne le verifiait que par accident de mise en page.
+    */
+    const animated = page.locator(ANIMATED)
+
+    // `ANIMATED` et non `[data-reveal]` : `/verifier` n'en porte aucun depuis
+    // la refonte — son ouverture n'a qu'un `RevealTick`. Cible sur le seul
+    // `data-reveal`, l'attente ne trouvait rien et expirait, en accusant une
+    // page qui allait bien.
+    await expect(animated.first()).toBeAttached()
+
+    const first = animated.first()
+    await first.scrollIntoViewIfNeeded()
+    await expect(first).toHaveCSS('opacity', '1')
   })
 
   test(`${path} — « réduire les animations » n'efface rien`, async ({ browser }) => {

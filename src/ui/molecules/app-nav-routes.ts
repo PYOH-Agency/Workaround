@@ -113,11 +113,10 @@ export const spaceNavGroups: NavGroup[] = [
  * Un groupe dont toutes les entrees tombent disparait : une etiquette de
  * groupe annoncee sur une liste vide est un bruit pour le lecteur d'ecran.
  *
- * Sans `access` — le backoffice, ou toute page qui ne le transmet pas —, seules
- * les entrees sans exigence subsistent. C'est volontairement le repli le plus
- * pauvre : mieux vaut un lien manquant qu'un lien qui refuse.
+ * `access` est toujours connu : cette navigation ne sert que des ecrans
+ * d'artisan, et le backoffice a sa propre coquille depuis `AdminShell`.
  */
-export function visibleGroups(access: Access | undefined): NavGroup[] {
+export function visibleGroups(access: Access): NavGroup[] {
   return navGroups
     .map((group) => ({
       ...group,
@@ -145,6 +144,14 @@ export function visibleGroups(access: Access | undefined): NavGroup[] {
  *
  * Aucune capacite : `currentStaff` est une garde binaire — on est relecteur ou
  * on ne l'est pas —, et elle ne connait pas les roles de l'artisan.
+ *
+ * **C'est `AdminShell` qui les passe**, explicitement. Une version anterieure
+ * les substituait d'apres l'URL, faute de pouvoir distinguer le backoffice cote
+ * serveur : les deux publics partageaient alors `AppShell`. Elle s'appuyait sur
+ * une liste de prefixes qu'il fallait tenir a jour, et son propre commentaire
+ * reconnaissait qu'une route interne ajoutee plus tard heriterait de la
+ * navigation de l'artisan. Deux coquilles separees suppriment la question :
+ * l'ecran qui recoit ces entrees est celui qui les demande.
  */
 export const staffNavGroups: NavGroup[] = [
   {
@@ -159,16 +166,6 @@ export const staffNavGroups: NavGroup[] = [
 ]
 
 /**
- * Le backoffice partage `AppShell` avec l'artisan, donc son en-tete.
- *
- * La liste est **negative**, et c'est un choix assume : une route de backoffice
- * ajoutee plus tard heriterait de la navigation de l'artisan tant qu'on ne l'y
- * inscrit pas. Une route d'artisan nouvelle est un evenement bien plus
- * frequent, et c'est elle qu'on protege de l'oubli.
- */
-const BACKOFFICE = ['/supervision', '/attestations', '/entreprises', '/leads']
-
-/**
  * Une entree est courante si elle est la page, ou l'un de ses sous-chemins.
  *
  * La barre oblique compte : `startsWith('/devis')` seul allumerait « Devis »
@@ -176,20 +173,4 @@ const BACKOFFICE = ['/supervision', '/attestations', '/entreprises', '/leads']
  */
 export function isCurrent(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
-}
-
-/**
- * Vrai sur un ecran interne.
- *
- * S'appelait `showsNav`, et rendait alors « faut-il afficher la navigation de
- * l'artisan ». Le backoffice ayant desormais la sienne, la question n'est plus
- * d'afficher ou non mais **laquelle** — et un nom qui repond a l'ancienne
- * question aurait menti sur la nouvelle.
- *
- * La garantie, elle, ne bouge pas : une route interne ajoutee plus tard
- * n'heritera jamais de la navigation de l'artisan tant qu'on ne l'aura pas
- * inscrite ici.
- */
-export function isBackoffice(pathname: string): boolean {
-  return BACKOFFICE.some((prefix) => isCurrent(pathname, prefix))
 }

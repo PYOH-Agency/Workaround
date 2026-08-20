@@ -1,6 +1,6 @@
 {
-  "id": "061dcb0e-87b7-4caa-bb6b-131dd70ca194",
-  "prevId": "3f635d19-d1cc-4952-9381-46991b5ad495",
+  "id": "b001c295-250c-4f98-8b09-6d0a256fed37",
+  "prevId": "ca93ac5a-4a0c-45cb-8ca5-934e13c78dfc",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -3362,227 +3362,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.attestation_request": {
-      "name": "attestation_request",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "siret": {
-          "name": "siret",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "company_id": {
-          "name": "company_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "requester_name": {
-          "name": "requester_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "requester_email": {
-          "name": "requester_email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "artisan_email": {
-          "name": "artisan_email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "channel": {
-          "name": "channel",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "relaunch_of": {
-          "name": "relaunch_of",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "notify": {
-          "name": "notify",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "requested_at": {
-          "name": "requested_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "registered_at": {
-          "name": "registered_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deposited_at": {
-          "name": "deposited_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "covered_at": {
-          "name": "covered_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "covered_notified_at": {
-          "name": "covered_notified_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "expiry_notified_at": {
-          "name": "expiry_notified_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "anonymized_at": {
-          "name": "anonymized_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "attestation_request_siret_idx": {
-          "name": "attestation_request_siret_idx",
-          "columns": [
-            {
-              "expression": "siret",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "requested_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "attestation_request_artisan_idx": {
-          "name": "attestation_request_artisan_idx",
-          "columns": [
-            {
-              "expression": "artisan_email",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "requested_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "attestation_request_requester_idx": {
-          "name": "attestation_request_requester_idx",
-          "columns": [
-            {
-              "expression": "requester_email",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "requested_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "attestation_request_retention_idx": {
-          "name": "attestation_request_retention_idx",
-          "columns": [
-            {
-              "expression": "requested_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "where": "anonymized_at is null",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "attestation_request_company_id_company_id_fk": {
-          "name": "attestation_request_company_id_company_id_fk",
-          "tableFrom": "attestation_request",
-          "tableTo": "company",
-          "columnsFrom": [
-            "company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "attestation_request_relaunch_of_attestation_request_id_fk": {
-          "name": "attestation_request_relaunch_of_attestation_request_id_fk",
-          "tableFrom": "attestation_request",
-          "tableTo": "attestation_request",
-          "columnsFrom": [
-            "relaunch_of"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.mail_optout": {
-      "name": "mail_optout",
+    "public.registration_intent": {
+      "name": "registration_intent",
       "schema": "",
       "columns": {
         "id": {
@@ -3598,6 +3379,24 @@
           "primaryKey": false,
           "notNull": true
         },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "siret": {
+          "name": "siret",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -3610,8 +3409,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "mail_optout_email_unique": {
-          "name": "mail_optout_email_unique",
+        "registration_intent_email_unique": {
+          "name": "registration_intent_email_unique",
           "nullsNotDistinct": false,
           "columns": [
             "email"
@@ -3622,62 +3421,41 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.verification_lookup": {
-      "name": "verification_lookup",
+    "public.screen_note_dismissal": {
+      "name": "screen_note_dismissal",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
+        "user_id": {
+          "name": "user_id",
           "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "primaryKey": false,
+          "notNull": true
         },
-        "siret": {
-          "name": "siret",
+        "note_key": {
+          "name": "note_key",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "outcome": {
-          "name": "outcome",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "entry": {
-          "name": "entry",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "looked_up_at": {
-          "name": "looked_up_at",
+        "dismissed_at": {
+          "name": "dismissed_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
-      "indexes": {
-        "verification_lookup_at_idx": {
-          "name": "verification_lookup_at_idx",
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "screen_note_dismissal_user_id_note_key_pk": {
+          "name": "screen_note_dismissal_user_id_note_key_pk",
           "columns": [
-            {
-              "expression": "looked_up_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
+            "user_id",
+            "note_key"
+          ]
         }
       },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

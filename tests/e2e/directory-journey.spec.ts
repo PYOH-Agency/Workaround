@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor, mailSubjects } from './helpers'
+import { clearMailbox, mailSubjects, signIn } from './helpers'
 import { coveredCompany } from './fixtures-directory'
 
 /**
@@ -15,10 +15,7 @@ test('de la recherche a la demande recue', async ({ browser }) => {
   const context = await browser.newContext()
   const page = await context.newPage()
 
-  await page.goto('/connexion')
-  await page.getByLabel('E-mail').fill(ARTISAN)
-  await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-  await page.goto(await magicLinkFor(ARTISAN))
+  await signIn(page, ARTISAN)
 
   // Declaree en plomberie ET en electricite, couverte en plomberie seulement.
   const company = await coveredCompany(ARTISAN, { declared: ['30', '34'], covered: ['30'] })

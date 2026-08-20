@@ -13,6 +13,24 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/*.integration.test.ts'],
     setupFiles: ['tests/setup.ts'],
     /**
+     * Quatre fichiers a la fois, pas un par coeur.
+     *
+     * La quasi-totalite de ces tests attaque le MEME Postgres. Laisse libre,
+     * Vitest ouvre un processus par coeur, chacun avec son pool de connexions,
+     * et la base devient le goulot : les tests expirent par dizaines, jamais
+     * les memes, en designant du code parfaitement sain. Constate sur une
+     * machine ou d'autres piles tournaient — 32 expirations sans borne, 0 avec.
+     *
+     * Le plafond ne ralentit presque rien : c'est l'attente de la base qui
+     * domine, pas le calcul.
+     *
+     * Va de pair avec les deux delais ci-dessous, qui traitent le meme mal par
+     * l'autre bout : la borne reduit la contention, le delai absorbe ce qui en
+     * reste. Retirer l'une ramene les grappes d'echecs que l'autre seule ne
+     * suffisait pas a empecher.
+     */
+    maxWorkers: 4,
+    /**
      * Le budget par defaut de vitest est de 5 s, et il a ete ecrit pour des
      * tests purs. La moitie de cette suite n'en est pas : `tests/services` et
      * `tests/lib` parlent a un vrai Postgres, et un seul d'entre eux y cree une

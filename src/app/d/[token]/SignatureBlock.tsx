@@ -26,12 +26,29 @@ export function SignatureBlock({ token, phoneHint }: { token: string; phoneHint:
     return (
       <div
         role="status"
-        className="flex items-center gap-3 rounded-card border border-verified bg-verified-bg px-5 py-4 text-verified"
+        className="flex items-start gap-3 rounded-card border border-verified bg-verified-bg px-5 py-4 text-verified"
       >
         <Icon name="check" />
-        <Text as="span">
-          <strong>Devis signé.</strong> Vous en recevrez une copie.
-        </Text>
+        <div className="flex flex-col gap-2">
+          <Text as="span">
+            <strong>Devis signé.</strong> Vous en recevrez une copie.
+          </Text>
+          {/*
+            Le compte du demandeur nait de la signature, en silence : rien a
+            creer ici. Cet ecran ne fait qu'annoncer que le courriel contient
+            quelque chose — c'est lui qui travaille, trois semaines plus tard,
+            quand la personne se demandera ou en est le chantier.
+
+            Aucun bouton, aucun champ, aucune creation de compte (spec A2 §6) :
+            elle vient de s'engager sur plusieurs milliers d'euros, et lui
+            proposer un compte dans la foulee couterait des signatures pour
+            rien.
+          */}
+          <Text as="span" size="sm" tone="soft">
+            Vous pourrez suivre ce chantier — les photos, l’avancement, la réception — sur votre
+            espace. Le lien est dans le courriel.
+          </Text>
+        </div>
       </div>
     )
   }

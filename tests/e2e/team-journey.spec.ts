@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor, mailboxHas } from './helpers'
+import { clearMailbox, magicLinkFor, mailboxHas, signIn } from './helpers'
+import { accountExists } from './fixtures-db'
 import { quoteFor, switchToPro } from './fixtures'
 
 /**
@@ -12,6 +13,8 @@ import { quoteFor, switchToPro } from './fixtures'
  */
 const PATRON = `patron-m8-${randomUUID().slice(0, 8)}@test.local`
 const COMPAGNON = `compagnon-m8-${randomUUID().slice(0, 8)}@test.local`
+/** Celui qui n'a JAMAIS eu de compte. Il n'ira pas par `signIn`. */
+const NOUVEAU = `nouveau-m8-${randomUUID().slice(0, 8)}@test.local`
 
 test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) => {
   await clearMailbox()
@@ -20,10 +23,7 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
   const patron = await shop.newPage()
 
   await test.step('connexion du patron', async () => {
-    await patron.goto('/connexion')
-    await patron.getByLabel('E-mail').fill(PATRON)
-    await patron.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await patron.goto(await magicLinkFor(PATRON))
+    await signIn(patron, PATRON)
   })
 
   await quoteFor(PATRON, 'draft')
@@ -44,19 +44,19 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
       cliquer. Un cul-de-sac sur cet ecran-la ne coute pas une friction, il
       coute la vente — d'ou une assertion plutot qu'une relecture.
 
-      La porte a change de destination sans changer de raison d'etre : elle
-      ouvrait un brouillon de mail, elle mene desormais a la page qui presente
-      l'offre. Ce qui est verifie ici n'est donc pas la forme du lien mais
-      qu'il y en ait un, et qu'il aille quelque part.
+      La porte a change de nature, pas de raison d'etre : c'etait un `mailto`,
+      c'est desormais un ecran dedie qui porte la demande. L'assertion suit —
+      ce qu'elle garde, c'est qu'il y ait quelque chose a cliquer.
     */
     const enquiry = patron.getByRole('link', { name: 'Découvrir l’offre Pro' })
     await expect(enquiry).toBeVisible()
     expect(await enquiry.getAttribute('href')).toBe('/offre-pro')
 
+    // Et que cette porte-la ne soit pas elle-meme un cul-de-sac : l'ecran
+    // dedie porte le geste, pas seulement l'argumentaire.
     await enquiry.click()
-    await expect(patron).toHaveURL(/\/offre-pro$/)
-    await expect(patron.getByRole('heading', { name: 'Offre Pro' })).toBeVisible()
-    await patron.goBack()
+    await expect(patron.getByRole('button', { name: 'Demander l’activation' })).toBeVisible()
+    await patron.goto('/equipe')
   })
 
   await test.step('passée en Pro, l’entreprise peut inviter', async () => {
@@ -77,10 +77,7 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
   const compagnon = await site.newPage()
 
   await test.step('le compagnon se connecte et rejoint l’entreprise', async () => {
-    await compagnon.goto('/connexion')
-    await compagnon.getByLabel('E-mail').fill(COMPAGNON)
-    await compagnon.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await compagnon.goto(await magicLinkFor(COMPAGNON))
+    await signIn(compagnon, COMPAGNON)
 
     // Il atterrit dans l'espace connecte de l'entreprise, pas sur le
     // formulaire SIRET de l'inscription. La destination d'un compte avec
@@ -116,6 +113,36 @@ test('de la porte fermée au compagnon dans l’atelier', async ({ browser }) =>
 
     await compagnon.goto('/agenda')
     // Le compte existe toujours, il n'appartient plus a aucune entreprise.
-    await expect(compagnon).toHaveURL(/\/inscription$/)
+    await expect(compagnon).toHaveURL(/\/creer-mon-entreprise$/)
+  })
+
+  await test.step('un invité qui n’a JAMAIS eu de compte entre quand même', async () => {
+    // Le cas que les autres parcours masquaient : leur aide `signIn` cree le
+    // compte avant de frapper a la porte. Or `/connexion` n'envoie plus rien a
+    // une adresse inconnue, et l'invite n'a AUCUNE autre porte — celle de
+    // l'artisan lui ferait creer une entreprise concurrente.
+    await patron.goto('/equipe')
+    await patron.getByLabel('E-mail').fill(NOUVEAU)
+    await patron.getByRole('button', { name: 'Inviter' }).click()
+    await expect(patron.getByTestId('invitations')).toContainText(NOUVEAU)
+
+    expect(await accountExists(NOUVEAU)).toBe(false)
+
+    const ailleurs = await browser.newContext()
+    const nouveau = await ailleurs.newPage()
+
+    await nouveau.goto('/connexion')
+    await nouveau.getByLabel('E-mail').fill(NOUVEAU)
+    await nouveau.getByRole('button', { name: 'Recevoir le lien' }).click()
+    await nouveau.goto(await magicLinkFor(NOUVEAU))
+
+    // L'espace connecte de l'entreprise qui l'a invite, et sa navigation : la
+    // seule URL laisserait croire qu'il suffit d'y arriver.
+    await expect(nouveau).toHaveURL(/\/$/)
+    await expect(
+      nouveau.getByRole('navigation', { name: 'Navigation principale' }),
+    ).toBeVisible()
+
+    await ailleurs.close()
   })
 })

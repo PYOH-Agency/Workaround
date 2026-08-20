@@ -1,45 +1,38 @@
 import { ButtonLink } from '@/ui/atoms/button-link'
 import { Heading } from '@/ui/atoms/heading'
 import { Text } from '@/ui/atoms/text'
+import { InkBand } from '../ink-band'
 import { ONBOARDING_HREF } from '../onboarding-href'
 
 /**
- * Ce que ça coute.
+ * Ce que ça coute, et la reprise de l'action.
  *
- * Le pendant clair de la section « mentions » : la meme mise en scene — un
- * chiffre qui pese, adosse a un filet —, mais en vert verifie. « 0 € » face au
- * « 15 000 € » de l'amende evitee : les deux chiffres qui encadrent la
- * promesse, et disent d'un coup d'oeil de quel cote se ranger.
+ * La seconde bande d'encre de la page, et sa derniere section : la meme mise en
+ * scene que « ce que ça vous évite », le meme chiffre qui pese. « 0 € » repond
+ * a « 15 000 € » — les deux nombres qui encadrent la promesse, et disent d'un
+ * coup d'oeil de quel cote se ranger. Les faire rimer, c'est ce qui justifie
+ * qu'ils partagent la seule couleur forte de la page.
+ *
+ * Le bouton passe en terre cuite : c'est l'exception du §5.4 de la charte —
+ * page publique, une seule action, aucune action destructive alentour — et
+ * c'est la seule couleur qui se detache franchement de l'encre.
  */
 export function Pricing() {
   return (
-    <section className="border-y border-rule bg-card">
-      <div className="mx-auto w-full max-w-5xl px-6 py-12">
-        <div className="grid gap-10 md:grid-cols-[minmax(0,auto)_1fr] md:items-center md:gap-16">
-          <div className="flex flex-col gap-2 border-l-4 border-verified pl-6">
-            <Text size="label" tone="muted">
-              Ce que ça coûte
-            </Text>
-            <Heading level="figure" as="p">
-              0 €
-            </Heading>
-            <Text size="sm" tone="muted">
-              à vie, sans limite de volume
-            </Text>
-          </div>
-
-          <div className="flex flex-col items-start gap-4">
-            <Heading level={2}>Devis, factures, signature, page publique : gratuits pour toujours.</Heading>
-            <Text tone="soft">
-              L’abonnement Pro ne concerne que ce qui vient après — l’équipe et les situations de
-              travaux ligne par ligne.
-            </Text>
-            <ButtonLink href={ONBOARDING_HREF} size="lg">
-              Commencer
-            </ButtonLink>
-          </div>
-        </div>
-      </div>
-    </section>
+    <InkBand figure="0 €" figureLabel="Ce que ça coûte" figureNote="à vie, sans limite de volume">
+      <Heading level={2} tone="inverse">
+        Devis, factures, signature, page publique : gratuits pour toujours.
+      </Heading>
+      <Text tone="inverse-soft">
+        L’abonnement Pro ne concerne que ce qui vient après — l’équipe et les situations de travaux
+        ligne par ligne.
+      </Text>
+      <ButtonLink href={ONBOARDING_HREF} tone="conversion" size="lg">
+        Commencer
+      </ButtonLink>
+      <Text size="sm" tone="inverse-soft">
+        Trente secondes. Aucune carte bancaire.
+      </Text>
+    </InkBand>
   )
 }

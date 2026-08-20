@@ -7,6 +7,8 @@
  * garantie voulue.
  */
 
+import type { Page } from '@playwright/test'
+
 const MAILBOX = process.env.MAILBOX_URL ?? 'http://127.0.0.1:54324'
 
 interface MailSummary {
@@ -136,10 +138,42 @@ export async function mailboxHas(needle: string): Promise<boolean> {
   return messages.some((mail) => mail.Subject.includes(needle))
 }
 
+/**
+ * Un message du collecteur est-il adresse a cette personne ?
+ *
+ * `mailboxHas` ne regarde que les sujets, et celui du lien magique est fige a
+ * « Votre lien de connexion » : l'y chercher une adresse renverrait toujours
+ * faux, y compris quand le lien est bel et bien parti. Pour prouver qu'une
+ * adresse inconnue ne recoit RIEN, il faut interroger le destinataire.
+ *
+ * **Ne patiente pas**, pour la meme raison que `mailboxHas`.
+ */
+export async function mailboxHasFor(email: string): Promise<boolean> {
+  const response = await fetch(`${MAILBOX}/api/v1/messages?limit=50`)
+  const { messages = [] } = (await response.json()) as { messages?: MailSummary[] }
+  return messages.some((mail) => mail.To.some((to) => to.Address === email))
+}
+
 /** La demande relayee a une entreprise. */
 export async function contactMailFor(email: string): Promise<string> {
   return waitForMail(
     (mail) => mail.To.some((to) => to.Address === email) && /Demande reçue/.test(mail.Subject),
     `demande relayée à ${email}`,
   )
+}
+
+/**
+ * Cree le compte puis le connecte par lien magique.
+ *
+ * Une seule aide plutot que la sequence recopiee dans neuf parcours : le jour
+ * ou la porte change encore, elle change ici.
+ */
+export async function signIn(page: Page, email: string): Promise<void> {
+  const { createAccount } = await import('./fixtures-db')
+  await createAccount(email)
+
+  await page.goto('/connexion')
+  await page.getByLabel('E-mail').fill(email)
+  await page.getByRole('button', { name: 'Recevoir le lien' }).click()
+  await page.goto(await magicLinkFor(email))
 }
