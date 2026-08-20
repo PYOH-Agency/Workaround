@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor } from './helpers'
+import { clearMailbox, signIn } from './helpers'
 import { compagnonOfNewCompany, signedQuoteFor } from './fixtures'
 
 /**
@@ -23,10 +23,7 @@ test('un artisan connecté voit son accueil, et le logo de l’en-tête y ramèn
   await clearMailbox()
 
   await test.step('connexion par lien magique', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(ARTISAN)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(ARTISAN))
+    await signIn(page, ARTISAN)
   })
 
   // Sans devis, l'accueil rendrait la mise en route en trois etapes, pas
@@ -62,10 +59,7 @@ test('un compagnon d’entreprise neuve voit un accueil sobre, pas trois refus d
   await clearMailbox()
 
   await test.step('connexion par lien magique', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(COMPAGNON)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(COMPAGNON))
+    await signIn(page, COMPAGNON)
   })
 
   // Entreprise sans mentions, sans attestation, sans devis : le compagnon n'a

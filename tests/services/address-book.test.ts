@@ -33,15 +33,6 @@ async function signFor(companyId: string, projectId: string, requesterId: string
 }
 
 /**
- * Un message du collecteur porte-t-il ce texte ?
- *
- * **Un temoin unique, jamais un compteur.** Compter la boite avant et apres ne
- * peut rien isoler : les autres fichiers de tests envoient du courrier en
- * parallele, et le total bouge pour des raisons etrangeres a ce qu'on verifie.
- * C'est la meme lecon qu'en M4, ou un temoin partage avait rendu un test
- * ambigu.
- */
-/**
  * Le collecteur de CE worktree, jamais un port en dur.
  *
  * `pnpm db:worktree` derive une bande de ports par worktree et l'ecrit dans
@@ -52,6 +43,15 @@ async function signFor(companyId: string, projectId: string, requesterId: string
  */
 const MAILBOX = process.env.MAILBOX_URL ?? 'http://127.0.0.1:54324'
 
+/**
+ * Un message du collecteur porte-t-il ce texte ?
+ *
+ * **Un temoin unique, jamais un compteur.** Compter la boite avant et apres ne
+ * peut rien isoler : les autres fichiers de tests envoient du courrier en
+ * parallele, et le total bouge pour des raisons etrangeres a ce qu'on verifie.
+ * C'est la meme lecon qu'en M4, ou un temoin partage avait rendu un test
+ * ambigu.
+ */
 async function mailboxMentions(needle: string): Promise<boolean> {
   const response = await fetch(`${MAILBOX}/api/v1/messages?limit=100`)
   const { messages = [] } = (await response.json()) as {

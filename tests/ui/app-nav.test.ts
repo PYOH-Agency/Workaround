@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Access } from '@/domain/authorization'
 import {
-  isBackoffice,
   isCurrent,
   navGroups,
   spaceNavGroups,
@@ -12,7 +11,7 @@ import {
 /** Tous les liens de la barre, dans l'ordre d'affichage. */
 const hrefs = navGroups.flatMap((group) => group.entries.map((entry) => entry.href))
 
-const linksFor = (access: Access | undefined) =>
+const linksFor = (access: Access) =>
   visibleGroups(access).flatMap((group) => group.entries.map((entry) => entry.href))
 
 const PATRON: Access = { plan: 'free', role: 'owner' }
@@ -105,11 +104,6 @@ describe('ce que la navigation propose', () => {
     // lecteur d'ecran.
     expect(visibleGroups(COMPAGNON).map((group) => group.label)).toEqual(['Suivi quotidien'])
   })
-
-  it('se replie au plus pauvre sans accès connu', () => {
-    // Le backoffice partage cet en-tete et n'a aucune appartenance artisanale.
-    expect(linksFor(undefined)).toEqual(['/', '/devis', '/agenda'])
-  })
 })
 
 describe('la navigation du demandeur', () => {
@@ -147,23 +141,15 @@ describe('la navigation du backoffice', () => {
     expect(staffHrefs).toEqual(['/supervision', '/attestations', '/entreprises'])
   })
 
-  it('reconnaît un écran interne, et ses sous-chemins', () => {
-    expect(isBackoffice('/supervision')).toBe(true)
-    expect(isBackoffice('/attestations')).toBe(true)
-    expect(isBackoffice('/attestations/8f2a')).toBe(true)
-    expect(isBackoffice('/entreprises')).toBe(true)
-  })
+  it('ne partage AUCUNE entrée avec celle de l’artisan', () => {
+    // La garantie a change de nature. Elle reposait sur une liste de prefixes
+    // qu'`AppNav` consultait pour deviner a qui elle s'adressait — une regle a
+    // tenir a jour, dont l'oubli donnait au relecteur la navigation de
+    // l'artisan. `AdminShell` passe desormais ces entrees explicitement : ce
+    // qu'il reste a verifier, c'est qu'aucune des deux tables ne deborde sur
+    // l'autre.
+    const artisanHrefs = navGroups.flatMap((group) => group.entries.map((entry) => entry.href))
 
-  it('laisse les écrans de l’artisan à l’artisan', () => {
-    expect(isBackoffice('/devis')).toBe(false)
-    expect(isBackoffice('/mentions')).toBe(false)
-    expect(isBackoffice('/mes-logements')).toBe(false)
-  })
-
-  it('inscrit chaque entrée dans la liste qui la reconnaît', () => {
-    // Les deux vivent dans le meme fichier et doivent bouger ensemble : une
-    // entree ajoutee sans son prefixe donnerait au relecteur la navigation de
-    // l'artisan, sur un ecran ou aucun de ses liens ne repond.
-    for (const href of staffHrefs) expect(isBackoffice(href)).toBe(true)
+    for (const href of staffHrefs) expect(artisanHrefs).not.toContain(href)
   })
 })

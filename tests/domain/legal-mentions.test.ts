@@ -5,6 +5,8 @@ import {
   hasLegalMentions,
   missingInvoiceMentions,
   LEGAL_RECOVERY_INDEMNITY_CENTS,
+  MENTION_GROUP_OF,
+  missingMentionGroups,
 } from '@/domain/legal-mentions'
 
 describe('numero de TVA intracommunautaire', () => {
@@ -102,5 +104,63 @@ describe('mentions propres a la facture', () => {
   it("fixe l'indemnite de recouvrement a 40 EUR", () => {
     // Montant fixe par la loi : il n'est pas parametrable.
     expect(LEGAL_RECOVERY_INDEMNITY_CENTS).toBe(4000)
+  })
+})
+
+describe('le regroupement des mentions manquantes', () => {
+  it('rend les trois groupes pour une entreprise vide', () => {
+    expect(missingMentionGroups({})).toEqual(['contact', 'insurance', 'terms'])
+  })
+
+  it('ne rend rien quand tout est renseigne', () => {
+    expect(
+      missingMentionGroups({
+        legalFormLabel: 'SARL',
+        registrationNumber: 'RCS Nantes 000 000 000',
+        phone: '0240000000',
+        email: 'contact@test.local',
+        paymentTerms: 'Solde à réception.',
+        vatNumber: 'FR00000000000',
+        quoteValidityDays: 90,
+        insurerName: 'SMABTP',
+        insurerAddress: '114 avenue Émile Zola, 75015 Paris',
+        policyNumber: 'D-2026-000999',
+        coveredActivities: 'Plomberie',
+        coverageArea: 'France métropolitaine',
+      }),
+    ).toEqual([])
+  })
+
+  it('isole le groupe reellement manquant', () => {
+    expect(
+      missingMentionGroups({
+        legalFormLabel: 'SARL',
+        registrationNumber: 'RCS Nantes 000 000 000',
+        phone: '0240000000',
+        email: 'contact@test.local',
+        paymentTerms: 'Solde à réception.',
+        vatNumber: 'FR00000000000',
+        quoteValidityDays: 90,
+      }),
+    ).toEqual(['insurance'])
+  })
+
+  it('garde l ordre : coordonnees, assurance, conditions', () => {
+    // L'ordre est celui de la liste de premiers pas d'A2. Deux ordres
+    // differents entre l'annonce et la liste desorienteraient.
+    expect(missingMentionGroups({ insurerName: 'SMABTP' })).toEqual([
+      'contact',
+      'insurance',
+      'terms',
+    ])
+  })
+
+  it('CHAQUE mention obligatoire appartient a un groupe', () => {
+    // Le garde contre la divergence : ajouter une mention a
+    // `missingLegalMentions` sans la classer la rendrait invisible a l'ecran,
+    // et l'artisan se ferait refuser l'emission sans savoir pourquoi.
+    for (const key of missingLegalMentions({})) {
+      expect(MENTION_GROUP_OF[key as keyof typeof MENTION_GROUP_OF]).toBeDefined()
+    }
   })
 })

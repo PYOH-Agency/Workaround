@@ -29,6 +29,20 @@ const ICONS: Record<Severity, IconName> = {
 const days = (since: Date, now: Date) =>
   Math.max(0, Math.floor((now.getTime() - since.getTime()) / 86_400_000))
 
+/**
+ * L'anciennete, en francais plutot qu'en arithmetique.
+ *
+ * « depuis 0 j » se lisait sur la file — un compte de jours rendu tel quel,
+ * qui oblige le relecteur a traduire zero en « aujourd'hui ». Le singulier
+ * manquait aussi : « depuis 1 j ».
+ */
+function since(from: Date, now: Date): string {
+  const count = days(from, now)
+  if (count === 0) return "depuis aujourd’hui"
+  if (count === 1) return 'depuis hier'
+  return `depuis ${count} jours`
+}
+
 export function AnomalyList({ anomalies, now }: { anomalies: Anomaly[]; now: Date }) {
   return (
     <ul className="flex flex-col gap-3">
@@ -43,10 +57,10 @@ export function AnomalyList({ anomalies, now }: { anomalies: Anomaly[]; now: Dat
                 {anomaly.detail}
               </Text>
               <Text as="span" size="sm" tone="muted">
-                depuis {days(anomaly.since, now)} j
+                {since(anomaly.since, now)}
               </Text>
               <span className="ml-auto text-sm">
-                <Link href={anomaly.href}>Ouvrir</Link>
+                <Link href={anomaly.href} standalone>Ouvrir</Link>
               </span>
             </div>
 

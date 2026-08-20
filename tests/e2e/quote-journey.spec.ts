@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor, quoteLinkFor, smsCodeFor } from './helpers'
+import { clearMailbox, quoteLinkFor, signIn, smsCodeFor } from './helpers'
 
 /**
  * Le parcours entier de M1, du premier e-mail a la signature.
@@ -20,23 +20,29 @@ test('de la connexion a la signature du devis', async ({ page, context }) => {
   await clearMailbox()
 
   await test.step('connexion par lien magique', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(ARTISAN)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await expect(page.getByRole('status')).toContainText(ARTISAN)
-
-    await page.goto(await magicLinkFor(ARTISAN))
+    await signIn(page, ARTISAN)
   })
 
-  await test.step('inscription par SIRET', async () => {
-    await expect(page.getByRole('heading', { name: 'Votre entreprise' })).toBeVisible()
+  await test.step('inscription par SIRET, en deux temps', async () => {
+    // Un compte sans entreprise atterrit ici, pas sur l'atelier.
+    await expect(page.getByText('Étape 1 sur 3')).toBeVisible()
     await page.getByLabel('SIRET').fill(SIRET)
     await page.getByRole('button', { name: 'Continuer' }).click()
 
-    // Raison sociale recuperee sur l'API, pas saisie a la main. Elle n'est
-    // plus un titre de `/devis` — ce bloc en a ete retire — mais l'en-tete
-    // applicatif la porte toujours, sur tout ecran connecte.
+    // L'element signature : la raison sociale vient de l'API, pas de la saisie.
+    // Elle n'est pas un titre — c'est l'en-tete des futurs devis, pas un ecran.
     await expect(page.getByText(/GARANCE PLOMBERIE/i)).toBeVisible()
+    // Et le travail restant, annonce avant l'engagement : le libelle est celui
+    // de la mise en route, pas un synonyme. `doors-journey` verifie les trois
+    // de part et d'autre du lien magique ; ici on se contente d'attester que
+    // l'annonce est bien la.
+    await expect(page.getByText('Votre attestation décennale')).toBeVisible()
+
+    // Deja connecte : pas de second aller-retour par la boite mail. L'accueil
+    // s'ouvre sur ce bouton — et non plus `/devis`, qui a cesse de jouer
+    // l'accueil faute d'accueil.
+    await page.getByRole('button', { name: 'C’est bien mon entreprise' }).click()
+    await expect(page).toHaveURL(/\/$/)
   })
 
   await test.step('les mentions obligatoires sont exigees avant tout devis', async () => {

@@ -13,7 +13,7 @@ import { EmptyState } from '@/ui/molecules/empty-state'
 import { Field } from '@/ui/molecules/field'
 import { PageHeader } from '@/ui/molecules/page-header'
 import { DataTable } from '@/ui/organisms/data-table'
-import { AppShell } from '@/ui/shells/app-shell'
+import { AdminShell } from '@/ui/shells/admin-shell'
 import { PlanButton } from './PlanButton'
 
 const LIMIT = 200
@@ -68,7 +68,7 @@ export default async function CompaniesPage({
     .limit(LIMIT)
 
   return (
-    <AppShell>
+    <AdminShell>
       <PageHeader
         title="Entreprises"
         subtitle="L’abonnement se bascule ici, à la main. Aucun encaissement n’est automatisé."
@@ -146,6 +146,6 @@ export default async function CompaniesPage({
           )}
         </div>
       )}
-    </AppShell>
+    </AdminShell>
   )
 }

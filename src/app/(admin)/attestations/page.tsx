@@ -10,7 +10,7 @@ import { Icon } from '@/ui/atoms/icon'
 import { Link } from '@/ui/atoms/link'
 import { Text } from '@/ui/atoms/text'
 import { Card } from '@/ui/molecules/card'
-import { AppShell } from '@/ui/shells/app-shell'
+import { AdminShell } from '@/ui/shells/admin-shell'
 
 const KINDS = { decennale: 'Garantie décennale', rc_pro: 'RC professionnelle' } as const
 
@@ -41,7 +41,7 @@ export default async function ReviewQueuePage({
   })
 
   return (
-    <AppShell>
+    <AdminShell>
       <div className="flex flex-col gap-1">
         <Heading level={1}>Attestations à vérifier</Heading>
         <Text size="sm" tone="soft">
@@ -96,6 +96,6 @@ export default async function ReviewQueuePage({
           ))}
         </ul>
       )}
-    </AppShell>
+    </AdminShell>
   )
 }

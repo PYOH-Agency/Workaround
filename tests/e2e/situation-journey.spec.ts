@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor } from './helpers'
+import { clearMailbox, signIn } from './helpers'
 import { quoteFor, switchToPro } from './fixtures'
 
 /**
@@ -18,10 +18,7 @@ test('des situations de travaux à la retenue de garantie', async ({ page }) => 
   await clearMailbox()
 
   await test.step('connexion', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(PATRON)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(PATRON))
+    await signIn(page, PATRON)
   })
 
   // Devis signé, 1 007,00 TTC, retenue de garantie de 5 % stipulée.

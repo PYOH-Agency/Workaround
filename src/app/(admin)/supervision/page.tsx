@@ -5,7 +5,7 @@ import { currentAnomalies } from '@/services/anomalies'
 import { Link } from '@/ui/atoms/link'
 import { EmptyState } from '@/ui/molecules/empty-state'
 import { PageHeader } from '@/ui/molecules/page-header'
-import { AppShell } from '@/ui/shells/app-shell'
+import { AdminShell } from '@/ui/shells/admin-shell'
 import { AnomalyList } from './AnomalyList'
 
 /**
@@ -29,12 +29,12 @@ export default async function SupervisionPage() {
   const blocking = anomalies.filter((a) => a.severity === 'blocking').length
 
   return (
-    <AppShell>
+    <AdminShell>
       {/*
         Les deux liens vers la file et les entreprises vivaient ici, poses a la
-        main : ils sont desormais dans la navigation, qui les marque en plus
-        quand on y est. Les garder les aurait fait apparaitre deux fois sur le
-        meme ecran.
+        main : ils sont desormais dans la navigation d'`AdminShell`, qui les
+        marque en plus quand on y est. Les garder les aurait fait apparaitre
+        deux fois sur le meme ecran.
       */}
       <PageHeader
         title="Supervision"
@@ -58,6 +58,6 @@ export default async function SupervisionPage() {
       ) : (
         <AnomalyList anomalies={anomalies} now={now} />
       )}
-    </AppShell>
+    </AdminShell>
   )
 }

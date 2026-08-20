@@ -234,15 +234,31 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
+# SMTP applicatif — **a configurer chez l'hebergeur, pas ici.**
+#
+# Ce fichier ne gouverne que la pile LOCALE. L'activer y dirige l'envoi des
+# liens de connexion vers `SMTP_HOST`, que le conteneur d'authentification
+# resout depuis SON reseau : `127.0.0.1` y designe le conteneur lui-meme, et
+# non la machine ou tourne le collecteur. Resultat, `dial tcp 127.0.0.1:
+# connection refused`, aucun lien magique, et tous les parcours qui se
+# connectent tombent en delai d'attente sans dire pourquoi.
+#
+# Desactive, Supabase livre dans son propre collecteur, ou les parcours vont
+# deja chercher les liens. C'est ce qu'on veut en local.
+#
+# Le besoin de production reste entier — l'expediteur par defaut de Supabase
+# est plafonne bas et sans reputation d'envoi, ce qui ne tient pas une porte
+# publique d'inscription — mais il se regle dans les reglages du projet
+# heberge, ou ce fichier n'a aucune prise.
+#
 # [auth.email.smtp]
 # enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# host = "env(SMTP_HOST)"
+# port = "env(SMTP_PORT)"
+# user = "env(SMTP_USER)"
+# pass = "env(SMTP_PASSWORD)"
+# admin_email = "env(SMTP_ADMIN_EMAIL)"
+# sender_name = "D'équerre"
 
 # Gabarit du lien magique : passe par {{ .TokenHash }} et notre route
 # /auth/confirm, et non par le lien /auth/v1/verify du gabarit par defaut.
@@ -278,10 +294,15 @@ max_frequency = "5s"
 # 4152127777 = "123456"
 
 # Configure logged in session timeouts.
+#
+# **NE PAS ACTIVER.** Le produit est sans mot de passe : l'artisan est sur un
+# chantier, avec des gants et une 4G mediocre. La friction du lien magique n'est
+# supportable que parce qu'elle est payee UNE FOIS — `proxy.ts` renouvelle le
+# jeton a chaque requete, et qui ouvre l'outil chaque jour ne se reconnecte
+# jamais. Poser `timebox` ou `inactivity_timeout` « pour faire serieux » casse
+# l'ergonomie du produit sans qu'on voie le lien. Voir spec A1 §9.
 # [auth.sessions]
-# Force log out after the specified duration.
 # timebox = "24h"
-# Force log out if the user has been inactive longer than the specified duration.
 # inactivity_timeout = "8h"
 
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.

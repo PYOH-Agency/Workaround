@@ -98,6 +98,42 @@ describe('findEstablishment', () => {
     expect(found.rge).toBe(false)
   })
 
+  it('nomme une forme absente de la table par sa FAMILLE', async () => {
+    // Une SA n'y figure pas : la table ne couvre que les formes d'artisan. Sans
+    // repli, l'ecran d'inscription affichait « SIRET … » sans forme juridique,
+    // ce qui donne l'air d'un annuaire incomplet la ou c'est notre table qui
+    // l'etait. Les deux premiers chiffres sont le niveau II de la nomenclature
+    // INSEE, et ils sont stables.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        jsonResponse({
+          results: [
+            { ...COMPANY.results[0], nature_juridique: '5599', tva: ['FR51507698207'] },
+          ],
+        }),
+      ),
+    )
+
+    const found = await findEstablishment('50769820700036')
+
+    expect(found.legalForm).toBe('5599')
+    expect(found.legalFormLabel).toBe('Société anonyme')
+  })
+
+  it('rend null pour une forme dont meme la famille est inconnue', async () => {
+    // Mieux vaut ne rien dire qu'inventer une categorie : ce libelle finit sur
+    // un devis, ou il est une mention obligatoire.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        jsonResponse({ results: [{ ...COMPANY.results[0], nature_juridique: '9999' }] }),
+      ),
+    )
+
+    expect((await findEstablishment('50769820700036')).legalFormLabel).toBeNull()
+  })
+
   it('interroge l API avec minimal=true et matching_etablissements', async () => {
     const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(COMPANY))
 

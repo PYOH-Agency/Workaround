@@ -4,13 +4,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Text } from '@/ui/atoms/text'
 import { cn } from '@/ui/cn'
-import { isBackoffice, isCurrent, staffNavGroups, type NavGroup } from './app-nav-routes'
+import { isCurrent, type NavGroup } from './app-nav-routes'
 
 /**
- * La navigation d'un espace connecte — celui de l'artisan, celui du demandeur.
+ * La navigation d'un espace connecte — l'artisan, le demandeur, le relecteur.
  *
  * Elle recoit ses entrees plutot qu'elle ne les deduit : c'est ce qui lui a
- * permis de servir les deux publics sans qu'un second composant n'apparaisse.
+ * permis de servir les trois publics sans qu'un second composant n'apparaisse.
  * Ce qu'elle sait faire — marquer la page courante, tenir la cible tactile,
  * passer a la ligne — ne depend pas de qui la regarde ; ce que chacun peut
  * atteindre, si. L'appelant tranche donc la seconde question, et `AppHeader`
@@ -40,24 +40,20 @@ export function AppNav({ groups }: { groups: NavGroup[] }) {
   const pathname = usePathname()
 
   /*
-    Le backoffice partage `AppShell` avec l'artisan, donc son en-tete, et ne
-    peut pas se distinguer de lui cote serveur : ses ecrans n'ont aucune
-    appartenance artisanale a transmettre. C'est donc l'URL qui tranche, ici,
-    au seul endroit du produit qui la lit.
-
-    Substitution et non effacement : l'ancienne regle masquait la navigation
-    dans le backoffice, ce qui laissait le relecteur sans aucun moyen d'aller
-    d'un ecran a l'autre.
+    Aucune deduction ici, et c'est ce qui a change : une version anterieure
+    substituait les entrees du backoffice d'apres l'URL, faute de pouvoir le
+    distinguer cote serveur — les deux publics partageaient alors `AppShell`.
+    `AdminShell` a repris ces ecrans, donc chaque coquille passe les siennes, et
+    ce composant n'a plus a savoir qui le regarde.
   */
-  const shown = isBackoffice(pathname) ? staffNavGroups : groups
-  if (shown.length === 0) return null
+  if (groups.length === 0) return null
 
   return (
     <nav
       aria-label="Navigation principale"
       className="flex flex-wrap items-center gap-x-6 gap-y-1"
     >
-      {shown.map((group) => (
+      {groups.map((group) => (
         <ul
           key={group.label}
           aria-label={group.label}

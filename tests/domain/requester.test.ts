@@ -13,26 +13,54 @@ describe('normalisation de l adresse', () => {
   })
 })
 
-describe('destination apres connexion', () => {
+describe('resolveDestination', () => {
+  const NOBODY = {
+    hasCompany: false,
+    hasRequester: false,
+    hasSignature: false,
+    hasStaff: false,
+  }
+
   it('envoie l artisan sur son accueil, et non sur sa liste de devis', () => {
     // La liste des devis faisait office d'accueil faute d'accueil. Elle redevient
     // ce qu'elle est.
-    expect(resolveDestination({ hasCompany: true, hasRequester: false })).toBe('/')
+    expect(resolveDestination({ ...NOBODY, hasCompany: true })).toBe('/')
   })
 
-  it('envoie le demandeur chez lui', () => {
-    // Le defaut d'aujourd'hui : SessionError puis /inscription, c'est-a-dire
-    // le formulaire SIRET de l'artisan.
-    expect(resolveDestination({ hasCompany: false, hasRequester: true })).toBe('/mes-logements')
+  it('envoie aux logements un demandeur qui a signe', () => {
+    expect(resolveDestination({ ...NOBODY, hasRequester: true, hasSignature: true })).toBe(
+      '/mes-logements',
+    )
   })
 
-  it('fait primer l entreprise quand le compte porte les deux roles', () => {
+  it('envoie au repertoire un demandeur qui n a jamais signe', () => {
+    // Sinon il atterrit sur un ecran vide que sa requete ne peut pas remplir :
+    // `myProperties` derive les logements DES SIGNATURES.
+    expect(resolveDestination({ ...NOBODY, hasRequester: true, hasSignature: false })).toBe(
+      '/mon-repertoire',
+    )
+  })
+
+  it('envoie a la supervision un relecteur interne', () => {
+    expect(resolveDestination({ ...NOBODY, hasStaff: true })).toBe('/supervision')
+  })
+
+  it('fait passer l entreprise AVANT le back-office', () => {
+    // L'exploitant du produit est justement le compte qui porte les deux.
+    // L'atelier est celui ou l'on travaille tous les jours ; l'en-tete propose
+    // le passage a l'autre cote.
+    expect(resolveDestination({ ...NOBODY, hasCompany: true, hasStaff: true })).toBe('/')
+  })
+
+  it('fait passer l entreprise AVANT le dossier de demandeur', () => {
     // Un plombier fait aussi refaire sa toiture. Interdire le cumul serait
     // faux ; ne pas choisir de defaut le laisserait sans destination.
-    expect(resolveDestination({ hasCompany: true, hasRequester: true })).toBe('/')
+    expect(
+      resolveDestination({ ...NOBODY, hasCompany: true, hasRequester: true, hasSignature: true }),
+    ).toBe('/')
   })
 
-  it('envoie a l inscription un compte qui n est ni l un ni l autre', () => {
-    expect(resolveDestination({ hasCompany: false, hasRequester: false })).toBe('/inscription')
+  it('envoie a l inscription artisan un compte sans aucun rattachement', () => {
+    expect(resolveDestination(NOBODY)).toBe('/creer-mon-entreprise')
   })
 })

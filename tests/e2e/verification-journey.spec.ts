@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { clearMailbox, magicLinkFor } from './helpers'
+import { clearMailbox, signIn } from './helpers'
 import { companyWithActivities, makeStaff } from './fixtures'
 
 /**
@@ -21,10 +21,7 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
   await clearMailbox()
 
   await test.step('connexion de l’artisan', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(ARTISAN)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(ARTISAN))
+    await signIn(page, ARTISAN)
   })
 
   // Deux activites declarees : plomberie et electricite. Une seule sera couverte.
@@ -73,9 +70,11 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
 
     const nav = page.getByRole('navigation', { name: 'Navigation principale' })
     const links = nav.getByRole('link')
-    // Six, et non cinq : l'accueil a ajoute sa propre entree de navigation,
-    // au meme titre que les cinq deja comptees ici.
-    await expect(links).toHaveCount(6)
+    // Sept, et non six : « Offre Pro » s'ajoute aux six precedentes. Elle ne
+    // se montre qu'a un responsable en gratuit — ce que cet artisan est — et
+    // disparaitra le jour ou il prendra le plan. Le compte suit donc la table
+    // de navigation, entree par entree, plutot qu'un nombre pose une fois.
+    await expect(links).toHaveCount(7)
 
     // 44 px : le seuil que le socle s'impose deja pour `Input`. La cible faisait
     // la hauteur du texte, soit 20 px, avant ce lot.
@@ -117,10 +116,7 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
   const reviewer = await reviewerContext.newPage()
 
   await test.step('un relecteur interne établit la correspondance', async () => {
-    await reviewer.goto('/connexion')
-    await reviewer.getByLabel('E-mail').fill(REVIEWER)
-    await reviewer.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await reviewer.goto(await magicLinkFor(REVIEWER))
+    await signIn(reviewer, REVIEWER)
     await makeStaff(REVIEWER)
 
     await reviewer.goto('/attestations')
@@ -173,12 +169,18 @@ test('de l’attestation déposée à la page publique', async ({ browser }) => 
     await reviewer.goto('/supervision')
     await expect(reviewer.getByRole('heading', { name: 'Supervision' })).toBeVisible()
 
-    // Le backoffice partage `AppShell`, donc l'en-tete. Les liens « Devis » ou
-    // « Passeport » n'y ont rien a faire : ils menent a l'entreprise du
-    // relecteur, pas a celle qu'il examine.
-    await expect(
-      reviewer.getByRole('navigation', { name: 'Navigation principale' }),
-    ).toHaveCount(0)
+    // L'assertion a change de forme, pas d'intention. Elle exigeait AUCUNE
+    // navigation, du temps ou le backoffice partageait `AppShell` et n'avait
+    // que celle de l'artisan a se voir retirer. Il a la sienne depuis
+    // `AdminShell` : ce qu'il faut verifier n'est plus son absence, c'est que
+    // les liens « Devis » ou « Passeport » n'y figurent pas — ils menent a
+    // l'entreprise du relecteur, pas a celle qu'il examine.
+    const nav = reviewer.getByRole('navigation', { name: 'Navigation principale' })
+
+    await expect(nav.getByRole('link', { name: 'Supervision' })).toBeVisible()
+    await expect(nav.getByRole('link', { name: 'Attestations' })).toBeVisible()
+    await expect(nav.getByRole('link', { name: 'Devis' })).toHaveCount(0)
+    await expect(nav.getByRole('link', { name: 'Passeport' })).toHaveCount(0)
   })
 
   await test.step('un artisan n’accède pas à la supervision', async () => {

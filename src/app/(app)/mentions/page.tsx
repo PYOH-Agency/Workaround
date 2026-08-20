@@ -15,7 +15,7 @@ export default async function LegalMentionsPage() {
     session = await currentCompany()
   } catch (e) {
     if (e instanceof SessionError) {
-      redirect(e.message.includes('Aucune entreprise') ? '/inscription' : '/connexion')
+      redirect(e.message.includes('Aucune entreprise') ? '/creer-mon-entreprise' : '/connexion')
     }
     throw e
   }

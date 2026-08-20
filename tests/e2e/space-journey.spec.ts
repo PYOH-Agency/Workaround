@@ -3,10 +3,10 @@ import { test, expect } from '@playwright/test'
 import {
   clearMailbox,
   contactMailFor,
-  magicLinkFor,
   mailboxHas,
   quoteLinkFor,
   signatureReceiptFor,
+  signIn,
   smsCodeFor,
 } from './helpers'
 import { quoteFor } from './fixtures'
@@ -34,10 +34,7 @@ test('de la signature du devis à la réception déclarée', async ({ page, brow
   const artisan = await shop.newPage()
 
   await test.step('connexion de l’artisan', async () => {
-    await artisan.goto('/connexion')
-    await artisan.getByLabel('E-mail').fill(ARTISAN)
-    await artisan.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await artisan.goto(await magicLinkFor(ARTISAN))
+    await signIn(artisan, ARTISAN)
   })
 
   // Brouillon, pas signe : la signature doit passer par l'ecran du client,
@@ -73,10 +70,7 @@ test('de la signature du devis à la réception déclarée', async ({ page, brow
   })
 
   await test.step('il se connecte et arrive chez lui, pas sur l’inscription artisan', async () => {
-    await page.goto('/connexion')
-    await page.getByLabel('E-mail').fill(CLIENT)
-    await page.getByRole('button', { name: 'Recevoir le lien' }).click()
-    await page.goto(await magicLinkFor(CLIENT))
+    await signIn(page, CLIENT)
 
     await expect(page).toHaveURL(/\/mes-logements$/)
     await expect(page.getByRole('heading', { name: 'Mes logements' })).toBeVisible()
