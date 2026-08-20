@@ -4,6 +4,7 @@ import { Text } from '@/ui/atoms/text'
 import { Lockup } from '@/ui/brand/lockup'
 import { AppNav } from '@/ui/molecules/app-nav'
 import { spaceNavGroups } from '@/ui/molecules/app-nav-routes'
+import { ReopenNotes } from '@/ui/molecules/reopen-notes'
 import { SignOut } from '@/ui/molecules/sign-out'
 import { ThemeToggle } from '@/ui/molecules/theme-toggle'
 
@@ -99,8 +100,19 @@ export function SpaceShell({
             ) : null}
           </div>
 
+          {/*
+            « Revoir les explications » a cote de la sortie : les deux sont des
+            commandes de compte, et le geste inverse de la carte d'accueil se
+            cherche la ou l'on cherche deja son compte (spec A2 §4).
+
+            Elle tient ici, et c'est mesure : en 375 px cette rangee de
+            commandes est deja passee sous la marque — elle dispose de 141 px
+            libres, l'icone en prend 52. L'en-tete de l'artisan, lui, n'a pas
+            cette marge (voir `AppHeader`).
+          */}
           <div className="ml-auto flex shrink-0 items-center gap-1">
             <ThemeToggle />
+            <ReopenNotes />
             <SignOut />
           </div>
         </div>
