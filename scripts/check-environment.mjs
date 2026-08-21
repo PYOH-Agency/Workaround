@@ -19,18 +19,36 @@ import { ports, workdir, ROOT } from './lib/supabase-workdir.mjs'
  * produirait donc une page qui remercie, et pas un seul mail envoye, sans que
  * rien ne s'en plaigne. C'est le seul endroit ou ce defaut peut encore crier.
  */
+/**
+ * `SMTP_HOST` et `SMTP_PORT` y figurent parce que leur absence est PIRE qu'une
+ * panne : elle marche.
+ *
+ * `src/services/email.ts` retombe sur `127.0.0.1:54325` quand ils manquent —
+ * le collecteur de la pile par defaut. Tant qu'un worktree partage cette pile,
+ * le defaut vise juste et personne ne voit que la variable manque. Le jour ou
+ * il prend la sienne (`pnpm db:worktree`, qui decale la bande), les envois
+ * continuent de partir vers l'ANCIENNE pile pendant que les tests lisent la
+ * nouvelle : trois parcours de courrier expirent, et rien ne dit pourquoi.
+ *
+ * Le script de worktree ne peut pas non plus les decaler s'ils sont absents :
+ * il reecrit des lignes, il n'en invente pas.
+ */
 const REQUIRED = {
   '.env.local': [
     'DATABASE_URL',
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     'MAIL_OPTOUT_SECRET',
+    'SMTP_HOST',
+    'SMTP_PORT',
   ],
   '.env.test': [
     'DATABASE_URL',
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     'MAIL_OPTOUT_SECRET',
+    'SMTP_HOST',
+    'SMTP_PORT',
   ],
 }
 
